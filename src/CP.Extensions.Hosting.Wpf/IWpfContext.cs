@@ -20,7 +20,7 @@ public interface IWpfContext : IUiContext
     /// <summary>
     /// Gets or sets the Application.
     /// </summary>
-    Application WpfApplication { get; set; }
+    Application? WpfApplication { get; set; }
 
     /// <summary>
     /// Gets this WPF dispatcher.

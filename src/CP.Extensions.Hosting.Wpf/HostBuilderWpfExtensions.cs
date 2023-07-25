@@ -24,7 +24,7 @@ public static class HostBuilderWpfExtensions
     /// <param name="shutdownMode">ShutdownMode default is OnLastWindowClose.</param>
     /// <returns>A IHostBuilder.</returns>
     public static IHostBuilder? UseWpfLifetime(this IHostBuilder hostBuilder, ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose) =>
-        hostBuilder?.ConfigureServices((_, serviceCollection) =>
+        hostBuilder?.ConfigureServices((_, __) =>
         {
             if (!TryRetrieveWpfContext(hostBuilder.Properties, out var wpfContext))
             {

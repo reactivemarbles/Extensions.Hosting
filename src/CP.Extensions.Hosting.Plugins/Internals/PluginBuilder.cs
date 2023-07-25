@@ -20,10 +20,10 @@ internal class PluginBuilder : IPluginBuilder
     public Matcher PluginMatcher { get; } = new Matcher();
 
     /// <inheritdoc />
-    public Func<string, bool> ValidatePlugin { get; set; } = s => true;
+    public Func<string, bool> ValidatePlugin { get; set; } = _ => true;
 
     /// <inheritdoc />
-    public Func<Assembly, IEnumerable<IPlugin>> AssemblyScanFunc { get; set; } = PluginScanner.ScanForPluginInstances;
+    public Func<Assembly, IEnumerable<IPlugin?>?> AssemblyScanFunc { get; set; } = PluginScanner.ScanForPluginInstances;
 
     /// <inheritdoc />
     public IList<string> PluginDirectories { get; } = new List<string>();

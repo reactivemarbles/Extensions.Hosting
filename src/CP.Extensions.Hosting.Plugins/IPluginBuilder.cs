@@ -49,5 +49,5 @@ public interface IPluginBuilder
     /// PluginScanner.ByNamingConvention which is fast, but finds only one IPlugin by convention
     /// PluginScanner.ScanForPluginInstances which is the default and finds all public classes implementing IPlugin.
     /// </summary>
-    Func<Assembly, IEnumerable<IPlugin>> AssemblyScanFunc { get; set; }
+    Func<Assembly, IEnumerable<IPlugin?>?> AssemblyScanFunc { get; set; }
 }

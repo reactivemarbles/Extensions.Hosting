@@ -12,7 +12,7 @@ namespace CP.Extensions.Hosting.Plugins.Internals
     /// </summary>
     public class AssemblyDependencyResolver
     {
-        private readonly string _pluginPath;
+        private readonly string? _pluginPath;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AssemblyDependencyResolver"/> class.
@@ -32,7 +32,7 @@ namespace CP.Extensions.Hosting.Plugins.Internals
                 throw new ArgumentNullException(nameof(assemblyName));
             }
 
-            var assemblyPath = Path.Combine(_pluginPath, $"{assemblyName.Name}.dll");
+            var assemblyPath = Path.Combine(_pluginPath!, $"{assemblyName.Name}.dll");
             if (File.Exists(assemblyPath))
             {
                 return assemblyPath;

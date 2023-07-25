@@ -115,11 +115,11 @@ public static class HostBuilderPluginExtensions
                 }
             }
 
-            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin.GetOrder());
+            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin?.GetOrder());
 
             foreach (var plugin in plugins)
             {
-                plugin.ConfigureHost(hostBuilderContext, serviceCollection);
+                plugin?.ConfigureHost(hostBuilderContext, serviceCollection);
             }
         });
 

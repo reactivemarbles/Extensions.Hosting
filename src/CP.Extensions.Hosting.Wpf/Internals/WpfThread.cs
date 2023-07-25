@@ -47,7 +47,7 @@ public class WpfThread : BaseUiThread<IWpfContext>
 
     /// <inheritdoc />
     protected override void UiThreadStart() =>
-        UiContext?.WpfApplication.Dispatcher.Invoke(() =>
+        UiContext?.WpfApplication?.Dispatcher.Invoke(() =>
         {
             // Mark the application as running
             UiContext.IsRunning = true;

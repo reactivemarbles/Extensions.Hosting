@@ -53,7 +53,7 @@ public class WpfHostedService : IHostedService
             _logger.LogDebug("Stopping WPF due to application exit.");
 
             // Stop application
-            await _wpfContext.Dispatcher.InvokeAsync(() => _wpfContext.WpfApplication.Shutdown());
+            await _wpfContext.Dispatcher.InvokeAsync(() => _wpfContext.WpfApplication?.Shutdown());
         }
     }
 }

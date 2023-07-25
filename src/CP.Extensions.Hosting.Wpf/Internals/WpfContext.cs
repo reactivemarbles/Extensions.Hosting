@@ -19,8 +19,8 @@ internal class WpfContext : IWpfContext
     public bool IsRunning { get; set; }
 
     /// <inheritdoc />
-    public Application WpfApplication { get; set; }
+    public Application? WpfApplication { get; set; }
 
     /// <inheritdoc />
-    public Dispatcher Dispatcher => WpfApplication.Dispatcher;
+    public Dispatcher Dispatcher => WpfApplication?.Dispatcher!;
 }

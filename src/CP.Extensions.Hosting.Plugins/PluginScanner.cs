@@ -18,13 +18,13 @@ public static class PluginScanner
     /// </summary>
     /// <param name="pluginAssembly">pluginAssembly.</param>
     /// <returns>IEnumerable with one IPlugin, or empty.</returns>
-    public static IEnumerable<IPlugin> ByNamingConvention(Assembly pluginAssembly)
+    public static IEnumerable<IPlugin?> ByNamingConvention(Assembly pluginAssembly)
     {
         var assemblyName = pluginAssembly?.GetName().Name;
         var type = pluginAssembly?.GetType($"{assemblyName}.Plugin", false, false);
         if (type != null)
         {
-            yield return (IPlugin)Activator.CreateInstance(type);
+            yield return (IPlugin?)Activator.CreateInstance(type);
         }
     }
 
@@ -33,11 +33,11 @@ public static class PluginScanner
     /// </summary>
     /// <param name="pluginAssembly">pluginAssembly.</param>
     /// <returns>IEnumerable of IPlugin.</returns>
-    public static IEnumerable<IPlugin>? ScanForPluginInstances(Assembly pluginAssembly)
+    public static IEnumerable<IPlugin?>? ScanForPluginInstances(Assembly pluginAssembly)
     {
         var pluginType = typeof(IPlugin);
         return pluginAssembly?.ExportedTypes
             .Where(type => pluginType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-            .Select(type => (IPlugin)Activator.CreateInstance(type));
+            .Select(type => (IPlugin?)Activator.CreateInstance(type));
     }
 }
