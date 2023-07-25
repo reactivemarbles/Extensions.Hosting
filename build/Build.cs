@@ -10,6 +10,7 @@ using Serilog;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using Nuke.Common.Tools.PowerShell;
 using CP.BuildTools;
+using Nuke.Common.Tools.MSBuild;
 
 [GitHubActions(
     "BuildOnly",
@@ -71,10 +72,10 @@ partial class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore, Print)
-        .Executes(() => DotNetBuild(s => s
+        .Executes(() => MSBuildTasks.MSBuild(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .EnableNoRestore()));
+                .SetRestore(false)));
 
     Target Pack => _ => _
     .After(Compile)
