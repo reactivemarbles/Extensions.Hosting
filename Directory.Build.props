@@ -1,0 +1,55 @@
+<Project DefaultTargets="Build"
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Authors>Chris Pulman</Authors>
+    <Description>An Extension of the Microsoft.Extensions.Hosting library</Description>
+    <Copyright>Copyright © https://github.com/ChrisPulman $([System.DateTime]::Now.ToString(yyyy))</Copyright>
+    <IsTestProject>$(MSBuildProjectName.Contains('Tests'))</IsTestProject>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <LangVersion>preview</LangVersion>
+    <Configuration>$(TargetFramework)</Configuration>
+    <Company>ChrisPulman</Company>
+    <NoWarn>CS1591;IDE0190;IDE1006</NoWarn>
+    <Nullable>enable</Nullable>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Compatability with Net 6 / 7 and net462</PackageReleaseNotes>
+    <PackageTags>Microsoft;Extensions;Hosting;Rx;ReactiveUI;net;netstandard</PackageTags>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <PackageProjectUrl>https://github.com/ChrisPulman/CP.Extensions.Hosting</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ChrisPulman/CP.Extensions.Hosting</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <!--https://devblogs.microsoft.com/dotnet/producing-packages-with-source-link/-->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
+    <IncludeSymbols>true</IncludeSymbols>
+
+    <!-- Include PDB in the built .nupkg -->
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)images\logo.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--<Compile Update="**\*.cs" DependentUpon="I%(Filename).cs" />-->
+    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.507" PrivateAssets="all" />
+    <PackageReference Include="Roslynator.Analyzers" Version="4.3.0" PrivateAssets="All" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+</Project>
