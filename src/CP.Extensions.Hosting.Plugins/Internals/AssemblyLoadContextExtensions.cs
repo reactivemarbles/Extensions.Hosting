@@ -3,47 +3,46 @@
 
 using System.Reflection;
 
-namespace CP.Extensions.Hosting.Plugins.Internals
+namespace CP.Extensions.Hosting.Plugins.Internals;
+
+/// <summary>
+/// AssemblyLoadContext extensions.
+/// </summary>
+public static class AssemblyLoadContextExtensions
 {
     /// <summary>
-    /// AssemblyLoadContext extensions.
+    /// Try to get an assembly from the specified AssemblyLoadContext.
     /// </summary>
-    public static class AssemblyLoadContextExtensions
+    /// <param name="assemblyLoadContext">AssemblyLoadContext.</param>
+    /// <param name="assemblyName">AssemblyName to look for.</param>
+    /// <param name="foundAssembly">Assembly out.</param>
+    /// <returns>bool.</returns>
+    public static bool TryGetAssembly(this AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName, out Assembly? foundAssembly)
     {
-        /// <summary>
-        /// Try to get an assembly from the specified AssemblyLoadContext.
-        /// </summary>
-        /// <param name="assemblyLoadContext">AssemblyLoadContext.</param>
-        /// <param name="assemblyName">AssemblyName to look for.</param>
-        /// <param name="foundAssembly">Assembly out.</param>
-        /// <returns>bool.</returns>
-        public static bool TryGetAssembly(this AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName, out Assembly? foundAssembly)
+        if (assemblyLoadContext == null)
         {
-            if (assemblyLoadContext == null)
-            {
-                foundAssembly = null;
-                return false;
-            }
-
-            foreach (var assembly in assemblyLoadContext.Assemblies)
-            {
-                var name = assembly.GetName().Name;
-                if (name == null)
-                {
-                    continue;
-                }
-
-                if (!name.Equals(assemblyName?.Name))
-                {
-                    continue;
-                }
-
-                foundAssembly = assembly;
-                return true;
-            }
-
             foundAssembly = null;
             return false;
         }
+
+        foreach (var assembly in assemblyLoadContext.Assemblies)
+        {
+            var name = assembly.GetName().Name;
+            if (name == null)
+            {
+                continue;
+            }
+
+            if (!name.Equals(assemblyName?.Name))
+            {
+                continue;
+            }
+
+            foundAssembly = assembly;
+            return true;
+        }
+
+        foundAssembly = null;
+        return false;
     }
 }
