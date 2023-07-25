@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionC
 		..\build.ps1 = ..\build.ps1
 		..\build.sh = ..\build.sh
 		..\Directory.Build.props = ..\Directory.Build.props
+		..\global.json = ..\global.json
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 		..\stylecop.json = ..\stylecop.json
@@ -25,11 +26,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.SingleInstance", "CP.Extensions.Hosting.SingleInstance\CP.Extensions.Hosting.SingleInstance.csproj", "{DD9DAC71-9117-4556-9DD8-3E34EB8DD658}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.Wpf", "CP.Extensions.Hosting.Wpf\CP.Extensions.Hosting.Wpf.csproj", "{F072316C-7FA3-4B8C-9560-3C0510E3B659}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.Wpf", "CP.Extensions.Hosting.Wpf\CP.Extensions.Hosting.Wpf.csproj", "{F072316C-7FA3-4B8C-9560-3C0510E3B659}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.WinForms", "CP.Extensions.Hosting.WinForms\CP.Extensions.Hosting.WinForms.csproj", "{33BA57A6-6300-41E5-B016-F33BC667716B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.WinForms", "CP.Extensions.Hosting.WinForms\CP.Extensions.Hosting.WinForms.csproj", "{33BA57A6-6300-41E5-B016-F33BC667716B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.WinUI", "CP.Extensions.Hosting.WinUI\CP.Extensions.Hosting.WinUI.csproj", "{641302C9-7B83-42E3-8619-4FD1136B03FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.WinUI", "CP.Extensions.Hosting.WinUI\CP.Extensions.Hosting.WinUI.csproj", "{641302C9-7B83-42E3-8619-4FD1136B03FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.ReactiveUI.Wpf", "CP.Extensions.Hosting.ReactiveUI.Wpf\CP.Extensions.Hosting.ReactiveUI.Wpf.csproj", "{FD76D9CB-9323-4555-B471-51CC517EBCBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.ReactiveUI.WinForms", "CP.Extensions.Hosting.ReactiveUI.WinForms\CP.Extensions.Hosting.ReactiveUI.WinForms.csproj", "{4481115F-6453-4E5A-B9A1-6B252438B391}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.ReactiveUI.WinUI", "CP.Extensions.Hosting.ReactiveUI.WinUI\CP.Extensions.Hosting.ReactiveUI.WinUI.csproj", "{684344D8-09C7-4256-9DD7-5E3E14E68034}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.PluginService", "CP.Extensions.Hosting.PluginService\CP.Extensions.Hosting.PluginService.csproj", "{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +72,22 @@ Global
 		{641302C9-7B83-42E3-8619-4FD1136B03FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{641302C9-7B83-42E3-8619-4FD1136B03FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{641302C9-7B83-42E3-8619-4FD1136B03FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD76D9CB-9323-4555-B471-51CC517EBCBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD76D9CB-9323-4555-B471-51CC517EBCBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD76D9CB-9323-4555-B471-51CC517EBCBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD76D9CB-9323-4555-B471-51CC517EBCBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4481115F-6453-4E5A-B9A1-6B252438B391}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4481115F-6453-4E5A-B9A1-6B252438B391}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4481115F-6453-4E5A-B9A1-6B252438B391}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4481115F-6453-4E5A-B9A1-6B252438B391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{684344D8-09C7-4256-9DD7-5E3E14E68034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{684344D8-09C7-4256-9DD7-5E3E14E68034}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{684344D8-09C7-4256-9DD7-5E3E14E68034}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{684344D8-09C7-4256-9DD7-5E3E14E68034}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

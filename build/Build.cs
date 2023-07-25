@@ -93,6 +93,7 @@ partial class Build : NukeBuild
 
             DotNetPack(settings => settings
                 .SetConfiguration(Configuration)
+                .SetNoBuild(true)
                 .SetVersion(NerdbankVersioning.NuGetPackageVersion)
                 .SetOutputDirectory(PackagesDirectory)
                 .CombineWith(packableProjects, (packSettings, project) =>

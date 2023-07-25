@@ -9,52 +9,51 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using WinRT;
 
-namespace CP.Extensions.Hosting.WinUI.Internals
+namespace CP.Extensions.Hosting.WinUI.Internals;
+
+/// <summary>
+/// This contains the logic for the WinUI thread.
+/// </summary>
+public class WinUIThread : BaseUiThread<IWinUIContext>
 {
     /// <summary>
-    /// This contains the logic for the WinUI thread.
+    /// Initializes a new instance of the <see cref="WinUIThread"/> class.
+    /// This will create the WinUIThread.
     /// </summary>
-    public class WinUIThread : BaseUiThread<IWinUIContext>
+    /// <param name="serviceProvider">IServiceProvider.</param>
+    public WinUIThread(IServiceProvider serviceProvider)
+        : base(serviceProvider)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WinUIThread"/> class.
-        /// This will create the WinUIThread.
-        /// </summary>
-        /// <param name="serviceProvider">IServiceProvider.</param>
-        public WinUIThread(IServiceProvider serviceProvider)
-            : base(serviceProvider)
-        {
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void PreUiThreadStart() =>
-            ComWrappersSupport.InitializeComWrappers();
+    /// <inheritdoc />
+    protected override void PreUiThreadStart() =>
+        ComWrappersSupport.InitializeComWrappers();
 
-        /// <inheritdoc />
-        protected override void UiThreadStart()
+    /// <inheritdoc />
+    protected override void UiThreadStart()
+    {
+        Application.Start(_ =>
         {
-            Application.Start(_ =>
+            UiContext!.Dispatcher = DispatcherQueue.GetForCurrentThread();
+            var context = new DispatcherQueueSynchronizationContext(UiContext.Dispatcher);
+            SynchronizationContext.SetSynchronizationContext(context);
+
+            UiContext.WinUIApplication = ServiceProvider.GetRequiredService<Application>();
+
+            // Use the provided IWinUIService
+            var winUIServices = ServiceProvider.GetServices<IWinUIService>();
+            if (winUIServices != null)
             {
-                UiContext!.Dispatcher = DispatcherQueue.GetForCurrentThread();
-                var context = new DispatcherQueueSynchronizationContext(UiContext.Dispatcher);
-                SynchronizationContext.SetSynchronizationContext(context);
-
-                UiContext.WinUIApplication = ServiceProvider.GetRequiredService<Application>();
-
-                // Use the provided IWinUIService
-                var winUIServices = ServiceProvider.GetServices<IWinUIService>();
-                if (winUIServices != null)
+                foreach (var winUIService in winUIServices)
                 {
-                    foreach (var winUIService in winUIServices)
-                    {
-                        winUIService.Initialize(UiContext.WinUIApplication);
-                    }
+                    winUIService.Initialize(UiContext.WinUIApplication);
                 }
+            }
 
-                UiContext.AppWindow = (Window)ActivatorUtilities.CreateInstance(ServiceProvider, UiContext.AppWindowType!);
-                UiContext.AppWindow.Activate();
-            });
-            HandleApplicationExit();
-        }
+            UiContext.AppWindow = (Window)ActivatorUtilities.CreateInstance(ServiceProvider, UiContext.AppWindowType!);
+            UiContext.AppWindow.Activate();
+        });
+        HandleApplicationExit();
     }
 }

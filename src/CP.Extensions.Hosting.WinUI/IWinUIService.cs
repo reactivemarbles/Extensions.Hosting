@@ -3,17 +3,16 @@
 
 using Microsoft.UI.Xaml;
 
-namespace CP.Extensions.Hosting.WinUI
+namespace CP.Extensions.Hosting.WinUI;
+
+/// <summary>
+/// This defines a service which is called before the message loop is started.
+/// </summary>
+public interface IWinUIService
 {
     /// <summary>
-    /// This defines a service which is called before the message loop is started.
+    /// Do whatever you need to do to initialize WinUI, this is called from the UI thread.
     /// </summary>
-    public interface IWinUIService
-    {
-        /// <summary>
-        /// Do whatever you need to do to initialize WinUI, this is called from the UI thread.
-        /// </summary>
-        /// <param name="application">Application.</param>
-        void Initialize(Application application);
-    }
+    /// <param name="application">Application.</param>
+    void Initialize(Application application);
 }
