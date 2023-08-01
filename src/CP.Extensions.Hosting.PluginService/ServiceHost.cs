@@ -36,10 +36,17 @@ public static class ServiceHost
     /// <param name="args">The arguments.</param>
     /// <param name="hostBuilder">The host builder.</param>
     /// <param name="nameSpace">The plugin name space.</param>
+    /// <param name="targetRuntime">The target runtime.</param>
     /// <returns>
     /// A Task.
     /// </returns>
-    public static Task Create(Type type, string[] args, Func<IHostBuilder, IHostBuilder>? hostBuilder = default, string nameSpace = "CP.Plugin")
+    /// <exception cref="System.ArgumentNullException">type.</exception>
+    public static Task Create(
+        Type type,
+        string[] args,
+        Func<IHostBuilder?, IHostBuilder?>? hostBuilder = default,
+        string nameSpace = "CP.Plugin",
+        string? targetRuntime = null)
     {
         if (type == null)
         {
@@ -63,34 +70,21 @@ public static class ServiceHost
             .ConfigurePlugins(pluginBuilder =>
             {
                 var process = Process.GetCurrentProcess();
-                var fullPath = process.MainModule!.FileName!.Replace(process.MainModule.ModuleName!, string.Empty);
+                var fullPath = process.MainModule?.FileName?.Replace(process.MainModule.ModuleName!, string.Empty);
 
-                Console.WriteLine(Environment.Version);
+                _logger?.Logger?.LogInformation("Running using dotNet {Version}", Environment.Version);
 
-                var runtime = Environment.Version.ToString().Split('.')[0];
-                var runtimePath = string.Empty;
-
-                if (string.IsNullOrEmpty(runtime))
-                {
-                    throw new ArgumentOutOfRangeException(nameof(runtime));
-                }
-
-                // Need to find a better way to do this
-                runtimePath = runtime switch
-                {
-                    "3" => "netcoreapp3.1",
-                    "4" => "net48",
-                    _ => $"net{runtime}.0-windows",
-                };
+                var runtime = targetRuntime ?? Path.GetFileName(executableLocation);
+                _logger?.Logger?.LogInformation(@"\Plugins\{Runtime}\{NameSpace}*.dll", runtime, nameSpace);
 
                 //// Specify the location from where the Dll's are "globbed"
-                pluginBuilder?.AddScanDirectories(fullPath);
+                pluginBuilder?.AddScanDirectories(fullPath!);
 
                 //// Add the framework libraries which can be found with the specified globs
                 pluginBuilder?.IncludeFrameworks(@"\netstandard2.0\*.FrameworkLib.dll");
 
                 //// Add the plugins which can be found with the specified globs
-                pluginBuilder?.IncludePlugins(@$"\Plugins\{runtimePath}\{nameSpace}*.dll");
+                pluginBuilder?.IncludePlugins(@$"\Plugins\{runtime}\{nameSpace}*.dll");
             })!
             .ConfigureServices(serviceCollection =>
                 //// Make DefaultLogger available for logging
@@ -111,11 +105,11 @@ public static class ServiceHost
         return host.RunAsync(new CancellationToken(false));
     }
 
-    private static IHostBuilder ConfigureExternal(this IHostBuilder hostBuilder, Func<IHostBuilder, IHostBuilder>? hostBuilderFunc) =>
+    private static IHostBuilder? ConfigureExternal(this IHostBuilder? hostBuilder, Func<IHostBuilder?, IHostBuilder?>? hostBuilderFunc) =>
         hostBuilderFunc == null ? hostBuilder : hostBuilderFunc.Invoke(hostBuilder);
 
-    private static IHostBuilder ConfigureLogging(this IHostBuilder hostBuilder) =>
-        hostBuilder.ConfigureLogging((hostContext, configLogging) =>
+    private static IHostBuilder? ConfigureLogging(this IHostBuilder? hostBuilder) =>
+        hostBuilder?.ConfigureLogging((hostContext, configLogging) =>
             configLogging
                     .AddConfiguration(hostContext.Configuration.GetSection("Logging"))
                     .AddConsole()
@@ -123,8 +117,8 @@ public static class ServiceHost
                     .AddLog4Net("log4net.config")
                     .AddDebug());
 
-    private static IHostBuilder ConfigureConfiguration(this IHostBuilder hostBuilder, string[] args) =>
-        hostBuilder
+    private static IHostBuilder? ConfigureConfiguration(this IHostBuilder? hostBuilder, string[] args) =>
+        hostBuilder?
             .ConfigureHostConfiguration(configHost =>
             {
                 configHost.SetBasePath(Directory.GetCurrentDirectory());
