@@ -25,7 +25,7 @@ public static class HostBuilderPluginExtensions
     /// <param name="hostBuilder">IHostBuilder.</param>
     /// <param name="configurePlugin">Action to configure the IPluginBuilder.</param>
     /// <returns>An IHostBuilder.</returns>
-    public static IHostBuilder? ConfigurePlugins(this IHostBuilder hostBuilder, Action<IPluginBuilder?> configurePlugin)
+    public static IHostBuilder? ConfigurePlugins(this IHostBuilder? hostBuilder, Action<IPluginBuilder?> configurePlugin)
     {
         var pluginBuilder = default(IPluginBuilder);
         if (hostBuilder?.Properties.TryRetrievePluginBuilder(out pluginBuilder) == false)
