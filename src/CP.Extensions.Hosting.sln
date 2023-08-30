@@ -32,13 +32,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.WinFo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.WinUI", "CP.Extensions.Hosting.WinUI\CP.Extensions.Hosting.WinUI.csproj", "{641302C9-7B83-42E3-8619-4FD1136B03FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.ReactiveUI.Wpf", "CP.Extensions.Hosting.ReactiveUI.Wpf\CP.Extensions.Hosting.ReactiveUI.Wpf.csproj", "{FD76D9CB-9323-4555-B471-51CC517EBCBF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.ReactiveUI.Wpf", "CP.Extensions.Hosting.ReactiveUI.Wpf\CP.Extensions.Hosting.ReactiveUI.Wpf.csproj", "{FD76D9CB-9323-4555-B471-51CC517EBCBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.ReactiveUI.WinForms", "CP.Extensions.Hosting.ReactiveUI.WinForms\CP.Extensions.Hosting.ReactiveUI.WinForms.csproj", "{4481115F-6453-4E5A-B9A1-6B252438B391}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.ReactiveUI.WinForms", "CP.Extensions.Hosting.ReactiveUI.WinForms\CP.Extensions.Hosting.ReactiveUI.WinForms.csproj", "{4481115F-6453-4E5A-B9A1-6B252438B391}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.ReactiveUI.WinUI", "CP.Extensions.Hosting.ReactiveUI.WinUI\CP.Extensions.Hosting.ReactiveUI.WinUI.csproj", "{684344D8-09C7-4256-9DD7-5E3E14E68034}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.ReactiveUI.WinUI", "CP.Extensions.Hosting.ReactiveUI.WinUI\CP.Extensions.Hosting.ReactiveUI.WinUI.csproj", "{684344D8-09C7-4256-9DD7-5E3E14E68034}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.PluginService", "CP.Extensions.Hosting.PluginService\CP.Extensions.Hosting.PluginService.csproj", "{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CP.Extensions.Hosting.PluginService", "CP.Extensions.Hosting.PluginService\CP.Extensions.Hosting.PluginService.csproj", "{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CP.Extensions.Hosting.Identity.EntityFrameworkCore", "CP.Extensions.Hosting.Identity.EntityFrameworkCore\CP.Extensions.Hosting.Identity.EntityFrameworkCore.csproj", "{36D4DB90-256B-46E2-9BB3-EB0FC2C40175}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,6 +90,10 @@ Global
 		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4CC7AF8-E34E-4C5E-8E74-01946A7F97E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36D4DB90-256B-46E2-9BB3-EB0FC2C40175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36D4DB90-256B-46E2-9BB3-EB0FC2C40175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36D4DB90-256B-46E2-9BB3-EB0FC2C40175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36D4DB90-256B-46E2-9BB3-EB0FC2C40175}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
