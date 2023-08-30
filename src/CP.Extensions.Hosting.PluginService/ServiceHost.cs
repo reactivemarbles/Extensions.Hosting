@@ -35,6 +35,7 @@ public static class ServiceHost
     /// <param name="type">The type.</param>
     /// <param name="args">The arguments.</param>
     /// <param name="hostBuilder">The host builder.</param>
+    /// <param name="configureHost">The configure host.</param>
     /// <param name="nameSpace">The plugin name space.</param>
     /// <param name="targetRuntime">The target runtime.</param>
     /// <returns>
@@ -45,6 +46,7 @@ public static class ServiceHost
         Type type,
         string[] args,
         Func<IHostBuilder?, IHostBuilder?>? hostBuilder = default,
+        Action<IHost>? configureHost = default,
         string nameSpace = "CP.Plugin",
         string? targetRuntime = null)
     {
@@ -101,6 +103,7 @@ public static class ServiceHost
 
         var host = _builder.Build();
         _logger = host.Services.GetRequiredService<DefaultLogger>();
+        configureHost?.Invoke(host);
 
         return host.RunAsync(new CancellationToken(false));
     }
