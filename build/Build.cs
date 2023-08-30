@@ -57,18 +57,12 @@ partial class Build : NukeBuild
             }
 
             PackagesDirectory.CreateOrCleanDirectory();
-            await this.UpdateVisualStudio();
             await this.InstallDotNetSdk("3.1.x", "5.x.x", "6.x.x", "7.x.x");
         });
 
     Target Restore => _ => _
         .DependsOn(Clean)
-        .Executes(() =>
-        {
-            DotNetRestore(s => s.SetProjectFile(Solution));
-
-            Solution.RestoreSolutionWorkloads();
-        });
+        .Executes(() => DotNetRestore(s => s.SetProjectFile(Solution)));
 
     Target Compile => _ => _
         .DependsOn(Restore, Print)
