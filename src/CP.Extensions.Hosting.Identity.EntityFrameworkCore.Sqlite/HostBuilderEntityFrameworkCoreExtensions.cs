@@ -16,7 +16,7 @@ namespace CP.Extensions.Hosting.Identity.EntityFrameworkCore;
 public static class HostBuilderEntityFrameworkCoreExtensions
 {
     /// <summary>
-    /// Uses the entity framework core with SqlServer.
+    /// Uses the entity framework core with Sqlite.
     /// </summary>
     /// <typeparam name="TContext">The type of the context.</typeparam>
     /// <typeparam name="TUser">The type of the user.</typeparam>
@@ -30,7 +30,7 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <exception cref="ArgumentNullException">services
     /// or
     /// context.</exception>
-    public static IServiceCollection UseEntityFrameworkCoreSqlServer<TContext, TUser, TRole>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName)
+    public static IServiceCollection UseEntityFrameworkCoreSqlite<TContext, TUser, TRole>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName)
         where TContext : DbContext
         where TUser : class
         where TRole : class
@@ -52,7 +52,7 @@ public static class HostBuilderEntityFrameworkCoreExtensions
 
         var conString = context.Configuration.GetConnectionString(connectionStringName);
         services.AddDbContext<TContext>(options =>
-                                options.UseSqlServer(conString ??
+                                options.UseSqlite(conString ??
                                                     throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")))
                             .AddDefaultIdentity<TUser>()
                             .AddRoles<TRole>()
@@ -61,7 +61,7 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     }
 
     /// <summary>
-    /// Uses the entity framework core with SqlServer.
+    /// Uses the entity framework core with Sqlite.
     /// </summary>
     /// <typeparam name="TContext">The type of the context.</typeparam>
     /// <typeparam name="TUser">The type of the user.</typeparam>
@@ -74,7 +74,7 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <exception cref="ArgumentNullException">services
     /// or
     /// context.</exception>
-    public static IServiceCollection UseEntityFrameworkCoreSqlServer<TContext, TUser>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName)
+    public static IServiceCollection UseEntityFrameworkCoreSqlite<TContext, TUser>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName)
         where TContext : DbContext
         where TUser : class
     {
@@ -95,7 +95,7 @@ public static class HostBuilderEntityFrameworkCoreExtensions
 
         var conString = context.Configuration.GetConnectionString(connectionStringName);
         services.AddDbContext<TContext>(options =>
-                                options.UseSqlServer(conString ??
+                                options.UseSqlite(conString ??
                                                     throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")))
                             .AddDefaultIdentity<TUser>()
                             .AddEntityFrameworkStores<TContext>();
