@@ -14,18 +14,13 @@ namespace CP.Extensions.Hosting.WinUI.Internals;
 /// <summary>
 /// This contains the logic for the WinUI thread.
 /// </summary>
-public class WinUIThread : BaseUiThread<IWinUIContext>
+/// <remarks>
+/// Initializes a new instance of the <see cref="WinUIThread"/> class.
+/// This will create the WinUIThread.
+/// </remarks>
+/// <param name="serviceProvider">IServiceProvider.</param>
+public class WinUIThread(IServiceProvider serviceProvider) : BaseUiThread<IWinUIContext>(serviceProvider)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WinUIThread"/> class.
-    /// This will create the WinUIThread.
-    /// </summary>
-    /// <param name="serviceProvider">IServiceProvider.</param>
-    public WinUIThread(IServiceProvider serviceProvider)
-        : base(serviceProvider)
-    {
-    }
-
     /// <inheritdoc />
     protected override void PreUiThreadStart() =>
         ComWrappersSupport.InitializeComWrappers();

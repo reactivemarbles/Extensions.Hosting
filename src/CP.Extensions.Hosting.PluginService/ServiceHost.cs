@@ -56,7 +56,7 @@ public static class ServiceHost
         }
 
         var executableLocation = Path.GetDirectoryName(type.Assembly.Location);
-        var isService = (!Debugger.IsAttached) && (args?.Length == 0 || !args![0].Contains("--console"));
+        var isService = (!Debugger.IsAttached) && (args?.Length == 0 || args![0].IndexOf("--console", StringComparison.InvariantCultureIgnoreCase) < 0);
         if (isService)
         {
             var pathToExe = Process.GetCurrentProcess().MainModule?.FileName;
@@ -77,15 +77,16 @@ public static class ServiceHost
                 _logger?.Logger?.LogInformation("Running using dotNet {Version}", Environment.Version);
 
                 var runtime = targetRuntime ?? Path.GetFileName(executableLocation);
-                _logger?.Logger?.LogInformation(@"\Plugins\{Runtime}\{NameSpace}*.dll", runtime, nameSpace);
 
                 //// Specify the location from where the Dll's are "globbed"
+                _logger?.Logger?.LogInformation("Add Scan Directories: {FullPath}", fullPath);
                 pluginBuilder?.AddScanDirectories(fullPath!);
 
                 //// Add the framework libraries which can be found with the specified globs
                 pluginBuilder?.IncludeFrameworks(@"\netstandard2.0\*.FrameworkLib.dll");
 
                 //// Add the plugins which can be found with the specified globs
+                _logger?.Logger?.LogInformation(@"Include Plugins from: \Plugins\{Runtime}\{NameSpace}*.dll", runtime, nameSpace);
                 pluginBuilder?.IncludePlugins(@$"\Plugins\{runtime}\{nameSpace}*.dll");
             })!
             .ConfigureServices(serviceCollection =>

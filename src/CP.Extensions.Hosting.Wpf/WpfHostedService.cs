@@ -12,26 +12,15 @@ namespace CP.Extensions.Hosting.Wpf;
 /// <summary>
 /// This hosts a WPF service, making sure the lifecycle is managed.
 /// </summary>
-public class WpfHostedService : IHostedService
+/// <remarks>
+/// Initializes a new instance of the <see cref="WpfHostedService"/> class.
+/// The constructor which takes all the DI objects.
+/// </remarks>
+/// <param name="logger">ILogger.</param>
+/// <param name="wpfThread">WpfThread.</param>
+/// <param name="wpfContext">IWpfContext.</param>
+public class WpfHostedService(ILogger<WpfHostedService> logger, WpfThread wpfThread, IWpfContext wpfContext) : IHostedService
 {
-    private readonly ILogger<WpfHostedService> _logger;
-    private readonly WpfThread _wpfThread;
-    private readonly IWpfContext _wpfContext;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WpfHostedService"/> class.
-    /// The constructor which takes all the DI objects.
-    /// </summary>
-    /// <param name="logger">ILogger.</param>
-    /// <param name="wpfThread">WpfThread.</param>
-    /// <param name="wpfContext">IWpfContext.</param>
-    public WpfHostedService(ILogger<WpfHostedService> logger, WpfThread wpfThread, IWpfContext wpfContext)
-    {
-        _logger = logger;
-        _wpfThread = wpfThread;
-        _wpfContext = wpfContext;
-    }
-
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -41,19 +30,19 @@ public class WpfHostedService : IHostedService
         }
 
         // Make the UI thread go
-        _wpfThread.Start();
+        wpfThread.Start();
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_wpfContext.IsRunning)
+        if (wpfContext.IsRunning)
         {
-            _logger.LogDebug("Stopping WPF due to application exit.");
+            logger.LogDebug("Stopping WPF due to application exit.");
 
             // Stop application
-            await _wpfContext.Dispatcher.InvokeAsync(() => _wpfContext.WpfApplication?.Shutdown());
+            await wpfContext.Dispatcher.InvokeAsync(() => wpfContext.WpfApplication?.Shutdown());
         }
     }
 }

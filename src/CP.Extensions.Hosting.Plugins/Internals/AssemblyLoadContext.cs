@@ -10,14 +10,12 @@ namespace CP.Extensions.Hosting.Plugins.Internals;
 /// <summary>
 /// This is a wrapper class to simulate the behavior of the AssemblyLoadContext under the .NET Framework.
 /// </summary>
-public class AssemblyLoadContext
+/// <remarks>
+/// Initializes a new instance of the <see cref="AssemblyLoadContext"/> class.
+/// </remarks>
+/// <param name="name">The name.</param>
+public class AssemblyLoadContext(string name)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AssemblyLoadContext"/> class.
-    /// </summary>
-    /// <param name="name">The name.</param>
-    public AssemblyLoadContext(string name) => Name = name;
-
     /// <summary>
     /// Gets default AssemblyLoadContext.
     /// </summary>
@@ -26,7 +24,7 @@ public class AssemblyLoadContext
     /// <summary>
     /// Gets the name of the AssemblyLoadContext.
     /// </summary>
-    public string Name { get; }
+    public string Name { get; } = name;
 
     /// <summary>
     /// Gets all the available assemblies.

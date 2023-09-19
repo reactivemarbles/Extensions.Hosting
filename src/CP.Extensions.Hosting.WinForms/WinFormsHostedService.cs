@@ -15,27 +15,16 @@ namespace CP.Extensions.Hosting.WinForms;
 /// <summary>
 /// This hosts a WinForms service, making sure the lifecycle is managed.
 /// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="WinFormsHostedService"/> class.
+/// The constructor which takes all the DI objects.
+/// </remarks>
+/// <param name="logger">ILogger.</param>
+/// <param name="winFormsThread">WinFormsThread.</param>
+/// <param name="winFormsContext">IWinFormsContext.</param>
 // ReSharper disable once ClassNeverInstantiated.Global
-public class WinFormsHostedService : IHostedService
+public class WinFormsHostedService(ILogger<WinFormsHostedService> logger, WinFormsThread winFormsThread, IWinFormsContext winFormsContext) : IHostedService
 {
-    private readonly ILogger<WinFormsHostedService> _logger;
-    private readonly WinFormsThread _winFormsThread;
-    private readonly IWinFormsContext _winFormsContext;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WinFormsHostedService"/> class.
-    /// The constructor which takes all the DI objects.
-    /// </summary>
-    /// <param name="logger">ILogger.</param>
-    /// <param name="winFormsThread">WinFormsThread.</param>
-    /// <param name="winFormsContext">IWinFormsContext.</param>
-    public WinFormsHostedService(ILogger<WinFormsHostedService> logger, WinFormsThread winFormsThread, IWinFormsContext winFormsContext)
-    {
-        _logger = logger;
-        _winFormsThread = winFormsThread;
-        _winFormsContext = winFormsContext;
-    }
-
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -44,17 +33,17 @@ public class WinFormsHostedService : IHostedService
             return Task.CompletedTask;
         }
 
-        _winFormsThread.Start();
+        winFormsThread.Start();
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_winFormsContext.IsRunning)
+        if (winFormsContext.IsRunning)
         {
-            _logger.LogDebug("Stopping WinForms application.");
-            await _winFormsContext.Dispatcher!.InvokeAsync(() =>
+            logger.LogDebug("Stopping WinForms application.");
+            await winFormsContext.Dispatcher!.InvokeAsync(() =>
             {
                 // Graceful close, otherwise finalizes try to dispose forms.
                 foreach (var form in Application.OpenForms.Cast<Form>().ToList())
@@ -66,7 +55,7 @@ public class WinFormsHostedService : IHostedService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Couldn't cleanup a Form");
+                        logger.LogWarning(ex, "Couldn't cleanup a Form");
                     }
                 }
 

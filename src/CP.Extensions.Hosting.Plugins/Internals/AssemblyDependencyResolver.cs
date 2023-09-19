@@ -10,15 +10,13 @@ namespace CP.Extensions.Hosting.Plugins.Internals;
 /// <summary>
 /// This is a wrapper class to simulate the behavior of the AssemblyDependencyResolver under the .NET Framework.
 /// </summary>
-public class AssemblyDependencyResolver
+/// <remarks>
+/// Initializes a new instance of the <see cref="AssemblyDependencyResolver"/> class.
+/// </remarks>
+/// <param name="pluginPath">string with the path for the plugin and where his dependencies are loaded from.</param>
+public class AssemblyDependencyResolver(string pluginPath)
 {
-    private readonly string? _pluginPath;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AssemblyDependencyResolver"/> class.
-    /// </summary>
-    /// <param name="pluginPath">string with the path for the plugin and where his dependencies are loaded from.</param>
-    public AssemblyDependencyResolver(string pluginPath) => _pluginPath = Path.GetDirectoryName(pluginPath);
+    private readonly string? _pluginPath = Path.GetDirectoryName(pluginPath);
 
     /// <summary>
     /// Find the assembly in the directory of the plugin.

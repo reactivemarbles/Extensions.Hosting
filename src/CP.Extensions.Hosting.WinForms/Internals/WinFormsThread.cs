@@ -14,18 +14,13 @@ namespace CP.Extensions.Hosting.WinForms.Internals;
 /// <summary>
 /// This contains the logic for the WinForms thread.
 /// </summary>
-public class WinFormsThread : BaseUiThread<IWinFormsContext>
+/// <remarks>
+/// Initializes a new instance of the <see cref="WinFormsThread"/> class.
+/// Constructor which is called from the IWinFormsContext.
+/// </remarks>
+/// <param name="serviceProvider">IServiceProvider.</param>
+public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWinFormsContext>(serviceProvider)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WinFormsThread"/> class.
-    /// Constructor which is called from the IWinFormsContext.
-    /// </summary>
-    /// <param name="serviceProvider">IServiceProvider.</param>
-    public WinFormsThread(IServiceProvider serviceProvider)
-        : base(serviceProvider)
-    {
-    }
-
     /// <inheritdoc />
     protected override void PreUiThreadStart()
     {

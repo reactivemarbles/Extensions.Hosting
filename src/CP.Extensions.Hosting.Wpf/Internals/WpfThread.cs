@@ -14,18 +14,13 @@ namespace CP.Extensions.Hosting.Wpf.Internals;
 /// <summary>
 /// This contains the logic for the WPF thread.
 /// </summary>
-public class WpfThread : BaseUiThread<IWpfContext>
+/// <remarks>
+/// Initializes a new instance of the <see cref="WpfThread"/> class.
+/// This will create the WpfThread.
+/// </remarks>
+/// <param name="serviceProvider">IServiceProvider.</param>
+public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfContext>(serviceProvider)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WpfThread"/> class.
-    /// This will create the WpfThread.
-    /// </summary>
-    /// <param name="serviceProvider">IServiceProvider.</param>
-    public WpfThread(IServiceProvider serviceProvider)
-        : base(serviceProvider)
-    {
-    }
-
     /// <inheritdoc />
     protected override void PreUiThreadStart()
     {
@@ -33,7 +28,7 @@ public class WpfThread : BaseUiThread<IWpfContext>
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
 
         // Create the new WPF application
-        var wpfApplication = ServiceProvider.GetService<Application>() ?? new Application()
+        var wpfApplication = ServiceProvider.GetService<Application>() ?? new()
         {
             ShutdownMode = UiContext!.ShutdownMode
         };
