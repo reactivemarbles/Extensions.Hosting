@@ -11,12 +11,9 @@ namespace CP.Extensions.Hosting.Plugins.Internals;
 /// Before loading an assembly, the current domain is checked if this assembly was not already loaded, if so this is returned.
 /// This way the Assemblies already loaded by the application are available to all the plugins and can provide interaction.
 /// </summary>
-internal class PluginLoadContext : AssemblyLoadContext
+internal class PluginLoadContext(string pluginPath, string name) : AssemblyLoadContext(name)
 {
-    private readonly AssemblyDependencyResolver _resolver;
-
-    public PluginLoadContext(string pluginPath, string name)
-        : base(name) => _resolver = new AssemblyDependencyResolver(pluginPath);
+    private readonly AssemblyDependencyResolver _resolver = new(pluginPath);
 
     /// <summary>
     /// Returns the path where the specified assembly can be found.

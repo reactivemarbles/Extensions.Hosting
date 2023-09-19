@@ -18,21 +18,14 @@ namespace CP.Extensions.Hosting.Plugins
     /// <typeparam name="T">The type of Service.</typeparam>
     /// <seealso cref="IHostedService" />
     /// <seealso cref="IDisposable" />
-    public class HostedServiceBase<T> : IHostedService, ICancelable
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="HostedServiceBase{T}"/> class.
+    /// </remarks>
+    /// <param name="logger">The logger.</param>
+    /// <param name="hostApplicationLifetime">The host application lifetime.</param>
+    public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime hostApplicationLifetime) : IHostedService, ICancelable
     {
-        private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private bool _disposedValue;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HostedServiceBase{T}"/> class.
-        /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="hostApplicationLifetime">The host application lifetime.</param>
-        public HostedServiceBase(ILogger<T> logger, IHostApplicationLifetime hostApplicationLifetime)
-        {
-            Logger = logger;
-            _hostApplicationLifetime = hostApplicationLifetime;
-        }
 
         /// <summary>
         /// Gets the clean up.
@@ -48,7 +41,7 @@ namespace CP.Extensions.Hosting.Plugins
         /// <value>
         /// The logger.
         /// </value>
-        public ILogger Logger { get; }
+        public ILogger Logger { get; } = logger;
 
         /// <summary>
         /// Gets a value indicating whether gets a value that indicates whether the object is disposed.
@@ -58,7 +51,7 @@ namespace CP.Extensions.Hosting.Plugins
         /// <inheritdoc />
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _hostApplicationLifetime.ApplicationStarted.Register(() =>
+            hostApplicationLifetime.ApplicationStarted.Register(() =>
             {
                 Logger!.LogInformation($"{nameof(T)} Service OnStarted has been called.");
                 CleanUp = new CompositeDisposable();
@@ -72,8 +65,8 @@ namespace CP.Extensions.Hosting.Plugins
                       .Retry()
                       .Subscribe());
             });
-            _hostApplicationLifetime.ApplicationStopping.Register(OnStopping);
-            _hostApplicationLifetime.ApplicationStopped.Register(OnStopped);
+            hostApplicationLifetime.ApplicationStopping.Register(OnStopping);
+            hostApplicationLifetime.ApplicationStopped.Register(OnStopped);
 
             return Task.CompletedTask;
         }

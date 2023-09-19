@@ -8,19 +8,17 @@ namespace CP.Extensions.Hosting.PluginService;
 /// <summary>
 /// DefaultLogger.
 /// </summary>
-public class DefaultLogger
+/// <remarks>
+/// Initializes a new instance of the <see cref="DefaultLogger"/> class.
+/// </remarks>
+/// <param name="logger">The logger.</param>
+public class DefaultLogger(ILogger<DefaultLogger> logger)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultLogger"/> class.
-    /// </summary>
-    /// <param name="logger">The logger.</param>
-    public DefaultLogger(ILogger<DefaultLogger> logger) => Logger = logger;
-
     /// <summary>
     /// Gets the logger.
     /// </summary>
     /// <value>
     /// The logger.
     /// </value>
-    public ILogger Logger { get; }
+    public ILogger Logger { get; } = logger;
 }
