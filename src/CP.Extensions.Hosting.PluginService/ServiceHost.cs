@@ -37,7 +37,7 @@ public static class ServiceHost
     /// <param name="hostBuilder">The host builder.</param>
     /// <param name="configureHost">The configure host.</param>
     /// <param name="nameSpace">The plugin name space.</param>
-    /// <param name="targetRuntime">The target runtime.</param>
+    /// <param name="targetRuntime">The target runtime folder for plugins.</param>
     /// <returns>
     /// A Task.
     /// </returns>
@@ -71,23 +71,23 @@ public static class ServiceHost
             .ConfigureConfiguration(args)
             .ConfigurePlugins(pluginBuilder =>
             {
-                var process = Process.GetCurrentProcess();
-                var fullPath = process.MainModule?.FileName?.Replace(process.MainModule.ModuleName!, string.Empty);
-
-                _logger?.Logger?.LogInformation("Running using dotNet {Version}", Environment.Version);
-
-                var runtime = targetRuntime ?? Path.GetFileName(executableLocation);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Running using dotNet {0}", Environment.Version);
 
                 //// Specify the location from where the Dll's are "globbed"
-                _logger?.Logger?.LogInformation("Add Scan Directories: {FullPath}", fullPath);
+                var process = Process.GetCurrentProcess();
+                var fullPath = process.MainModule?.FileName?.Replace(process.MainModule.ModuleName!, string.Empty);
+                Console.WriteLine("Add Scan Directories: {0}", fullPath);
                 pluginBuilder?.AddScanDirectories(fullPath!);
 
                 //// Add the framework libraries which can be found with the specified globs
                 pluginBuilder?.IncludeFrameworks(@"\netstandard2.0\*.FrameworkLib.dll");
 
                 //// Add the plugins which can be found with the specified globs
-                _logger?.Logger?.LogInformation(@"Include Plugins from: \Plugins\{Runtime}\{NameSpace}*.dll", runtime, nameSpace);
+                var runtime = targetRuntime ?? Path.GetFileName(executableLocation);
+                Console.WriteLine(@"Include Plugins from: \Plugins\{0}\{1}*.dll", runtime, nameSpace);
                 pluginBuilder?.IncludePlugins(@$"\Plugins\{runtime}\{nameSpace}*.dll");
+                Console.ResetColor();
             })!
             .ConfigureServices(serviceCollection =>
                 //// Make DefaultLogger available for logging
@@ -109,8 +109,22 @@ public static class ServiceHost
         return host.RunAsync(new CancellationToken(false));
     }
 
-    private static IHostBuilder? ConfigureExternal(this IHostBuilder? hostBuilder, Func<IHostBuilder?, IHostBuilder?>? hostBuilderFunc) =>
-        hostBuilderFunc == null ? hostBuilder : hostBuilderFunc.Invoke(hostBuilder);
+    private static IHostBuilder? ConfigureExternal(this IHostBuilder? hostBuilder, Func<IHostBuilder?, IHostBuilder?>? hostBuilderFunc)
+    {
+        if (hostBuilderFunc == null)
+        {
+            return hostBuilder;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Configure External Start");
+        Console.ResetColor();
+        var builder = hostBuilderFunc(hostBuilder);
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Configure External Complete");
+        Console.ResetColor();
+        return builder;
+    }
 
     private static IHostBuilder? ConfigureLogging(this IHostBuilder? hostBuilder) =>
         hostBuilder?.ConfigureLogging((hostContext, configLogging) =>
@@ -125,13 +139,19 @@ public static class ServiceHost
         hostBuilder?
             .ConfigureHostConfiguration(configHost =>
             {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Configure Host Start");
                 configHost.SetBasePath(Directory.GetCurrentDirectory());
                 configHost.AddJsonFile(HostSettingsFile, optional: true);
                 configHost.AddEnvironmentVariables(prefix: Prefix);
                 configHost.AddCommandLine(args);
+                Console.WriteLine("Configure Host Complete");
+                Console.ResetColor();
             })
             .ConfigureAppConfiguration((hostContext, configApp) =>
             {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Configure App Start");
                 configApp.AddJsonFile(AppSettingsFilePrefix + ".json", optional: true);
                 if (!string.IsNullOrEmpty(hostContext.HostingEnvironment.EnvironmentName))
                 {
@@ -140,5 +160,7 @@ public static class ServiceHost
 
                 configApp.AddEnvironmentVariables(prefix: Prefix);
                 configApp.AddCommandLine(args);
+                Console.WriteLine("Configure App Complete");
+                Console.ResetColor();
             });
 }
