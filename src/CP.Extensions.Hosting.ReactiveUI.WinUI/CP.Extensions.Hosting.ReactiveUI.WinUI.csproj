@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReactiveUI.WinUI" Version="19.4.1" />
+    <PackageReference Include="ReactiveUI.WinUI" Version="19.5.1" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.7.1" />
   </ItemGroup>
 
