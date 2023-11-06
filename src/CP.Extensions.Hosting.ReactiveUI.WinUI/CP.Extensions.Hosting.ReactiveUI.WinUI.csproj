@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="ReactiveUI.WinUI" Version="19.5.1" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.7.1" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.8.6" />
   </ItemGroup>
 
   <ItemGroup>
