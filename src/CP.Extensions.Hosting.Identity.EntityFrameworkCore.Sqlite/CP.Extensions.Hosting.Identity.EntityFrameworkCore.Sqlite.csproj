@@ -33,7 +33,7 @@
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net8')) ">
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0-rc.2.23479.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0-rc.2.23480.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0-rc.2.23480.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0-rc.2.23480.1">
       <PrivateAssets>all</PrivateAssets>
