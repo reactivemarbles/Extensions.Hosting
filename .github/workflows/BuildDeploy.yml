@@ -25,6 +25,8 @@ jobs:
   windows-latest:
     name: windows-latest
     runs-on: windows-latest
+    
+    permissions: write-all
     environment:
       name: release
     steps:
