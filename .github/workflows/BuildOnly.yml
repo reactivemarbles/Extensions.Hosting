@@ -29,13 +29,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v3
+      - name: NBGV
+        id: nbgv
+        uses: dotnet/nbgv@master
         with:
-            dotnet-quality: 'preview'
-            dotnet-version: |
-                8.0.x
+          setAllVars: true
+      - run: echo 'SemVer2=${{ steps.nbgv.outputs.SemVer2 }}'
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.1.3

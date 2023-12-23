@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!--ReactiveUI only supports windows 10.0.17763 plus-->
@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReactiveUI.WinUI" Version="19.5.1" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.8.6" />
+    <PackageReference Include="ReactiveUI.WinUI" Version="19.5.31" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.8.12" />
   </ItemGroup>
 
   <ItemGroup>
