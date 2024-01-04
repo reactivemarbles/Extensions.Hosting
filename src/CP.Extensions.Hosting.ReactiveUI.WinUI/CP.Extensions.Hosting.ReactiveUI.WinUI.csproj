@@ -6,6 +6,7 @@
     <UseWinUI>True</UseWinUI>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
     <PackageDescription>This extension adds ReactiveUI support to generic host based dotnet core 6.0 / 7.0 / 8.0 WinUI applications. With this you can enhance your application with a UI, and use all the services provided by the generic host like DI, logging etc, together with this reactive MVVM framework.</PackageDescription>
   </PropertyGroup>
