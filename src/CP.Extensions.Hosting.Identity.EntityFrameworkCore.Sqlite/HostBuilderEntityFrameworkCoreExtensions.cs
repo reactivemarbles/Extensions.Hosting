@@ -24,26 +24,24 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <param name="services">The services.</param>
     /// <param name="context">The context.</param>
     /// <param name="connectionStringName">Name of the connection string.</param>
+    /// <param name="serviceLifetime">The service lifetime.</param>
     /// <returns>
     /// IServiceCollection.
     /// </returns>
-    /// <exception cref="ArgumentNullException">services
+    /// <exception cref="System.ArgumentNullException">
+    /// services
     /// or
-    /// context.</exception>
-    public static IServiceCollection UseEntityFrameworkCoreSqlite<TContext, TUser, TRole>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName)
+    /// context.
+    /// </exception>
+    /// <exception cref="System.ArgumentException">Value cannot be null or whitespace. - connectionStringName.</exception>
+    public static IServiceCollection UseEntityFrameworkCoreSqlite<TContext, TUser, TRole>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
         where TContext : DbContext
         where TUser : class
         where TRole : class
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(connectionStringName))
         {
@@ -51,12 +49,13 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         }
 
         var conString = context.Configuration.GetConnectionString(connectionStringName);
-        services.AddDbContext<TContext>(options =>
-                                options.UseSqlite(conString ??
-                                                    throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")))
-                            .AddDefaultIdentity<TUser>()
-                            .AddRoles<TRole>()
-                            .AddEntityFrameworkStores<TContext>();
+        services
+            .AddDbContext<TContext>(
+                options => options.UseSqlite(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+                serviceLifetime)
+            .AddDefaultIdentity<TUser>()
+            .AddRoles<TRole>()
+            .AddEntityFrameworkStores<TContext>();
         return services;
     }
 
@@ -68,25 +67,23 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <param name="services">The services.</param>
     /// <param name="context">The context.</param>
     /// <param name="connectionStringName">Name of the connection string.</param>
+    /// <param name="serviceLifetime">The service lifetime.</param>
     /// <returns>
     /// IServiceCollection.
     /// </returns>
-    /// <exception cref="ArgumentNullException">services
+    /// <exception cref="System.ArgumentNullException">
+    /// services
     /// or
-    /// context.</exception>
-    public static IServiceCollection UseEntityFrameworkCoreSqlite<TContext, TUser>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName)
+    /// context.
+    /// </exception>
+    /// <exception cref="System.ArgumentException">Value cannot be null or whitespace. - connectionStringName.</exception>
+    public static IServiceCollection UseEntityFrameworkCoreSqlite<TContext, TUser>(this IServiceCollection services, WebHostBuilderContext context, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
         where TContext : DbContext
         where TUser : class
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(connectionStringName))
         {
@@ -94,11 +91,12 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         }
 
         var conString = context.Configuration.GetConnectionString(connectionStringName);
-        services.AddDbContext<TContext>(options =>
-                                options.UseSqlite(conString ??
-                                                    throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")))
-                            .AddDefaultIdentity<TUser>()
-                            .AddEntityFrameworkStores<TContext>();
+        services
+            .AddDbContext<TContext>(
+                options => options.UseSqlite(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+                serviceLifetime)
+            .AddDefaultIdentity<TUser>()
+            .AddEntityFrameworkStores<TContext>();
         return services;
     }
 
@@ -112,10 +110,7 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <exception cref="System.ArgumentNullException">hostBuilder.</exception>
     public static IHostBuilder UseWebHostServices(this IHostBuilder hostBuilder, Action<WebHostBuilderContext, IServiceCollection> configureServices, bool validateScopes = false)
     {
-        if (hostBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(hostBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(hostBuilder);
 
         return hostBuilder.ConfigureWebHostDefaults(webBuilder =>
                       webBuilder.UseDefaultServiceProvider(options => options.ValidateScopes = validateScopes)
