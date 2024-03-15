@@ -23,7 +23,7 @@
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net7')) ">
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.16" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.17" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.16" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.16">
       <PrivateAssets>all</PrivateAssets>
