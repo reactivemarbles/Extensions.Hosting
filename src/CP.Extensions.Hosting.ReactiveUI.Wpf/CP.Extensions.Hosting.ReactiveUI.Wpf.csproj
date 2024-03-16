@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="ReactiveUI.Drawing" Version="19.5.72" />
-    <PackageReference Include="ReactiveUI.WPF" Version="19.5.41" />
+    <PackageReference Include="ReactiveUI.WPF" Version="19.5.72" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.8.12" />
   </ItemGroup>
 
