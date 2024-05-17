@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="ReactiveUI.WinUI" Version="20.0.1" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.0.1" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.1.1" />
   </ItemGroup>
 
   <ItemGroup>
