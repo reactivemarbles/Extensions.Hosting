@@ -52,8 +52,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-      - name: 'Run: Compile, Deploy'
-        run: ./build.cmd Compile Deploy
+      - name: 'Run: Compile'
+        run: ./build.cmd Compile
         env:
           NuGetApiKey: ${{ secrets.NUGET_API_KEY }}
 
@@ -62,7 +62,21 @@ jobs:
         with:
           name: output
           path: output
+          
+      - name: Pack
+        run: dotnet pack --configuration=${{ env.configuration }} --verbosity=minimal --no-restore
+        working-directory: src
 
+        # Decode the base 64 encoded pfx and save the Signing_Certificate
+      - name: Sign NuGet packages
+        shell: pwsh
+        run: |
+            $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE }}")
+            [IO.File]::WriteAllBytes("GitHubActionsWorkflow.pfx", $pfx_cert_byte)
+            $secure_password = ConvertTo-SecureString ${{ secrets.SIGN_CERTIFICATE_PASSWORD }} –asplaintext –force
+            Import-PfxCertificate -FilePath GitHubActionsWorkflow.pfx -Password $secure_password -CertStoreLocation Cert:\CurrentUser\My
+            nuget sign -Timestamper http://timestamp.digicert.com -CertificateFingerprint ${{ secrets.SIGN_CERTIFICATE_HASH }} **/*.nupkg
+        
       - name: Changelog
         uses: glennawatson/ChangeLog@v1
         id: changelog
@@ -76,3 +90,10 @@ jobs:
           release_name: ${{ steps.nbgv.outputs.SemVer2 }}
           body: |
             ${{ steps.changelog.outputs.commitLog }}
+            
+      - name: NuGet Push
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+          SOURCE_URL: https://api.nuget.org/v3/index.json
+        run: |
+          dotnet nuget push -s ${{ env.SOURCE_URL }} -k ${{ env.NUGET_AUTH_TOKEN }} **/*.nupkg

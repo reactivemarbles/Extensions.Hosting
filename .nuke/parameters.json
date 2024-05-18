@@ -1,4 +1,4 @@
 {
   "$schema": "./build.schema.json",
-  "Solution": "src/CP.Extensions.Hosting.sln"
+  "Solution": "src/Extensions.Hosting.sln"
 }

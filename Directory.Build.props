@@ -13,13 +13,13 @@
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Compatability with Net 6 / 7 / 8 and net462</PackageReleaseNotes>
+    <PackageReleaseNotes>Compatability with Net 6 / 8 and net462</PackageReleaseNotes>
     <PackageTags>Microsoft;Extensions;Hosting;Rx;ReactiveUI;net;netstandard</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
 
-    <PackageProjectUrl>https://github.com/ChrisPulman/CP.Extensions.Hosting</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ChrisPulman/CP.Extensions.Hosting</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/reactivemarbles/Extensions.Hosting</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/reactivemarbles/Extensions.Hosting</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <!--https://devblogs.microsoft.com/dotnet/producing-packages-with-source-link/-->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

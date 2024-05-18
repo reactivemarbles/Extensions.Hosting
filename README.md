@@ -1,7 +1,9 @@
-# CP.Extensions.Hosting
+NOTE: The namespacing has been changed to ReactiveMarbles.Extensions.Hosting. Please update your references to the new namespace.
+
+# ReactiveMarbles.Extensions.Hosting
 An Extension of the Microsoft.Extensions.Hosting library with the aim of allowing windows applications to use the hosting base. 
 
-#### CP.Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite
+#### ReactiveMarbles.Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite)
 
 ```C#
@@ -15,7 +17,7 @@ An Extension of the Microsoft.Extensions.Hosting library with the aim of allowin
 })
 ```
 
-#### CP.Extensions.Hosting.Identity.EntityFrameworkCore.SqlServer
+#### ReactiveMarbles.Extensions.Hosting.Identity.EntityFrameworkCore.SqlServer
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.Identity.EntityFrameworkCore.SqlServer) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.Identity.EntityFrameworkCore.SqlServer)
 
 ```C#
@@ -29,13 +31,13 @@ An Extension of the Microsoft.Extensions.Hosting library with the aim of allowin
 })
 ```
 
-#### CP.Extensions.Hosting.MainUIThread
+#### ReactiveMarbles.Extensions.Hosting.MainUIThread
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.MainUIThread) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.MainUIThread)
 
 Used to run the main UI thread in a Wpf / WinUI / WinForms application.
 
 
-#### CP.Extensions.Hosting.Plugins
+#### ReactiveMarbles.Extensions.Hosting.Plugins
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.Plugins) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.Plugins)
 
 ```C#
@@ -63,14 +65,14 @@ Used to run the main UI thread in a Wpf / WinUI / WinForms application.
 
 ```C#
 /// <summary>
-/// This plug-in configures the HostBuilderContext to have the hosted services from the online example
+/// This plug-in configures the HostBuilderContext to have the hosted services
 /// </summary>
 public class Plugin : PluginBase<FirstService, SecondService, ThirdService>
 {
 }
 ```
 
-#### CP.Extensions.Hosting.PluginService
+#### ReactiveMarbles.Extensions.Hosting.PluginService
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.PluginService) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.PluginService)
 
 ```C#
@@ -79,31 +81,37 @@ await ServiceHost.Create(
             args,
             hb => hb, // Configure the HostBuilder
             host => {}, // Configure the Host
-            nameSpace: "AICS.Plugin").ConfigureAwait(false);
+            nameSpace: "ReactiveMarbles.Plugin").ConfigureAwait(false);
 ```
 
-#### CP.Extensions.Hosting.ReactiveUI.WinForms
+#### ReactiveMarbles.Extensions.Hosting.ReactiveUI.WinForms
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.ReactiveUI.WinForms) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.ReactiveUI.WinForms)
 
 ```C#
-    .ConfigureSplatForMicrosoftDependencyResolver()
+.ConfigureSplatForMicrosoftDependencyResolver()
+.ConfigureWinForms<MainForm>()
+.UseWinFormsLifetime()
 ```
 
-#### CP.Extensions.Hosting.ReactiveUI.WinUI
+#### ReactiveMarbles.Extensions.Hosting.ReactiveUI.WinUI
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.ReactiveUI.WinUI) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.ReactiveUI.WinUI)
 
 ```C#
-    .ConfigureSplatForMicrosoftDependencyResolver()
+.ConfigureSplatForMicrosoftDependencyResolver()
+.ConfigureWinUI<MainWindow>()
+.UseWpfLifetime()
 ```
 
-#### CP.Extensions.Hosting.ReactiveUI.Wpf
+#### ReactiveMarbles.Extensions.Hosting.ReactiveUI.Wpf
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.ReactiveUI.Wpf) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.ReactiveUI.Wpf)
 
 ```C#
-    .ConfigureSplatForMicrosoftDependencyResolver()
+.ConfigureSplatForMicrosoftDependencyResolver()
+.ConfigureWpf<MainWindow>()
+.UseWpfLifetime()
 ```
 
-#### CP.Extensions.Hosting.SingleInstance
+#### ReactiveMarbles.Extensions.Hosting.SingleInstance
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.SingleInstance) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.SingleInstance)
 
 ```C#
@@ -118,7 +126,7 @@ await ServiceHost.Create(
 })
 ```
 
-#### CP.Extensions.Hosting.WinForms
+#### ReactiveMarbles.Extensions.Hosting.WinForms
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.WinForms) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.WinForms)
 
 ```C#
@@ -126,7 +134,7 @@ await ServiceHost.Create(
 .UseWinFormsLifetime()
 ```
 
-#### CP.Extensions.Hosting.WinUI
+#### ReactiveMarbles.Extensions.Hosting.WinUI
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.WinUI) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.WinUI)
 
 ```C#
@@ -134,7 +142,7 @@ await ServiceHost.Create(
 .UseWpfLifetime()
 ```
 
-#### CP.Extensions.Hosting.Wpf
+#### ReactiveMarbles.Extensions.Hosting.Wpf
 ![Nuget](https://img.shields.io/nuget/v/CP.Extensions.Hosting.Wpf) ![Nuget](https://img.shields.io/nuget/dt/CP.Extensions.Hosting.Wpf)
 
 ```C#
