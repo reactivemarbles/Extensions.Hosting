@@ -67,9 +67,7 @@ public class AssemblyLoadContext(string name)
     /// </summary>
     /// <param name="dllPath">string.</param>
     /// <returns>IntPtr.</returns>
-#pragma warning disable RCS1163 // Unused parameter
     protected IntPtr LoadUnmanagedDllFromPath(string dllPath) => IntPtr.Zero;
-#pragma warning restore RCS1163 // Unused parameter
 
     /// <summary>
     /// Loads the specified DLL from the plugin path.
