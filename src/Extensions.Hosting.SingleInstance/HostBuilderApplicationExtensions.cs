@@ -15,7 +15,7 @@ namespace ReactiveMarbles.Extensions.Hosting.AppServices;
 /// </summary>
 public static class HostBuilderApplicationExtensions
 {
-    private const string MutexBuilderKey = "MutexBuilder";
+    private const string MutexBuilderKey = nameof(MutexBuilder);
 
     /// <summary>
     /// Prevent that an application runs multiple times.
@@ -25,8 +25,14 @@ public static class HostBuilderApplicationExtensions
     /// <returns>
     /// IHostBuilder for fluently calling.
     /// </returns>
-    public static IHostBuilder? ConfigureSingleInstance(this IHostBuilder hostBuilder, Action<IMutexBuilder> configureAction) =>
-        hostBuilder?.ConfigureServices((_, serviceCollection) =>
+    public static IHostBuilder ConfigureSingleInstance(this IHostBuilder hostBuilder, Action<IMutexBuilder> configureAction)
+    {
+        if (hostBuilder is null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        return hostBuilder.ConfigureServices((_, serviceCollection) =>
         {
             if (!TryRetrieveMutexBuilder(hostBuilder.Properties, out var mutexBuilder))
             {
@@ -37,6 +43,7 @@ public static class HostBuilderApplicationExtensions
 
             configureAction?.Invoke(mutexBuilder);
         });
+    }
 
     /// <summary>
     /// Prevent that an application runs multiple times.
@@ -44,7 +51,7 @@ public static class HostBuilderApplicationExtensions
     /// <param name="hostBuilder">IHostBuilder.</param>
     /// <param name="mutexId">string.</param>
     /// <returns>IHostBuilder for fluently calling.</returns>
-    public static IHostBuilder? ConfigureSingleInstance(this IHostBuilder hostBuilder, string mutexId) =>
+    public static IHostBuilder ConfigureSingleInstance(this IHostBuilder hostBuilder, string mutexId) =>
         hostBuilder.ConfigureSingleInstance(builder => builder.MutexId = mutexId);
 
     /// <summary>

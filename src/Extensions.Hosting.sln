@@ -44,6 +44,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Extensions.Hosting.Identity
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite", "Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite\Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite.csproj", "{9D98227B-C97B-429C-AEAF-88A9514A2B0E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{312076E6-5E8A-4B49-B375-4631413F1729}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Wpf.Example", "Extensions.Hosting.Wpf.Example\Extensions.Hosting.Wpf.Example.csproj", "{128513AE-A04E-4B30-AD4B-CE1A237D4D72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,9 +104,16 @@ Global
 		{9D98227B-C97B-429C-AEAF-88A9514A2B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D98227B-C97B-429C-AEAF-88A9514A2B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D98227B-C97B-429C-AEAF-88A9514A2B0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{128513AE-A04E-4B30-AD4B-CE1A237D4D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{128513AE-A04E-4B30-AD4B-CE1A237D4D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{128513AE-A04E-4B30-AD4B-CE1A237D4D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{128513AE-A04E-4B30-AD4B-CE1A237D4D72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{128513AE-A04E-4B30-AD4B-CE1A237D4D72} = {312076E6-5E8A-4B49-B375-4631413F1729}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {73D54792-B9AC-4D9B-BB34-57CAD24EC5D6}

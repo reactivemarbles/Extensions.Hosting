@@ -16,7 +16,7 @@ namespace ReactiveMarbles.Extensions.Hosting.WinUI;
 /// </summary>
 public static class HostBuilderWinUIExtensions
 {
-    private const string WinUIContextKey = "WinUIContext";
+    private const string WinUIContextKey = nameof(WinUIContext);
 
     /// <summary>
     /// Configure a WinUI application.

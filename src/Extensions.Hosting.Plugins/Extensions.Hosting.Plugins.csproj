@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net462;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0;net8.0;net9.0</TargetFrameworks>
     <NoWarn>$(NoWarn);IDE0058;CA1822</NoWarn>
     <PackageDescription>This extension adds plug-in support to generic host based applications.</PackageDescription>
     <PackageId>CP.Extensions.Hosting.Plugins</PackageId>

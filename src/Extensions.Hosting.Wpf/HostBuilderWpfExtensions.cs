@@ -24,8 +24,14 @@ public static class HostBuilderWpfExtensions
     /// <param name="hostBuilder">IHostBuilder.</param>
     /// <param name="shutdownMode">ShutdownMode default is OnLastWindowClose.</param>
     /// <returns>A IHostBuilder.</returns>
-    public static IHostBuilder? UseWpfLifetime(this IHostBuilder hostBuilder, ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose) =>
-        hostBuilder?.ConfigureServices((_, __) =>
+    public static IHostBuilder UseWpfLifetime(this IHostBuilder hostBuilder, ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        return hostBuilder.ConfigureServices((_, __) =>
         {
             if (!TryRetrieveWpfContext(hostBuilder.Properties, out var wpfContext))
             {
@@ -35,6 +41,7 @@ public static class HostBuilderWpfExtensions
             wpfContext.ShutdownMode = shutdownMode;
             wpfContext.IsLifetimeLinked = true;
         });
+    }
 
     /// <summary>
     /// Configure an WPF application.
@@ -42,12 +49,17 @@ public static class HostBuilderWpfExtensions
     /// <param name="hostBuilder">IHostBuilder.</param>
     /// <param name="configureDelegate">Action to configure Wpf.</param>
     /// <returns>A IHostBuilder.</returns>
-    public static IHostBuilder? ConfigureWpf(this IHostBuilder hostBuilder, Action<IWpfBuilder>? configureDelegate = null)
+    public static IHostBuilder ConfigureWpf(this IHostBuilder hostBuilder, Action<IWpfBuilder>? configureDelegate = null)
     {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
         var wpfBuilder = new WpfBuilder();
         configureDelegate?.Invoke(wpfBuilder);
 
-        hostBuilder?.ConfigureServices((_, serviceCollection) =>
+        hostBuilder.ConfigureServices((_, serviceCollection) =>
         {
             if (!TryRetrieveWpfContext(hostBuilder.Properties, out var wpfContext))
             {
@@ -68,7 +80,7 @@ public static class HostBuilderWpfExtensions
                 throw new ArgumentException("The registered Application type inherit System.Windows.Application", nameof(configureDelegate));
             }
 
-            hostBuilder?.ConfigureServices((_, serviceCollection) =>
+            hostBuilder.ConfigureServices((_, serviceCollection) =>
             {
                 if (wpfBuilder.Application != null)
                 {
@@ -89,7 +101,7 @@ public static class HostBuilderWpfExtensions
 
         if (wpfBuilder.WindowTypes.Count > 0)
         {
-            hostBuilder?.ConfigureServices((_, serviceCollection) =>
+            hostBuilder.ConfigureServices((_, serviceCollection) =>
             {
                 foreach (var wpfWindowType in wpfBuilder.WindowTypes)
                 {
