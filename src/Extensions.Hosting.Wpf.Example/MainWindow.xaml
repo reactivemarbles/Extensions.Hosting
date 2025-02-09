@@ -11,10 +11,10 @@
     mc:Ignorable="d">
     <Grid>
         <Button
-            Content="Open Second Window"
-            HorizontalAlignment="Left"
             Margin="10"
+            HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Click="OpenSecondWindow" />
+            Click="OpenSecondWindow"
+            Content="Open Second Window" />
     </Grid>
 </Window>
