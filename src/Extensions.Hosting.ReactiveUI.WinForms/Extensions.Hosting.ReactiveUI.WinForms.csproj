@@ -10,9 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReactiveUI.Drawing" Version="20.1.63" />
-    <PackageReference Include="ReactiveUI.WinForms" Version="20.1.63" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.2.22" />
+    <PackageReference Include="ReactiveUI.Drawing" Version="20.2.45" />
+    <PackageReference Include="ReactiveUI.WinForms" Version="20.2.45" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.3.1" />
   </ItemGroup>
 
   <ItemGroup>
