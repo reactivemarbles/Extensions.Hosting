@@ -145,20 +145,20 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <param name="hostBuilder">The host builder.</param>
     /// <param name="configureServices">The configure services.</param>
     /// <param name="configureWebHost">The configure web host.</param>
-    /// <param name="coonfigureApp">The coonfigure application.</param>
+    /// <param name="configureApp">The configure application, e.g. app.UseEndpoints.</param>
     /// <param name="validateScopes">if set to <c>true</c> [validate scopes].</param>
     /// <returns>
     /// IHostBuilder.
     /// </returns>
     /// <exception cref="System.ArgumentNullException">hostBuilder.</exception>
-    public static IHostBuilder UseWebHostServices(this IHostBuilder hostBuilder, Action<WebHostBuilderContext, IServiceCollection> configureServices, Func<IWebHostBuilder, IWebHostBuilder> configureWebHost, Func<IApplicationBuilder, IApplicationBuilder> coonfigureApp, bool validateScopes = false)
+    public static IHostBuilder UseWebHostServices(this IHostBuilder hostBuilder, Action<WebHostBuilderContext, IServiceCollection> configureServices, Func<IWebHostBuilder, IWebHostBuilder> configureWebHost, Func<IApplicationBuilder, IApplicationBuilder> configureApp, bool validateScopes = false)
     {
         ArgumentNullException.ThrowIfNull(hostBuilder);
 
         return hostBuilder.ConfigureWebHostDefaults(webBuilder =>
             configureWebHost(webBuilder)
                 .UseDefaultServiceProvider(options => options.ValidateScopes = validateScopes)
-                .Configure(app => coonfigureApp(app).Run(async (_) => await Task.CompletedTask)) // Dummy app.Run to prevent 'No application service provider was found' error.
+                .Configure(app => configureApp(app).Run(async (_) => await Task.CompletedTask)) // Dummy app.Run to prevent 'No application service provider was found' error.
                 .ConfigureServices((context, services) => configureServices(context, services)));
     }
 }
