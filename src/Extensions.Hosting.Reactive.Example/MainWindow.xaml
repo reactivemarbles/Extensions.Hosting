@@ -1,0 +1,42 @@
+﻿<reactiveui:ReactiveWindow
+    x:Class="Extensions.Hosting.Reactive.Example.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:reactiveDemo="clr-namespace:Extensions.Hosting.Reactive.Example"
+    xmlns:reactiveui="http://reactiveui.net"
+    Title="ReactiveMarbles NuGet Browser"
+    Width="800"
+    Height="450"
+    x:TypeArguments="reactiveDemo:AppViewModel"
+    mc:Ignorable="d">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock
+            VerticalAlignment="Center"
+            FontSize="16"
+            FontWeight="SemiBold"
+            Text="Search for: " />
+        <TextBox
+            x:Name="SearchTextBox"
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="6,0,0,0" />
+        <ListBox
+            x:Name="SearchResultsListBox"
+            Grid.Row="1"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Margin="0,6,0,0"
+            HorizontalContentAlignment="Stretch"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+    </Grid>
+</reactiveui:ReactiveWindow>
