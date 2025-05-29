@@ -45,6 +45,30 @@ public static class HostBuilderPluginExtensions
     }
 
     /// <summary>
+    /// Configure the plugins.
+    /// </summary>
+    /// <param name="hostBuilder">IHostBuilder.</param>
+    /// <param name="configurePlugin">Action to configure the IPluginBuilder.</param>
+    /// <returns>An IHostBuilder.</returns>
+    public static IHostApplicationBuilder ConfigurePlugins(this IHostApplicationBuilder? hostBuilder, Action<IPluginBuilder?> configurePlugin)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        if (!hostBuilder.Properties.TryRetrievePluginBuilder(out var pluginBuilder))
+        {
+            // Configure a single time
+            ConfigurePluginScanAndLoad(hostBuilder);
+        }
+
+        configurePlugin?.Invoke(pluginBuilder);
+
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// Helper method to retrieve the plugin builder.
     /// </summary>
     /// <param name="properties">IDictionary.</param>
@@ -127,6 +151,72 @@ public static class HostBuilderPluginExtensions
                 plugin?.ConfigureHost(hostBuilderContext, serviceCollection);
             }
         });
+
+    /// <summary>
+    /// This enables scanning for and loading of plug-ins.
+    /// </summary>
+    /// <param name="hostBuilder">IHostBuilder.</param>
+    private static IHostApplicationBuilder ConfigurePluginScanAndLoad(IHostApplicationBuilder hostBuilder)
+    {
+        //// Configure the actual scanning & loading
+            hostBuilder.Properties.TryRetrievePluginBuilder(out var pluginBuilder);
+
+            if (pluginBuilder.UseContentRoot)
+            {
+                var contentRootPath = hostBuilder.Environment.ContentRootPath;
+                pluginBuilder.AddScanDirectories(contentRootPath);
+            }
+
+            var scannedAssemblies = new HashSet<Assembly?>();
+
+            if (pluginBuilder.FrameworkDirectories.Count > 0)
+            {
+                foreach (var frameworkScanRoot in pluginBuilder.FrameworkDirectories)
+                {
+                    // Do the globbing and try to load the framework files into the default AssemblyLoadContext
+                    foreach (var frameworkAssemblyPath in pluginBuilder.FrameworkMatcher.GetResultsInFullPath(frameworkScanRoot))
+                    {
+                        var frameworkAssemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(frameworkAssemblyPath));
+                        if (AssemblyLoadContext.Default.TryGetAssembly(frameworkAssemblyName, out var alreadyLoadedAssembly))
+                        {
+                            scannedAssemblies.Add(alreadyLoadedAssembly);
+                            continue;
+                        }
+
+                        // TODO: Log the loading?
+                        var loadedAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(frameworkAssemblyPath);
+                        scannedAssemblies.Add(loadedAssembly);
+                    }
+                }
+            }
+
+            if (pluginBuilder.PluginDirectories.Count > 0)
+            {
+                foreach (var pluginScanRootPath in pluginBuilder.PluginDirectories)
+                {
+                    // Do the globbing and try to load the plug-ins
+                    var pluginPaths = pluginBuilder.PluginMatcher.GetResultsInFullPath(pluginScanRootPath);
+
+                    // Use the globbed files, and load the assemblies
+                    var pluginAssemblies = pluginPaths
+                        .Select(s => LoadPlugin(pluginBuilder, s))
+                        .Where(plugin => plugin != null);
+                    foreach (var pluginAssembly in pluginAssemblies)
+                    {
+                        scannedAssemblies.Add(pluginAssembly);
+                    }
+                }
+            }
+
+            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin?.GetOrder());
+
+            foreach (var plugin in plugins)
+            {
+                plugin?.ConfigureHost(hostBuilder, hostBuilder.Services);
+            }
+
+            return hostBuilder;
+    }
 
     /// <summary>
     /// Helper method to process the PluginOrder attribute.

@@ -18,5 +18,5 @@ public interface IPlugin
     /// </summary>
     /// <param name="hostBuilderContext">HostBuilderContext.</param>
     /// <param name="serviceCollection">IServiceCollection.</param>
-    void ConfigureHost(HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection);
+    void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection);
 }
