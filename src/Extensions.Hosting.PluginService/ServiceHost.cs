@@ -110,11 +110,11 @@ public static class ServiceHost
     }
 
     /// <summary>
-    /// Creates the specified host builder.
+    /// Creates the specified host Application builder.
     /// </summary>
     /// <param name="type">The type.</param>
     /// <param name="args">The arguments.</param>
-    /// <param name="hostBuilder">The host builder.</param>
+    /// <param name="hostBuilder">The host Application builder.</param>
     /// <param name="configureHost">The configure host.</param>
     /// <param name="nameSpace">The plugin name space.</param>
     /// <param name="targetRuntime">The target runtime folder for plugins.</param>
@@ -122,7 +122,7 @@ public static class ServiceHost
     /// A Task.
     /// </returns>
     /// <exception cref="System.ArgumentNullException">type.</exception>
-    public static Task Create(
+    public static Task CreateApplication(
         Type type,
         string[] args,
         Func<IHostApplicationBuilder?, IHostApplicationBuilder?>? hostBuilder = default,

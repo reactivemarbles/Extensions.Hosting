@@ -50,6 +50,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Wpf.Exam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Reactive.Example", "Extensions.Hosting.Reactive.Example\Extensions.Hosting.Reactive.Example.csproj", "{35AF6B38-6CF9-98CD-92C1-FA8B09CDBA2A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Console.Example", "Extensions.Hosting.Console.Example\Extensions.Hosting.Console.Example.csproj", "{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6DFEEEE4-DC45-3029-D316-8ACD27759A81} = {6DFEEEE4-DC45-3029-D316-8ACD27759A81}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.Plugin.Example", "Extensions.Hosting.Plugin.Example\ReactiveMarbles.Plugin.Example.csproj", "{6DFEEEE4-DC45-3029-D316-8ACD27759A81}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +121,14 @@ Global
 		{35AF6B38-6CF9-98CD-92C1-FA8B09CDBA2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35AF6B38-6CF9-98CD-92C1-FA8B09CDBA2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35AF6B38-6CF9-98CD-92C1-FA8B09CDBA2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -121,6 +136,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{128513AE-A04E-4B30-AD4B-CE1A237D4D72} = {312076E6-5E8A-4B49-B375-4631413F1729}
 		{35AF6B38-6CF9-98CD-92C1-FA8B09CDBA2A} = {312076E6-5E8A-4B49-B375-4631413F1729}
+		{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B} = {312076E6-5E8A-4B49-B375-4631413F1729}
+		{6DFEEEE4-DC45-3029-D316-8ACD27759A81} = {312076E6-5E8A-4B49-B375-4631413F1729}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {73D54792-B9AC-4D9B-BB34-57CAD24EC5D6}
