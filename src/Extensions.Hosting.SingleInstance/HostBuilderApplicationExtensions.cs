@@ -49,9 +49,45 @@ public static class HostBuilderApplicationExtensions
     /// Prevent that an application runs multiple times.
     /// </summary>
     /// <param name="hostBuilder">IHostBuilder.</param>
+    /// <param name="configureAction">Action to configure IMutexBuilder.</param>
+    /// <returns>
+    /// IHostBuilder for fluently calling.
+    /// </returns>
+    public static IHostApplicationBuilder ConfigureSingleInstance(this IHostApplicationBuilder hostBuilder, Action<IMutexBuilder> configureAction)
+    {
+        if (hostBuilder is null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        if (!TryRetrieveMutexBuilder(hostBuilder.Properties, out var mutexBuilder))
+        {
+            hostBuilder.Services
+                .AddSingleton(mutexBuilder)
+                .AddHostedService<MutexLifetimeService>();
+        }
+
+        configureAction?.Invoke(mutexBuilder);
+
+        return hostBuilder;
+    }
+
+    /// <summary>
+    /// Prevent that an application runs multiple times.
+    /// </summary>
+    /// <param name="hostBuilder">IHostBuilder.</param>
     /// <param name="mutexId">string.</param>
     /// <returns>IHostBuilder for fluently calling.</returns>
     public static IHostBuilder ConfigureSingleInstance(this IHostBuilder hostBuilder, string mutexId) =>
+        hostBuilder.ConfigureSingleInstance(builder => builder.MutexId = mutexId);
+
+    /// <summary>
+    /// Prevent that an application runs multiple times.
+    /// </summary>
+    /// <param name="hostBuilder">IHostBuilder.</param>
+    /// <param name="mutexId">string.</param>
+    /// <returns>IHostBuilder for fluently calling.</returns>
+    public static IHostApplicationBuilder ConfigureSingleInstance(this IHostApplicationBuilder hostBuilder, string mutexId) =>
         hostBuilder.ConfigureSingleInstance(builder => builder.MutexId = mutexId);
 
     /// <summary>

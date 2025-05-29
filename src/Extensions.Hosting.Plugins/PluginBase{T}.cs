@@ -16,6 +16,6 @@ public class PluginBase<T> : IPlugin
     where T : class, IHostedService
 {
     /// <inheritdoc />
-    public void ConfigureHost(HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection) =>
+    public void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection) =>
         serviceCollection.AddHostedService<T>();
 }
