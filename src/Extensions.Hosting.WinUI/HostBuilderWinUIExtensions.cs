@@ -68,6 +68,49 @@ public static class HostBuilderWinUIExtensions
     }
 
     /// <summary>
+    /// Configure a WinUI application using IHostApplicationBuilder.
+    /// </summary>
+    /// <typeparam name="TApp">The type of the application.</typeparam>
+    /// <typeparam name="TAppWindow">The type of the application window.</typeparam>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder ConfigureWinUI<TApp, TAppWindow>(this IHostApplicationBuilder hostBuilder)
+        where TApp : Application
+        where TAppWindow : Window
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        var appType = typeof(TApp);
+
+        if (!TryRetrieveWinUIContext(hostBuilder.Properties, out var winUIContext))
+        {
+            hostBuilder.Services.AddSingleton(winUIContext);
+            hostBuilder.Services.AddSingleton(serviceProvider => new WinUIThread(serviceProvider));
+            hostBuilder.Services.AddHostedService<WinUIHostedService>();
+        }
+
+        winUIContext.AppWindowType = typeof(TAppWindow);
+        winUIContext.IsLifetimeLinked = true;
+
+        var baseApplicationType = typeof(Application);
+        if (!baseApplicationType.IsAssignableFrom(appType))
+        {
+            throw new ArgumentException("The registered Application type inherit System.Windows.Application", nameof(TApp));
+        }
+
+        hostBuilder.Services.AddSingleton<TApp>();
+        if (appType != baseApplicationType)
+        {
+            hostBuilder.Services.AddSingleton<Application>(services => services.GetRequiredService<TApp>());
+        }
+
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// Helper method to retrieve the IWinUIContext.
     /// </summary>
     /// <param name="properties">IDictionary.</param>

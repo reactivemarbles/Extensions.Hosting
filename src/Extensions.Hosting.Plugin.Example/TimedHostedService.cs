@@ -16,7 +16,6 @@ namespace ReactiveMarbles.Plugin.Example;
 /// </summary>
 public class TimedHostedService(ILogger<TimedHostedService> logger, IHostApplicationLifetime hostApplicationLifetime) : HostedServiceBase<TimedHostedService>(logger, hostApplicationLifetime)
 {
-    private readonly IDisposable? _disposable;
     private Timer? _timer;
 
     /// <summary>
@@ -42,7 +41,6 @@ public class TimedHostedService(ILogger<TimedHostedService> logger, IHostApplica
         Logger.LogInformation("Timed Background Service is stopping.");
 
         _timer?.Change(Timeout.Infinite, 0);
-        _disposable?.Dispose();
         Logger?.LogInformation("Plugin Service Stopped");
         base.OnStopping();
     }
@@ -56,7 +54,6 @@ public class TimedHostedService(ILogger<TimedHostedService> logger, IHostApplica
         if (disposing)
         {
             _timer?.Dispose();
-            _disposable?.Dispose();
         }
 
         base.Dispose(disposing);

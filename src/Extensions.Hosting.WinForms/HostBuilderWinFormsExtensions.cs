@@ -31,6 +31,23 @@ public static class HostBuilderWinFormsExtensions
         });
 
     /// <summary>
+    /// Defines that stopping the WinForms application also stops the host (application).
+    /// </summary>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder UseWinFormsLifetime(this IHostApplicationBuilder hostBuilder)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        TryRetrieveWinFormsContext(hostBuilder.Properties, out var winFormsContext);
+        winFormsContext.IsLifetimeLinked = true;
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// Configure an WinForms application.
     /// </summary>
     /// <param name="hostBuilder">IHostBuilder.</param>
@@ -49,6 +66,31 @@ public static class HostBuilderWinFormsExtensions
 
             configureAction?.Invoke(winFormsContext);
         });
+
+    /// <summary>
+    /// Configure an WinForms application.
+    /// </summary>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <param name="configureAction">Action to configure the Application.</param>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder ConfigureWinForms(this IHostApplicationBuilder hostBuilder, Action<IWinFormsContext>? configureAction = null)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        if (!TryRetrieveWinFormsContext(hostBuilder.Properties, out var winFormsContext))
+        {
+            hostBuilder.Services
+                .AddSingleton(winFormsContext)
+                .AddSingleton(serviceProvider => new WinFormsThread(serviceProvider))
+                .AddHostedService<WinFormsHostedService>();
+        }
+
+        configureAction?.Invoke(winFormsContext);
+        return hostBuilder;
+    }
 
     /// <summary>
     /// Configure an WinForms application.
@@ -76,6 +118,36 @@ public static class HostBuilderWinFormsExtensions
             });
 
     /// <summary>
+    /// Configure an WinForms application for IHostApplicationBuilder.
+    /// </summary>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <param name="configureAction">Action to configure the Application.</param>
+    /// <typeparam name="TView">Type for the View.</typeparam>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder ConfigureWinForms<TView>(this IHostApplicationBuilder hostBuilder, Action<IWinFormsContext>? configureAction = null)
+        where TView : Form
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        hostBuilder.ConfigureWinForms(configureAction);
+
+        hostBuilder.Services.AddSingleton<TView>();
+
+        // Check if it also implements IWinFormsShell so we can register it as this
+        var viewType = typeof(TView);
+        var shellInterfaceType = typeof(IWinFormsShell);
+        if (shellInterfaceType.IsAssignableFrom(viewType))
+        {
+            hostBuilder.Services.AddSingleton(shellInterfaceType, serviceProvider => serviceProvider.GetRequiredService<TView>());
+        }
+
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// Specify a shell, the primary Form, to start.
     /// </summary>
     /// <param name="hostBuilder">IHostBuilder.</param>
@@ -84,6 +156,16 @@ public static class HostBuilderWinFormsExtensions
     public static IHostBuilder? ConfigureWinFormsShell<TShell>(this IHostBuilder hostBuilder)
         where TShell : Form, IWinFormsShell
         => hostBuilder?.ConfigureWinForms<TShell>();
+
+    /// <summary>
+    /// Specify a shell, the primary Form, to start. (IHostApplicationBuilder).
+    /// </summary>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <typeparam name="TShell">Type for the shell, must derive from Form and implement IWinFormsShell.</typeparam>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder ConfigureWinFormsShell<TShell>(this IHostApplicationBuilder hostBuilder)
+        where TShell : Form, IWinFormsShell
+        => hostBuilder.ConfigureWinForms<TShell>();
 
     /// <summary>
     /// Helper method to retrieve the IWinFormsContext.
