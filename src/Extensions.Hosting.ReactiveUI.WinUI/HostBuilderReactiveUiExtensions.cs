@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Hosting;
-using ReactiveUI;
+using ReactiveUI.Builder;
 using Splat;
+using Splat.Builder;
 using Splat.Microsoft.Extensions.DependencyInjection;
 
 namespace ReactiveMarbles.Extensions.Hosting.ReactiveUI;
@@ -22,10 +23,12 @@ public static class HostBuilderReactiveUiExtensions
     public static IHostBuilder ConfigureSplatForMicrosoftDependencyResolver(this IHostBuilder hostBuilder) =>
         hostBuilder.ConfigureServices((serviceCollection) =>
         {
-            serviceCollection.UseMicrosoftDependencyResolver();
-            var resolver = Locator.CurrentMutable;
+            var resolver = AppLocator.CurrentMutable;
+            resolver.CreateReactiveUIBuilder()
+                .UsingSplatModule(new MicrosoftDependencyResolverModule(serviceCollection))
+                .WithWinUI()
+                .Build();
             resolver.InitializeSplat();
-            resolver.InitializeReactiveUI();
         });
 
     /// <summary>
