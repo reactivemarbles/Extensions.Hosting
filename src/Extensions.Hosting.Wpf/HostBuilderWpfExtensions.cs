@@ -44,6 +44,29 @@ public static class HostBuilderWpfExtensions
     }
 
     /// <summary>
+    /// Defines that stopping the WPF application also stops the host (application).
+    /// </summary>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <param name="shutdownMode">ShutdownMode default is OnLastWindowClose.</param>
+    /// <returns>Returns the configured IHostApplicationBuilder.</returns>
+    public static IHostApplicationBuilder UseWpfLifetime(this IHostApplicationBuilder hostBuilder, ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        if (!TryRetrieveWpfContext(hostBuilder.Properties, out var wpfContext))
+        {
+            throw new NotSupportedException("Please configure WPF first!");
+        }
+
+        wpfContext.ShutdownMode = shutdownMode;
+        wpfContext.IsLifetimeLinked = true;
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// Configure an WPF application.
     /// </summary>
     /// <param name="hostBuilder">IHostBuilder.</param>
@@ -115,6 +138,74 @@ public static class HostBuilderWpfExtensions
                     }
                 }
             });
+        }
+
+        return hostBuilder;
+    }
+
+    /// <summary>
+    /// Configure a WPF application for the new builder API.
+    /// </summary>
+    /// <param name="hostBuilder">The IHostApplicationBuilder.</param>
+    /// <param name="configureDelegate">Action to configure Wpf.</param>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder ConfigureWpf(this IHostApplicationBuilder hostBuilder, Action<IWpfBuilder>? configureDelegate = null)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        var wpfBuilder = new WpfBuilder();
+        configureDelegate?.Invoke(wpfBuilder);
+
+        if (!TryRetrieveWpfContext(hostBuilder.Properties, out var wpfContext))
+        {
+            hostBuilder.Services.AddSingleton(wpfContext);
+            hostBuilder.Services.AddSingleton(serviceProvider => new WpfThread(serviceProvider));
+            hostBuilder.Services.AddHostedService<WpfHostedService>();
+        }
+
+        wpfBuilder.ConfigureContextAction?.Invoke(wpfContext);
+
+        if (wpfBuilder.ApplicationType != null)
+        {
+            // Check if the registered application does inherit System.Windows.Application
+            var baseApplicationType = typeof(Application);
+            if (!baseApplicationType.IsAssignableFrom(wpfBuilder.ApplicationType))
+            {
+                throw new ArgumentException("The registered Application type inherit System.Windows.Application", nameof(configureDelegate));
+            }
+
+            if (wpfBuilder.Application != null)
+            {
+                // Add existing Application
+                hostBuilder.Services.AddSingleton(wpfBuilder.ApplicationType, wpfBuilder.Application);
+            }
+            else
+            {
+                hostBuilder.Services.AddSingleton(wpfBuilder.ApplicationType);
+            }
+
+            if (wpfBuilder.ApplicationType != baseApplicationType)
+            {
+                hostBuilder.Services.AddSingleton(serviceProvider => (Application)serviceProvider.GetRequiredService(wpfBuilder.ApplicationType));
+            }
+        }
+
+        if (wpfBuilder.WindowTypes.Count > 0)
+        {
+            foreach (var wpfWindowType in wpfBuilder.WindowTypes)
+            {
+                hostBuilder.Services.AddSingleton(wpfWindowType);
+
+                // Check if it also implements IWpfShell so we can register it as this
+                var shellInterfaceType = typeof(IWpfShell);
+                if (shellInterfaceType.IsAssignableFrom(wpfWindowType))
+                {
+                    hostBuilder.Services.AddSingleton(shellInterfaceType, serviceProvider => serviceProvider.GetRequiredService(wpfWindowType));
+                }
+            }
         }
 
         return hostBuilder;

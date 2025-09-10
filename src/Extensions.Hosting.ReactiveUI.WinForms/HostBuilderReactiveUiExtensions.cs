@@ -32,6 +32,26 @@ public static class HostBuilderReactiveUiExtensions
         });
 
     /// <summary>
+    /// Configure a ReactiveUI application for IHostApplicationBuilder.
+    /// </summary>
+    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder ConfigureSplatForMicrosoftDependencyResolver(this IHostApplicationBuilder hostBuilder)
+    {
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        hostBuilder.Services.UseMicrosoftDependencyResolver();
+        AppLocator.CurrentMutable.CreateReactiveUIBuilder()
+            .WithWinForms()
+            .WithRegistration(r => r.InitializeSplat())
+            .Build();
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// Maps the splat locator to the IServiceProvider.
     /// </summary>
     /// <param name="host">The host.</param>

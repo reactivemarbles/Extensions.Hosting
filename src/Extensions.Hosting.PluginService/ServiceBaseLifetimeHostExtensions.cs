@@ -24,20 +24,25 @@ public static class ServiceBaseLifetimeHostExtensions
     /// <summary>
     /// Uses the service base lifetime.
     /// </summary>
-    /// <param name="hostBuilder">The host builder.</param>
-    /// <returns>IHostBilder.</returns>
-    public static HostApplicationBuilder? UseServiceBaseLifetime(this IHostApplicationBuilder hostBuilder)
+    /// <param name="hostBuilder">The host application builder.</param>
+    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    public static IHostApplicationBuilder UseServiceBaseLifetime(this IHostApplicationBuilder hostBuilder)
     {
-        hostBuilder?.Services.AddSingleton<IHostLifetime, ServiceBaseLifetime>();
-        return hostBuilder as HostApplicationBuilder;
+        if (hostBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(hostBuilder));
+        }
+
+        hostBuilder.Services.AddSingleton<IHostLifetime, ServiceBaseLifetime>();
+        return hostBuilder;
     }
 
     /// <summary>
     /// Listens for Ctrl+C or SIGTERM and calls <see cref="IHostApplicationLifetime.StopApplication"/> to start the shutdown process.
     /// This will unblock extensions like RunAsync and WaitForShutdownAsync.
     /// </summary>
-    /// <param name="hostBuilder">The <see cref="IHostBuilder" /> to configure.</param>
-    /// <returns>The same instance of the <see cref="IHostBuilder"/> for chaining.</returns>
+    /// <param name="hostBuilder">The <see cref="IHostApplicationBuilder" /> to configure.</param>
+    /// <returns>The same instance of the <see cref="IHostApplicationBuilder"/> for chaining.</returns>
     public static IHostApplicationBuilder UseConsoleLifetime(this IHostApplicationBuilder hostBuilder)
     {
         if (hostBuilder is null)
@@ -61,9 +66,12 @@ public static class ServiceBaseLifetimeHostExtensions
     /// <summary>
     /// Runs as service asynchronous.
     /// </summary>
-    /// <param name="hostBuilder">The host builder.</param>
+    /// <param name="hostBuilder">The host application builder.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Task.</returns>
-    public static Task RunAsServiceAsync(this HostApplicationBuilder hostBuilder, CancellationToken cancellationToken = default) =>
-        hostBuilder.UseServiceBaseLifetime()!.Build().RunAsync(cancellationToken);
+    public static Task RunAsServiceAsync(this HostApplicationBuilder hostBuilder, CancellationToken cancellationToken = default)
+    {
+        UseServiceBaseLifetime((IHostApplicationBuilder)hostBuilder);
+        return hostBuilder.Build().RunAsync(cancellationToken);
+    }
 }
