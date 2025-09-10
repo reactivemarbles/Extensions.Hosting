@@ -23,12 +23,11 @@ public static class HostBuilderReactiveUiExtensions
     public static IHostBuilder ConfigureSplatForMicrosoftDependencyResolver(this IHostBuilder hostBuilder) =>
         hostBuilder.ConfigureServices((serviceCollection) =>
         {
-            var resolver = AppLocator.CurrentMutable;
-            resolver.CreateReactiveUIBuilder()
-                .UsingSplatModule(new MicrosoftDependencyResolverModule(serviceCollection))
+            serviceCollection.UseMicrosoftDependencyResolver();
+            AppLocator.CurrentMutable.CreateReactiveUIBuilder()
                 .WithWinUI()
+                .WithRegistration(r => r.InitializeSplat())
                 .Build();
-            resolver.InitializeSplat();
         });
 
     /// <summary>
