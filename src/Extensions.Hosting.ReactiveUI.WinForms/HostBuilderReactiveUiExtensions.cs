@@ -4,7 +4,9 @@
 
 using Microsoft.Extensions.Hosting;
 using ReactiveUI;
+using ReactiveUI.Builder;
 using Splat;
+using Splat.Builder;
 using Splat.Microsoft.Extensions.DependencyInjection;
 
 namespace ReactiveMarbles.Extensions.Hosting.ReactiveUI;
@@ -23,9 +25,10 @@ public static class HostBuilderReactiveUiExtensions
         hostBuilder.ConfigureServices((serviceCollection) =>
         {
             serviceCollection.UseMicrosoftDependencyResolver();
-            var resolver = Locator.CurrentMutable;
-            resolver.InitializeSplat();
-            resolver.InitializeReactiveUI();
+            AppLocator.CurrentMutable.CreateReactiveUIBuilder()
+                .WithWinForms()
+                .WithRegistration(r => r.InitializeSplat())
+                .Build();
         });
 
     /// <summary>

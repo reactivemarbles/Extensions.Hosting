@@ -30,7 +30,7 @@
     <!-- Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-    <CoreVersion>9.0.5</CoreVersion>
+    <CoreVersion>9.0.9</CoreVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
@@ -50,7 +50,7 @@
   <ItemGroup>
     <!--<Compile Update="**\*.cs" DependentUpon="I%(Filename).cs" />-->
     <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
-    <PackageReference Include="Roslynator.Analyzers" Version="4.13.1" PrivateAssets="All" />
+    <PackageReference Include="Roslynator.Analyzers" Version="4.14.0" PrivateAssets="All" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
   </ItemGroup>
 </Project>
