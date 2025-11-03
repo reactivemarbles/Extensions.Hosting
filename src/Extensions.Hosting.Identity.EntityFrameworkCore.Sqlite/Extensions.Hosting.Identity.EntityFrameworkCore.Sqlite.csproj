@@ -1,21 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>CP.Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite</PackageId>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- Use framework-appropriate package versions -->
+  <ItemGroup Condition=" $(TargetFramework.StartsWith('net10')) ">
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(CoreVersion)" />
   </ItemGroup>
-
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net9')) ">
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+  </ItemGroup>
+  <ItemGroup Condition=" $(TargetFramework.StartsWith('net8')) ">
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.16" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" $(TargetFramework.StartsWith('net10')) ">
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="$(CoreVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(CoreVersion)" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(CoreVersion)" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="$(CoreVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Align MSBuild dependencies to avoid NU1605 downgrades from transitive EF tooling -->
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" $(TargetFramework.StartsWith('net9')) ">
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

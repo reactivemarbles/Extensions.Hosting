@@ -30,6 +30,12 @@ public interface IPluginBuilder
     bool UseContentRoot { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to fail startup when no plugins are loaded.
+    /// Defaults to false for backwards compatibility.
+    /// </summary>
+    bool FailIfNoPlugins { get; set; }
+
+    /// <summary>
     /// Gets the matcher used to find all the framework assemblies.
     /// </summary>
     Matcher FrameworkMatcher { get; }

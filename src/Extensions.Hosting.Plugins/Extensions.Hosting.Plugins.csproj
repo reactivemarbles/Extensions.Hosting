@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net462;netstandard2.0;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <NoWarn>$(NoWarn);IDE0058;CA1822</NoWarn>
     <PackageDescription>This extension adds plug-in support to generic host based applications.</PackageDescription>
     <PackageId>CP.Extensions.Hosting.Plugins</PackageId>
@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(CoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(CoreVersion)" />
-    <PackageReference Include="System.Reactive" Version="6.0.2" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
   </ItemGroup>
 
 </Project>

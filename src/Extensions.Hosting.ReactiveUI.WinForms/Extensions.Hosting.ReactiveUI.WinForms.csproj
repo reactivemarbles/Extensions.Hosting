@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--ReactiveUI only supports windows 10.0.17763 plus-->
-    <TargetFrameworks>net462;net8.0-windows10.0.17763;net9.0-windows10.0.17763</TargetFrameworks>
+    <!--ReactiveUI only supports windows 10.0.19041 plus-->
+    <TargetFrameworks>net472;net8.0-windows10.0.19041;net9.0-windows10.0.19041;net10.0-windows10.0.19041</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageDescription>This extension adds ReactiveUI support to generic host based dotnet core 8.0 / 9.0 WinForms applications. With this you can enhance your application with a UI, and use all the services provided by the generic host like DI, logging etc, together with this reactive MVVM framework.</PackageDescription>
+    <PackageDescription>This extension adds ReactiveUI support to generic host based dotnet core 8.0 / 9.0 / 10.0 WinForms applications. With this you can enhance your application with a UI, and use all the services provided by the generic host like DI, logging etc, together with this reactive MVVM framework.</PackageDescription>
     <PackageId>CP.Extensions.Hosting.ReactiveUI.WinForms</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Splat" Version="16.2.1" />
-    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="16.2.1" />
-    <PackageReference Include="ReactiveUI.Drawing" Version="21.0.1" />
-    <PackageReference Include="ReactiveUI.WinForms" Version="21.0.1" />
+    <PackageReference Include="Splat" Version="17.1.1" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="17.1.1" />
+    <PackageReference Include="ReactiveUI.Drawing" Version="22.2.1" />
+    <PackageReference Include="ReactiveUI.WinForms" Version="22.2.1" />
   </ItemGroup>
 
   <ItemGroup>

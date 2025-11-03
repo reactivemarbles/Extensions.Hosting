@@ -144,7 +144,12 @@ public static class HostBuilderPluginExtensions
                 }
             }
 
-            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin?.GetOrder());
+            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin?.GetOrder()).ToList();
+
+            if (plugins.Count == 0 && pluginBuilder.FailIfNoPlugins)
+            {
+                throw new InvalidOperationException("No plugins were found. Set FailIfNoPlugins=false to allow empty plugin sets.");
+            }
 
             foreach (var plugin in plugins)
             {
@@ -208,7 +213,12 @@ public static class HostBuilderPluginExtensions
                 }
             }
 
-            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin?.GetOrder());
+            var plugins = scannedAssemblies.SelectMany(pluginBuilder.AssemblyScanFunc!).Where(plugin => plugin != null).OrderBy(plugin => plugin?.GetOrder()).ToList();
+
+            if (plugins.Count == 0 && pluginBuilder.FailIfNoPlugins)
+            {
+                throw new InvalidOperationException("No plugins were found. Set FailIfNoPlugins=false to allow empty plugin sets.");
+            }
 
             foreach (var plugin in plugins)
             {

@@ -34,4 +34,7 @@ internal class PluginBuilder : IPluginBuilder
 
     /// <inheritdoc />
     public bool UseContentRoot { get; set; }
+
+    /// <inheritdoc />
+    public bool FailIfNoPlugins { get; set; }
 }

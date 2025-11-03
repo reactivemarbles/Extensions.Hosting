@@ -5,7 +5,6 @@
 using Microsoft.Extensions.Hosting;
 using ReactiveUI.Builder;
 using Splat;
-using Splat.Builder;
 using Splat.Microsoft.Extensions.DependencyInjection;
 
 namespace ReactiveMarbles.Extensions.Hosting.ReactiveUI;

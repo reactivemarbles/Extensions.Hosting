@@ -103,4 +103,19 @@ public static class PluginBuilderExtensions
             pluginBuilder?.PluginMatcher.AddInclude(glob);
         }
     }
+
+    /// <summary>
+    /// Require at least one plugin to be discovered; throw during startup if none are found.
+    /// </summary>
+    /// <param name="pluginBuilder">IPluginBuilder instance.</param>
+    /// <param name="failIfNone">If true, startup throws when no plugins are found. Defaults to true.</param>
+    public static void RequirePlugins(this IPluginBuilder pluginBuilder, bool failIfNone = true)
+    {
+        if (pluginBuilder == null)
+        {
+            throw new ArgumentNullException(nameof(pluginBuilder));
+        }
+
+        pluginBuilder.FailIfNoPlugins = failIfNone;
+    }
 }
