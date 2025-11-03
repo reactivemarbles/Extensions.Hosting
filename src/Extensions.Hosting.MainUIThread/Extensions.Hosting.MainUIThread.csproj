@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net462;netstandard2.0;net8.0-windows;net9.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0;net8.0-windows;net9.0-windows;net10.0-windows</TargetFrameworks>
     <PackageId>CP.Extensions.Hosting.MainUIThread</PackageId>
   </PropertyGroup>
 

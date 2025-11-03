@@ -5,7 +5,7 @@ Extensions for Microsoft.Extensions.Hosting that bring WPF, WinForms, WinUI, Rea
 
 This repository supports both classic IHostBuilder and the newer IHostApplicationBuilder hosting model introduced in .NET 8+. Existing IHostBuilder APIs remain unchanged; equivalent IHostApplicationBuilder overloads are available where appropriate.
 
-Supported targets include .NET Framework 4.6.2/4.8, .NET Standard 2.0, and .NET 8/9 (Windows where applicable).
+Supported targets include .NET Framework 4.6.2/4.8, .NET Standard 2.0, and .NET 8/9/10 (Windows where applicable).
 
 ## Quick start
 
@@ -255,7 +255,11 @@ await ServiceHost.CreateApplication(
     typeof(Program),
     args,
     hb => hb // external builder customization
-            .ConfigurePlugins(pb => { /* plugin globs */ }),
+            .ConfigurePlugins(pb =>
+            { 
+                /* plugin globs */
+                pb.RequirePlugins(true); // fail if none found - optional default false
+            }),
     host => { /* use host.Services */ },
     nameSpace: "ReactiveMarbles.Plugin");
 ```

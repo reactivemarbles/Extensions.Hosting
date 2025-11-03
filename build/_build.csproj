@@ -13,12 +13,15 @@
 
   <ItemGroup>
     <PackageReference Include="CP.Nuke.BuildTools" Version="1.0.94" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.8.118" />
     <PackageReference Include="Nuke.Common" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Build" Version="17.11.48" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageDownload Include="nbgv" Version="[3.7.115]" />
+    <PackageDownload Include="nbgv" Version="[3.8.118]" />
   </ItemGroup>
 
 </Project>

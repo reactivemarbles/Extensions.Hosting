@@ -2,13 +2,11 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ReactiveMarbles.Extensions.Hosting.AppServices;
-using ReactiveMarbles.Extensions.Hosting.Plugins;
 using ReactiveMarbles.Extensions.Hosting.ReactiveUI;
 using ReactiveMarbles.Extensions.Hosting.Wpf;
 using ReactiveUI;
