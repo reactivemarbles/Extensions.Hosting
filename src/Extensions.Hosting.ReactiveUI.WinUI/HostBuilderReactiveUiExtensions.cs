@@ -36,10 +36,7 @@ public static class HostBuilderReactiveUiExtensions
     /// <returns>The same IHostApplicationBuilder instance.</returns>
     public static IHostApplicationBuilder ConfigureSplatForMicrosoftDependencyResolver(this IHostApplicationBuilder hostBuilder)
     {
-        if (hostBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(hostBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(hostBuilder);
 
         hostBuilder.Services.UseMicrosoftDependencyResolver();
         AppLocator.CurrentMutable.CreateReactiveUIBuilder()
