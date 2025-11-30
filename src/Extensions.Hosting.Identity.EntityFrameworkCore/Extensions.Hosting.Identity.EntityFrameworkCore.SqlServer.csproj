@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(CoreVersion)" />
-    <PackageReference Include="System.Formats.Asn1" Version="$(CoreVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net10')) ">
@@ -21,25 +20,25 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <!-- Align MSBuild dependencies to avoid NU1605 downgrades from transitive EF tooling -->
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="18.0.2" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net9')) ">
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net8')) ">
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.16" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.16" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.16" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.16">
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.22" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.22">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
