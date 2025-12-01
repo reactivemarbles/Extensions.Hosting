@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11123.170 d18.0
+VisualStudioVersion = 18.0.11123.170
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Extensions.Hosting.MainUIThread", "Extensions.Hosting.MainUIThread\Extensions.Hosting.MainUIThread.csproj", "{0716F214-3602-4347-BEEB-0F72FAF01AD0}"
 EndProject
@@ -56,6 +56,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Console.
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.Plugin.Example", "Extensions.Hosting.Plugin.Example\ReactiveMarbles.Plugin.Example.csproj", "{6DFEEEE4-DC45-3029-D316-8ACD27759A81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Maui", "Extensions.Hosting.Maui\Extensions.Hosting.Maui.csproj", "{F8D8E9AC-59A6-F7CE-C96C-85781C53EC61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Maui.Example", "Extensions.Hosting.Maui.Example\Extensions.Hosting.Maui.Example.csproj", "{0747426F-C9F8-41E8-B743-8083CEF55534}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -129,6 +133,14 @@ Global
 		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DFEEEE4-DC45-3029-D316-8ACD27759A81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8D8E9AC-59A6-F7CE-C96C-85781C53EC61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8D8E9AC-59A6-F7CE-C96C-85781C53EC61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8D8E9AC-59A6-F7CE-C96C-85781C53EC61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8D8E9AC-59A6-F7CE-C96C-85781C53EC61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0747426F-C9F8-41E8-B743-8083CEF55534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0747426F-C9F8-41E8-B743-8083CEF55534}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0747426F-C9F8-41E8-B743-8083CEF55534}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0747426F-C9F8-41E8-B743-8083CEF55534}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,6 +150,7 @@ Global
 		{35AF6B38-6CF9-98CD-92C1-FA8B09CDBA2A} = {312076E6-5E8A-4B49-B375-4631413F1729}
 		{0EECB7DE-3C58-6CF5-37E2-71E1C5E94A4B} = {312076E6-5E8A-4B49-B375-4631413F1729}
 		{6DFEEEE4-DC45-3029-D316-8ACD27759A81} = {312076E6-5E8A-4B49-B375-4631413F1729}
+		{0747426F-C9F8-41E8-B743-8083CEF55534} = {312076E6-5E8A-4B49-B375-4631413F1729}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {73D54792-B9AC-4D9B-BB34-57CAD24EC5D6}
