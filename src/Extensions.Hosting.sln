@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Maui", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.Maui.Example", "Extensions.Hosting.Maui.Example\Extensions.Hosting.Maui.Example.csproj", "{0747426F-C9F8-41E8-B743-8083CEF55534}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions.Hosting.ReactiveUI.Maui", "Extensions.Hosting.ReactiveUI.Maui\Extensions.Hosting.ReactiveUI.Maui.csproj", "{5B4F8A0D-E598-4198-9750-F6F3B6C42D5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +143,10 @@ Global
 		{0747426F-C9F8-41E8-B743-8083CEF55534}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0747426F-C9F8-41E8-B743-8083CEF55534}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0747426F-C9F8-41E8-B743-8083CEF55534}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B4F8A0D-E598-4198-9750-F6F3B6C42D5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B4F8A0D-E598-4198-9750-F6F3B6C42D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B4F8A0D-E598-4198-9750-F6F3B6C42D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B4F8A0D-E598-4198-9750-F6F3B6C42D5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -48,7 +48,5 @@ public class MauiThread(IServiceProvider serviceProvider) : BaseUiThread<IMauiCo
             {
                 mauiService.Initialize(UiContext.MauiApplication);
             }
-
-            // The main page will be set in CreateWindow
         });
 }
