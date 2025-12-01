@@ -60,7 +60,11 @@ partial class Build : NukeBuild
 
     Target Restore => _ => _
         .DependsOn(Clean)
-        .Executes(() => DotNetRestore(s => s.SetProjectFile(Solution)));
+        .Executes(() =>
+        {
+            DotNetWorkloadRestore(s => s.DisableSkipManifestUpdate().SetProject(Solution));
+            return DotNetRestore(s => s.SetProjectFile(Solution));
+        });
 
     Target Compile => _ => _
         .DependsOn(Restore, Print)
