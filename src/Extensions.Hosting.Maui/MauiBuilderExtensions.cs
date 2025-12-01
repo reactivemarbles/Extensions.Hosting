@@ -4,6 +4,8 @@
 
 using System;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
@@ -18,7 +20,7 @@ public static class MauiBuilderExtensions
     /// <typeparam name="TPage">Type of the page, must inherit from Page.</typeparam>
     /// <param name="mauiBuilder">IMauiBuilder.</param>
     /// <returns>A IMauiBuilder.</returns>
-    public static IMauiBuilder? UsePage<TPage>(this IMauiBuilder mauiBuilder)
+    public static IMauiBuilder? AddSingletonPage<TPage>(this IMauiBuilder mauiBuilder)
         where TPage : Page
     {
         mauiBuilder?.PageTypes.Add(typeof(TPage));
@@ -30,13 +32,18 @@ public static class MauiBuilderExtensions
     /// </summary>
     /// <typeparam name="TApplication">Type of the application, must inherit from Application.</typeparam>
     /// <param name="mauiBuilder">IMauiBuilder.</param>
-    /// <returns>A IMauiBuilder.</returns>
-    public static IMauiBuilder UseApplication<TApplication>(this IMauiBuilder mauiBuilder)
+    /// <param name="configureMauiApp">Configure action for the MauiAppBuilder.</param>
+    /// <returns>
+    /// A IMauiBuilder.
+    /// </returns>
+    public static IMauiBuilder UseMauiApp<TApplication>(this IMauiBuilder mauiBuilder, Action<MauiAppBuilder>? configureMauiApp = null)
         where TApplication : Application
     {
         ArgumentNullException.ThrowIfNull(mauiBuilder);
 
         mauiBuilder.ApplicationType = typeof(TApplication);
+        mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+        configureMauiApp?.Invoke(mauiBuilder.MauiAppBuilder);
         return mauiBuilder;
     }
 
@@ -46,14 +53,19 @@ public static class MauiBuilderExtensions
     /// <typeparam name="TApplication">The type of the application.</typeparam>
     /// <param name="mauiBuilder">The MAUI builder.</param>
     /// <param name="currentApplication">The current application.</param>
-    /// <returns>A IMauiBuilder.</returns>
-    public static IMauiBuilder UseCurrentApplication<TApplication>(this IMauiBuilder mauiBuilder, TApplication currentApplication)
+    /// <param name="configureMauiApp">The configure maui application.</param>
+    /// <returns>
+    /// A IMauiBuilder.
+    /// </returns>
+    public static IMauiBuilder UseMauiApp<TApplication>(this IMauiBuilder mauiBuilder, TApplication currentApplication, Action<MauiAppBuilder>? configureMauiApp = null)
         where TApplication : Application
     {
         ArgumentNullException.ThrowIfNull(mauiBuilder);
 
         mauiBuilder.ApplicationType = typeof(TApplication);
         mauiBuilder.Application = currentApplication;
+        mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+        configureMauiApp?.Invoke(mauiBuilder.MauiAppBuilder);
         return mauiBuilder;
     }
 

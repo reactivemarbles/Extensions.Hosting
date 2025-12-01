@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
@@ -29,4 +30,12 @@ public interface IMauiBuilder
     /// Gets or sets action to configure the Maui context.
     /// </summary>
     Action<IMauiContext>? ConfigureContextAction { get; set; }
+
+    /// <summary>
+    /// Gets the maui application builder.
+    /// </summary>
+    /// <value>
+    /// The maui application builder.
+    /// </value>
+    MauiAppBuilder MauiAppBuilder { get; }
 }

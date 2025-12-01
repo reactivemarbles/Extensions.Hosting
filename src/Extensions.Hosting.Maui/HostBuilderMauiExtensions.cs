@@ -57,6 +57,11 @@ public static class HostBuilderMauiExtensions
         var mauiBuilder = new MauiBuilder();
         configureDelegate?.Invoke(mauiBuilder);
 
+        if (mauiBuilder.ApplicationType != null && mauiBuilder.Application == null && Application.Current?.GetType() == mauiBuilder.ApplicationType)
+        {
+            mauiBuilder.Application = Application.Current;
+        }
+
         hostBuilder.ConfigureServices((_, serviceCollection) =>
         {
             if (!TryRetrieveMauiContext(hostBuilder.Properties, out var mauiContext))
@@ -100,7 +105,7 @@ public static class HostBuilderMauiExtensions
 
         if (mauiBuilder.PageTypes.Count > 0)
         {
-            hostBuilder.ConfigureServices((_, serviceCollection) =>
+            hostBuilder.ConfigureServices(serviceCollection =>
             {
                 foreach (var mauiPageType in mauiBuilder.PageTypes)
                 {
@@ -131,6 +136,11 @@ public static class HostBuilderMauiExtensions
 
         var mauiBuilder = new MauiBuilder();
         configureDelegate?.Invoke(mauiBuilder);
+
+        if (mauiBuilder.ApplicationType != null && mauiBuilder.Application == null && Application.Current?.GetType() == mauiBuilder.ApplicationType)
+        {
+            mauiBuilder.Application = Application.Current;
+        }
 
         if (!TryRetrieveMauiContext(hostBuilder.Properties, out var mauiContext))
         {
@@ -182,6 +192,9 @@ public static class HostBuilderMauiExtensions
             }
         }
 
+        var app = mauiBuilder.MauiAppBuilder.Build();
+        hostBuilder.Services.AddSingleton(app);
+
         return hostBuilder;
     }
 
@@ -193,7 +206,7 @@ public static class HostBuilderMauiExtensions
     /// <returns>A IHostBuilder.</returns>
     public static IHostBuilder? ConfigureMauiShell<TShell>(this IHostBuilder hostBuilder)
         where TShell : Page, IMauiShell
-        => hostBuilder?.ConfigureMaui(maui => maui.UsePage<TShell>());
+        => hostBuilder?.ConfigureMaui(maui => maui.AddSingletonPage<TShell>());
 
     /// <summary>
     /// Specify a shell, the primary Page, to start. (IHostApplicationBuilder).
@@ -203,7 +216,7 @@ public static class HostBuilderMauiExtensions
     /// <returns>The same IHostApplicationBuilder instance.</returns>
     public static IHostApplicationBuilder ConfigureMauiShell<TShell>(this IHostApplicationBuilder hostBuilder)
         where TShell : Page, IMauiShell
-        => hostBuilder.ConfigureMaui(maui => maui.UsePage<TShell>());
+        => hostBuilder.ConfigureMaui(maui => maui.AddSingletonPage<TShell>());
 
     /// <summary>
     /// Helper method to retrieve the IMauiContext.

@@ -20,5 +20,5 @@ internal class MauiContext : IMauiContext
     public Application? MauiApplication { get; set; }
 
     /// <inheritdoc />
-    public IDispatcher? Dispatcher => MauiApplication?.Dispatcher;
+    public IDispatcher? Dispatcher => Application.Current?.Dispatcher;
 }

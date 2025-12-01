@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui.Internals;
 
@@ -22,4 +23,12 @@ internal class MauiBuilder : IMauiBuilder
 
     /// <inheritdoc/>
     public Action<IMauiContext>? ConfigureContextAction { get; set; }
+
+    /// <summary>
+    /// Gets the maui application builder.
+    /// </summary>
+    /// <value>
+    /// The maui application builder.
+    /// </value>
+    public MauiAppBuilder MauiAppBuilder { get; } = MauiApp.CreateBuilder();
 }
