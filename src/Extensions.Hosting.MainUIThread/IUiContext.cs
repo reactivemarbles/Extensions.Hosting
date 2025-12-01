@@ -15,7 +15,7 @@ public interface IUiContext
     bool IsLifetimeLinked { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether is the WPF application started and still running?.
+    /// Gets or sets a value indicating whether is the application started and still running?.
     /// </summary>
     bool IsRunning { get; set; }
 }
