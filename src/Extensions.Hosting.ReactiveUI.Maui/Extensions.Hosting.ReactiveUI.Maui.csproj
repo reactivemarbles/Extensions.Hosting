@@ -3,23 +3,29 @@
   <PropertyGroup>
     <TargetFrameworks>net9.0;net10.0;net9.0-android;net10.0-android;net9.0-ios;net9.0-tvos;net9.0-macos;net9.0-maccatalyst;net10.0-ios;net10.0-tvos;net10.0-macos;net10.0-maccatalyst;</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <UseMaui>true</UseMaui>
-    <PackageDescription>This extension adds MAUI support to generic host based applications. With this you can enhance your application with a UI, and use all the services provided by the generic host like DI, logging etc.</PackageDescription>
-    <PackageId>CP.Extensions.Hosting.Maui</PackageId>
+    <PackageId>CP.Extensions.Hosting.ReactiveUI.Maui</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Extensions.Hosting.MainUIThread\Extensions.Hosting.MainUIThread.csproj" />
+    <PackageReference Include="Splat" Version="17.1.1" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="17.1.1" />
+    <PackageReference Include="ReactiveUI.Maui" Version="22.3.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net10')) ">
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.11" />
     <PackageReference Include="Microsoft.Maui.Core" Version="10.0.11" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net9')) ">
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
     <PackageReference Include="Microsoft.Maui.Core" Version="9.0.120" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Extensions.Hosting.Maui\Extensions.Hosting.Maui.csproj" />
+  </ItemGroup>
 </Project>
