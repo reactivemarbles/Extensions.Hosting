@@ -36,7 +36,7 @@ public static class HostBuilderReactiveUiExtensions
             AppLocator.CurrentMutable.CreateReactiveUIBuilder()
                 .WithRegistration(r => r.InitializeSplat())
                 .WithWinUI()
-                .Build();
+                .BuildApp();
         });
 
     /// <summary>
@@ -57,7 +57,7 @@ public static class HostBuilderReactiveUiExtensions
         AppLocator.CurrentMutable.CreateReactiveUIBuilder()
             .WithRegistration(r => r.InitializeSplat())
             .WithWinUI()
-            .Build();
+            .BuildApp();
         return hostBuilder;
     }
 

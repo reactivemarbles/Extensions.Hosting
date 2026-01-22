@@ -60,7 +60,7 @@ public static class HostBuilderReactiveUiExtensions
         AppLocator.CurrentMutable.CreateReactiveUIBuilder()
             .WithRegistration(r => r.InitializeSplat())
             .WithWpf()
-            .Build();
+            .BuildApp();
         return hostBuilder;
     }
 
