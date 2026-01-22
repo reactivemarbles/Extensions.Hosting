@@ -41,6 +41,7 @@
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <TUnitImplicitUsings>false</TUnitImplicitUsings>
     <TUnitAssertionsImplicitUsings>false</TUnitAssertionsImplicitUsings>
+    <EnableVSTestReferences>false</EnableVSTestReferences>
     <NoWarn>$(NoWarn);CS4014</NoWarn>
   </PropertyGroup>
 
@@ -50,6 +51,11 @@
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.3.2"/>
     <PackageReference Include="PublicApiGenerator" Version="11.5.4"/>
     <PackageReference Include="Verify.TUnit" Version="31.9.4"/>
+
+    <None Include="$(MSBuildThisFileDirectory)testconfig.json">
+      <Link>$(AssemblyName).testconfig.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' != 'true'">

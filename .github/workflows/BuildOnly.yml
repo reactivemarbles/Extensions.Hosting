@@ -66,4 +66,17 @@ jobs:
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
       - name: 'Run: Compile'
-        run: ./build.cmd Test
+        run: ./build.cmd Compile
+
+      
+      - name: Tests + Coverage (MTP)
+        if: inputs.performTests == true && steps.detect-mode.outputs.mode == 'mtp'
+        shell: bash
+        working-directory: /src
+        run: |
+          dotnet test Extensions.Hosting.slnx \
+            --no-build \
+            --configuration Release \
+            --coverage \
+            --coverage-output-format cobertura \
+            --results-directory ./TestResults

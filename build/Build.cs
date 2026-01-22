@@ -69,19 +69,8 @@ partial class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetNoRestore(true)));
 
-    Target Test => _ => _
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            DotNetTest(settings => settings
-                .SetConfiguration(Configuration)
-                .SetNoBuild(true)
-                .SetResultsDirectory(RootDirectory / "TestResults")
-                .SetProjectFile(Solution));
-        });
-
     Target Pack => _ => _
-    .DependsOn(Test)
+    .DependsOn(Compile)
     .Produces(PackagesDirectory / "*.nupkg")
     .Executes(() =>
     {
