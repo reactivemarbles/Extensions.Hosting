@@ -73,7 +73,7 @@ jobs:
         shell: bash
         working-directory: 'src'
         run: |
-          dotnet test Extensions.Hosting.slnx \
+          dotnet test --solution Extensions.Hosting.slnx \
             --no-build \
             --configuration Release \
             --coverage \
