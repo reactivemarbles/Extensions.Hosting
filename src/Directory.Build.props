@@ -12,7 +12,7 @@
     <NoWarn>CS1591;IDE0190;IDE1006;IDE0130</NoWarn>
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>..\README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>Compatability with Net 8 / 9 / 10 and net462 / net472 / net481</PackageReleaseNotes>
     <PackageTags>Microsoft;Extensions;Hosting;Rx;ReactiveUI;net;netframework</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
