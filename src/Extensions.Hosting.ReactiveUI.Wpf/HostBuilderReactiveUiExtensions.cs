@@ -33,9 +33,9 @@ public static class HostBuilderReactiveUiExtensions
         {
             serviceCollection.UseMicrosoftDependencyResolver();
             AppLocator.CurrentMutable.CreateReactiveUIBuilder()
-                .WithWpf()
                 .WithRegistration(r => r.InitializeSplat())
-                .Build();
+                .WithWpf()
+                .BuildApp();
         });
 
     /// <summary>
@@ -58,8 +58,8 @@ public static class HostBuilderReactiveUiExtensions
 
         hostBuilder.Services.UseMicrosoftDependencyResolver();
         AppLocator.CurrentMutable.CreateReactiveUIBuilder()
-            .WithWpf()
             .WithRegistration(r => r.InitializeSplat())
+            .WithWpf()
             .Build();
         return hostBuilder;
     }

@@ -32,8 +32,8 @@ public static class HostBuilderReactiveUiExtensions
         {
             serviceCollection.UseMicrosoftDependencyResolver();
             AppLocator.CurrentMutable.CreateReactiveUIBuilder()
-                .WithMaui()
                 .WithRegistration(r => r.InitializeSplat())
+                .WithMaui()
                 .Build();
         });
 
@@ -52,8 +52,8 @@ public static class HostBuilderReactiveUiExtensions
 
         hostBuilder.Services.UseMicrosoftDependencyResolver();
         AppLocator.CurrentMutable.CreateReactiveUIBuilder()
-            .WithMaui()
             .WithRegistration(r => r.InitializeSplat())
+            .WithMaui()
             .Build();
         return hostBuilder;
     }
