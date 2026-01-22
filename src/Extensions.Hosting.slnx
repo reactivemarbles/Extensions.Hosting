@@ -1,0 +1,39 @@
+<Solution>
+  <Folder Name="/Examples/">
+    <Project Path="examples/Extensions.Hosting.Console.Example/Extensions.Hosting.Console.Example.csproj" />
+    <Project Path="examples/Extensions.Hosting.Maui.Example/Extensions.Hosting.Maui.Example.csproj">
+      <Deploy Solution="Debug|*" />
+    </Project>
+    <Project Path="examples/Extensions.Hosting.Plugin.Example/ReactiveMarbles.Plugin.Example.csproj" />
+    <Project Path="examples/Extensions.Hosting.Reactive.Example/Extensions.Hosting.Reactive.Example.csproj" />
+    <Project Path="examples/Extensions.Hosting.Wpf.Example/Extensions.Hosting.Wpf.Example.csproj" />
+  </Folder>
+  <Folder Name="/SolutionConfig/">
+    <File Path="../.editorconfig" />
+    <File Path="../.gitignore" />
+    <File Path="../build.cmd" />
+    <File Path="../build.ps1" />
+    <File Path="../build.sh" />
+    <File Path="../Directory.Build.props" />
+    <File Path="../LICENSE" />
+    <File Path="../README.md" />
+    <File Path="../version.json" />
+  </Folder>
+  <Project Path="../build/_build.csproj">
+    <Build Project="false" />
+  </Project>
+  <Project Path="Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite/Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite.csproj" />
+  <Project Path="Extensions.Hosting.Identity.EntityFrameworkCore/Extensions.Hosting.Identity.EntityFrameworkCore.SqlServer.csproj" />
+  <Project Path="Extensions.Hosting.MainUIThread/Extensions.Hosting.MainUIThread.csproj" />
+  <Project Path="Extensions.Hosting.Maui/Extensions.Hosting.Maui.csproj" />
+  <Project Path="Extensions.Hosting.Plugins/Extensions.Hosting.Plugins.csproj" />
+  <Project Path="Extensions.Hosting.PluginService/Extensions.Hosting.PluginService.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.Maui/Extensions.Hosting.ReactiveUI.Maui.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.WinForms/Extensions.Hosting.ReactiveUI.WinForms.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.WinUI/Extensions.Hosting.ReactiveUI.WinUI.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.Wpf/Extensions.Hosting.ReactiveUI.Wpf.csproj" />
+  <Project Path="Extensions.Hosting.SingleInstance/Extensions.Hosting.SingleInstance.csproj" />
+  <Project Path="Extensions.Hosting.WinForms/Extensions.Hosting.WinForms.csproj" />
+  <Project Path="Extensions.Hosting.WinUI/Extensions.Hosting.WinUI.csproj" />
+  <Project Path="Extensions.Hosting.Wpf/Extensions.Hosting.Wpf.csproj" />
+</Solution>

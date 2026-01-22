@@ -9,23 +9,37 @@ using Microsoft.Extensions.Hosting.Internal;
 namespace ReactiveMarbles.Extensions.Hosting.PluginService;
 
 /// <summary>
-/// ServiceBaseLifetimeHostExtensions.
+/// Provides extension methods for configuring host lifetimes to enable running .NET applications as Windows services or
+/// with console lifetime support.
 /// </summary>
+/// <remarks>These extensions allow integration of service-based or console-based lifetimes into host builders,
+/// enabling applications to run as Windows services or respond to console signals for graceful shutdown. Methods in
+/// this class are typically used during application startup to configure the desired lifetime behavior.</remarks>
 public static class ServiceBaseLifetimeHostExtensions
 {
     /// <summary>
-    /// Uses the service base lifetime.
+    /// Enables Windows Service lifetime management for the host, allowing the application to be run as a Windows
+    /// Service.
     /// </summary>
-    /// <param name="hostBuilder">The host builder.</param>
-    /// <returns>IHostBilder.</returns>
+    /// <remarks>This method configures the host to use <see cref="ServiceBaseLifetime"/>, which enables
+    /// integration with Windows Service control events. Use this method when deploying applications as Windows Services
+    /// to ensure proper start and stop behavior.</remarks>
+    /// <param name="hostBuilder">The host builder to configure with Windows Service lifetime support. Cannot be null.</param>
+    /// <returns>The same instance of <see cref="IHostBuilder"/> for chaining, or <see langword="null"/> if <paramref
+    /// name="hostBuilder"/> is null.</returns>
     public static IHostBuilder? UseServiceBaseLifetime(this IHostBuilder hostBuilder) =>
         hostBuilder?.ConfigureServices(services => services.AddSingleton<IHostLifetime, ServiceBaseLifetime>());
 
     /// <summary>
-    /// Uses the service base lifetime.
+    /// Enables Windows Service lifetime management for the application, allowing it to be run as a Windows Service
+    /// using ServiceBase.
     /// </summary>
-    /// <param name="hostBuilder">The host application builder.</param>
-    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    /// <remarks>This method configures the application to use <see cref="ServiceBaseLifetime"/>, which
+    /// enables integration with Windows Service control events. Use this method when deploying the application as a
+    /// Windows Service. This should not be used in environments where Windows Services are not supported.</remarks>
+    /// <param name="hostBuilder">The host builder to configure with Windows Service lifetime support. Cannot be null.</param>
+    /// <returns>The same instance of <see cref="IHostApplicationBuilder"/> for chaining further configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
     public static IHostApplicationBuilder UseServiceBaseLifetime(this IHostApplicationBuilder hostBuilder)
     {
         if (hostBuilder == null)
@@ -38,11 +52,15 @@ public static class ServiceBaseLifetimeHostExtensions
     }
 
     /// <summary>
-    /// Listens for Ctrl+C or SIGTERM and calls <see cref="IHostApplicationLifetime.StopApplication"/> to start the shutdown process.
-    /// This will unblock extensions like RunAsync and WaitForShutdownAsync.
+    /// Configures the host to use a console lifetime, enabling the application to be controlled by console events such
+    /// as Ctrl+C or SIGTERM.
     /// </summary>
-    /// <param name="hostBuilder">The <see cref="IHostApplicationBuilder" /> to configure.</param>
-    /// <returns>The same instance of the <see cref="IHostApplicationBuilder"/> for chaining.</returns>
+    /// <remarks>This method registers <see cref="ConsoleLifetime"/> as the <see cref="IHostLifetime"/>
+    /// implementation, allowing the application to respond to console signals for graceful shutdown. Use this method
+    /// when building console applications that require proper handling of shutdown events.</remarks>
+    /// <param name="hostBuilder">The host builder to configure with console lifetime support. Cannot be null.</param>
+    /// <returns>The same instance of <see cref="IHostApplicationBuilder"/> for chaining further configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
     public static IHostApplicationBuilder UseConsoleLifetime(this IHostApplicationBuilder hostBuilder)
     {
         if (hostBuilder is null)
@@ -55,20 +73,28 @@ public static class ServiceBaseLifetimeHostExtensions
     }
 
     /// <summary>
-    /// Runs as service asynchronous.
+    /// Runs the host as a Windows service or systemd service, enabling integration with the operating system's service
+    /// management.
     /// </summary>
-    /// <param name="hostBuilder">The host builder.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Task.</returns>
+    /// <remarks>This method configures the host to run as a background service using the appropriate service
+    /// infrastructure for the current platform (Windows service or systemd on Linux). It should be called instead of
+    /// RunAsync when deploying as a service.</remarks>
+    /// <param name="hostBuilder">The host builder used to configure and build the application host.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to request cancellation of the service run operation.</param>
+    /// <returns>A task that represents the lifetime of the service. The task completes when the service stops.</returns>
     public static Task RunAsServiceAsync(this IHostBuilder hostBuilder, CancellationToken cancellationToken = default) =>
         hostBuilder.UseServiceBaseLifetime()!.Build().RunAsync(cancellationToken);
 
     /// <summary>
-    /// Runs as service asynchronous.
+    /// Runs the application as a Windows service using the specified host builder.
     /// </summary>
-    /// <param name="hostBuilder">The host application builder.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Task.</returns>
+    /// <remarks>This method configures the application to use Windows service lifetime management. It should
+    /// be called when running the application as a Windows service. If called in a non-Windows environment, the
+    /// behavior may differ.</remarks>
+    /// <param name="hostBuilder">The host application builder used to configure and build the application.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to request cancellation of the service run operation. The default value is
+    /// <see cref="CancellationToken.None"/>.</param>
+    /// <returns>A task that represents the lifetime of the running service. The task completes when the service stops.</returns>
     public static Task RunAsServiceAsync(this HostApplicationBuilder hostBuilder, CancellationToken cancellationToken = default)
     {
         UseServiceBaseLifetime((IHostApplicationBuilder)hostBuilder);

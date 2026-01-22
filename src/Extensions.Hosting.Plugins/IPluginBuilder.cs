@@ -10,17 +10,21 @@ using Microsoft.Extensions.FileSystemGlobbing;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
 
 /// <summary>
-/// The plug-in builder is used to configure the plug-in loading.
+/// Defines a contract for configuring and building plugin discovery and loading behavior within an application.
 /// </summary>
+/// <remarks>Implementations of this interface allow customization of plugin and framework assembly scanning,
+/// validation, and loading strategies. Use this interface to specify directories to scan, matching patterns, validation
+/// logic, and assembly scanning functions to control how plugins are discovered and loaded at application
+/// startup.</remarks>
 public interface IPluginBuilder
 {
     /// <summary>
-    /// Gets in these directories we will scan for plug-ins.
+    /// Gets the list of directory paths where plugins are located.
     /// </summary>
     IList<string> PluginDirectories { get; }
 
     /// <summary>
-    /// Gets in these directories we will scan for framework assemblies.
+    /// Gets the list of directories that contain framework assemblies required for compilation.
     /// </summary>
     IList<string> FrameworkDirectories { get; }
 

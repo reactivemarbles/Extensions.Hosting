@@ -14,26 +14,29 @@ using System.Security.Principal;
 namespace ReactiveMarbles.Extensions.Hosting.AppServices;
 
 /// <summary>
-///     This protects your resources or application from running more than once
-///     Simplifies the usage of the Mutex class, as described here:
-///     https://msdn.microsoft.com/en-us/library/System.Threading.Mutex.aspx.
+/// Provides a cross-process mutex for synchronizing access to a named resource, ensuring that only one instance can
+/// hold the lock at a time across the system or user session.
 /// </summary>
+/// <remarks>Use this class to prevent multiple instances of an application or process from accessing the same
+/// resource simultaneously. The mutex can be created as either global (system-wide) or local (per user session),
+/// depending on the use case. The class is disposable; always call Dispose when the mutex is no longer needed to
+/// release the lock and associated resources. Thread safety is not guaranteed for multiple threads using the same
+/// ResourceMutex instance.</remarks>
 public sealed class ResourceMutex : IDisposable
 {
     private readonly ILogger _logger;
-
     private readonly string _mutexId;
     private readonly string _resourceName;
     private Mutex? _applicationMutex;
     private bool _disposedValue;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ResourceMutex"/> class.
-    /// Private constructor.
+    /// Initializes a new instance of the <see cref="ResourceMutex"/> class with the specified logger, mutex identifier, and optional.
+    /// resource name.
     /// </summary>
-    /// <param name="logger">ILogger.</param>
-    /// <param name="mutexId">string with a unique Mutex ID.</param>
-    /// <param name="resourceName">optional name for the resource.</param>
+    /// <param name="logger">The logger instance used to record diagnostic and operational messages for the mutex.</param>
+    /// <param name="mutexId">The unique identifier for the mutex. Used to distinguish this mutex from others.</param>
+    /// <param name="resourceName">The name of the resource associated with the mutex. If null, the mutex identifier is used as the resource name.</param>
     private ResourceMutex(ILogger logger, string mutexId, string? resourceName = null)
     {
         _logger = logger;
@@ -42,18 +45,23 @@ public sealed class ResourceMutex : IDisposable
     }
 
     /// <summary>
-    ///     Gets or sets a value indicating whether test if the Mutex was created and locked.
+    /// Gets or sets a value indicating whether the object is locked.
     /// </summary>
     public bool IsLocked { get; set; }
 
     /// <summary>
-    ///     Create a ResourceMutex for the specified mutex id and resource-name.
+    /// Creates and acquires a new resource mutex for synchronizing access to a named resource across processes.
     /// </summary>
-    /// <param name="logger">ILogger.</param>
-    /// <param name="mutexId">ID of the mutex, preferably a Guid as string.</param>
-    /// <param name="resourceName">Name of the resource to lock, e.g your application name, useful for logs.</param>
-    /// <param name="global">true to have a global mutex see: https://msdn.microsoft.com/en-us/library/bwe34f1k.aspx.</param>
-    /// <returns>A ResourceMutex.</returns>
+    /// <remarks>The returned ResourceMutex is locked upon creation. Callers are responsible for releasing the
+    /// mutex when it is no longer needed. If a logger is not provided, a default logger is created
+    /// internally.</remarks>
+    /// <param name="logger">The logger to use for diagnostic messages. If null, a default logger is created.</param>
+    /// <param name="mutexId">The unique identifier for the mutex. Cannot be null, empty, or consist only of white-space characters.</param>
+    /// <param name="resourceName">An optional name for the resource being protected. May be null if not applicable.</param>
+    /// <param name="global">true to create a system-wide (global) mutex; false to create a local mutex scoped to the current user session.</param>
+    /// <returns>A ResourceMutex instance that is already acquired and can be used to synchronize access to the specified
+    /// resource.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if mutexId is null, empty, or consists only of white-space characters.</exception>
     public static ResourceMutex Create(ILogger? logger, string? mutexId, string? resourceName = null, bool global = false)
     {
         if (string.IsNullOrWhiteSpace(mutexId))
@@ -68,9 +76,14 @@ public sealed class ResourceMutex : IDisposable
     }
 
     /// <summary>
-    ///     This tries to get the Mutex, which takes care of having multiple instances running.
+    /// Attempts to acquire an exclusive application-wide mutex to prevent multiple instances from running concurrently.
     /// </summary>
-    /// <returns>true if it worked, false if another instance is already running or something went wrong.</returns>
+    /// <remarks>This method ensures that only one instance of the resource identified by the mutex ID can
+    /// hold the lock at a time. If the mutex is already held by another process or user, the method waits for a short
+    /// period before failing to acquire the lock. If the mutex cannot be acquired due to permission issues or other
+    /// errors, the method returns false. The lock should be released appropriately when no longer needed to avoid
+    /// resource contention.</remarks>
+    /// <returns>true if the mutex was successfully acquired and the lock is held by the current instance; otherwise, false.</returns>
     public bool Lock()
     {
         if (_logger.IsEnabled(LogLevel.Debug))
@@ -145,8 +158,11 @@ public sealed class ResourceMutex : IDisposable
     }
 
     /// <summary>
-    ///     Dispose the application mutex.
+    /// Releases all resources used by the current instance and releases the associated application mutex if it is held.
     /// </summary>
+    /// <remarks>Call this method when you are finished using the object to ensure that the mutex is properly
+    /// released and resources are freed. After calling Dispose, the object should not be used. This method is safe to
+    /// call multiple times; subsequent calls have no effect.</remarks>
     public void Dispose()
     {
         if (_disposedValue)

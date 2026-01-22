@@ -12,20 +12,28 @@ using ReactiveMarbles.Extensions.Hosting.WinUI.Internals;
 namespace ReactiveMarbles.Extensions.Hosting.WinUI;
 
 /// <summary>
-/// This contains the WinUI extensions for Microsoft.Extensions.Hosting.
+/// Provides extension methods for configuring WinUI applications with generic host builders.
 /// </summary>
+/// <remarks>These extensions enable integration of WinUI application and window types into the .NET Generic Host
+/// infrastructure, allowing for dependency injection, service registration, and host-managed application lifetimes. Use
+/// these methods to set up WinUI applications in a host-based environment, such as when building modern desktop
+/// applications with dependency injection and background services.</remarks>
 public static class HostBuilderWinUIExtensions
 {
     private const string WinUIContextKey = nameof(WinUIContext);
 
     /// <summary>
-    /// Configure a WinUI application.
+    /// Configures WinUI support for the specified application and main window types within the host builder.
     /// </summary>
-    /// <typeparam name="TApp">The type of the application.</typeparam>
-    /// <typeparam name="TAppWindow">The type of the application window.</typeparam>
-    /// <param name="hostBuilder">IHostBuilder.</param>
-    /// <returns>A IHostBuilder.</returns>
-    /// <exception cref="System.ArgumentException">The registered Application type inherit System.Windows.Application - TApp.</exception>
+    /// <remarks>This method registers the WinUI application and main window types with the dependency
+    /// injection container and links the application lifetime to the host. Call this method before building the host to
+    /// ensure proper WinUI integration.</remarks>
+    /// <typeparam name="TApp">The type of the WinUI application to configure. Must inherit from <see cref="Application"/>.</typeparam>
+    /// <typeparam name="TAppWindow">The type of the main window for the application. Must inherit from <see cref="Window"/>.</typeparam>
+    /// <param name="hostBuilder">The host builder to configure with WinUI services. Cannot be null.</param>
+    /// <returns>The same <see cref="IHostBuilder"/> instance for chaining, or <see langword="null"/> if <paramref
+    /// name="hostBuilder"/> is null.</returns>
+    /// <exception cref="ArgumentException">Thrown if <typeparamref name="TApp"/> does not inherit from <see cref="Application"/>.</exception>
     public static IHostBuilder? ConfigureWinUI<TApp, TAppWindow>(this IHostBuilder hostBuilder)
         where TApp : Application
         where TAppWindow : Window
@@ -68,12 +76,18 @@ public static class HostBuilderWinUIExtensions
     }
 
     /// <summary>
-    /// Configure a WinUI application using IHostApplicationBuilder.
+    /// Configures WinUI integration for the application by registering the specified application and window types with
+    /// the host builder.
     /// </summary>
-    /// <typeparam name="TApp">The type of the application.</typeparam>
-    /// <typeparam name="TAppWindow">The type of the application window.</typeparam>
-    /// <param name="hostBuilder">IHostApplicationBuilder.</param>
-    /// <returns>The same IHostApplicationBuilder instance.</returns>
+    /// <remarks>This method registers the WinUI application and window types as singletons in the dependency
+    /// injection container and sets up the necessary WinUI hosting services. Call this method before building the host
+    /// to ensure proper WinUI initialization.</remarks>
+    /// <typeparam name="TApp">The type of the WinUI application to register. Must inherit from <see cref="Application"/>.</typeparam>
+    /// <typeparam name="TAppWindow">The type of the main window to use for the application. Must inherit from <see cref="Window"/>.</typeparam>
+    /// <param name="hostBuilder">The <see cref="IHostApplicationBuilder"/> to configure for WinUI support.</param>
+    /// <returns>The same <see cref="IHostApplicationBuilder"/> instance for chaining further configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown if <typeparamref name="TApp"/> does not inherit from <see cref="Application"/>.</exception>
     public static IHostApplicationBuilder ConfigureWinUI<TApp, TAppWindow>(this IHostApplicationBuilder hostBuilder)
         where TApp : Application
         where TAppWindow : Window
@@ -111,11 +125,14 @@ public static class HostBuilderWinUIExtensions
     }
 
     /// <summary>
-    /// Helper method to retrieve the IWinUIContext.
+    /// Attempts to retrieve an existing WinUI context from the specified property dictionary.
     /// </summary>
-    /// <param name="properties">IDictionary.</param>
-    /// <param name="winUIContext">IWinUIContext out value.</param>
-    /// <returns>bool if there was already an IWinUIContext.</returns>
+    /// <remarks>If the WinUI context does not exist in the dictionary, this method creates a new instance,
+    /// assigns it to the out parameter, and adds it to the dictionary for future retrieval.</remarks>
+    /// <param name="properties">The dictionary containing property values, which may include a WinUI context entry.</param>
+    /// <param name="winUIContext">When this method returns, contains the WinUI context retrieved from the dictionary if found; otherwise, a new
+    /// WinUI context instance.</param>
+    /// <returns>true if an existing WinUI context was found in the dictionary; otherwise, false.</returns>
     private static bool TryRetrieveWinUIContext(this IDictionary<object, object> properties, out IWinUIContext winUIContext)
     {
         if (properties.TryGetValue(WinUIContextKey, out var winUIContextAsObject))

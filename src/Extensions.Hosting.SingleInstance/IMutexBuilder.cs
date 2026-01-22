@@ -9,22 +9,29 @@ using Microsoft.Extensions.Logging;
 namespace ReactiveMarbles.Extensions.Hosting.AppServices;
 
 /// <summary>
-/// This is to configure the ForceSingleInstance extension.
+/// Defines a builder for configuring and creating a named mutex, typically used to enforce single-instance application
+/// behavior.
 /// </summary>
+/// <remarks>Implementations of this interface allow customization of the mutex name, scope (global or local), and
+/// the action to perform when another instance is already running. This is commonly used in scenarios where only one
+/// instance of an application should be active at a time.</remarks>
 public interface IMutexBuilder
 {
     /// <summary>
-    /// Gets or sets the name of the mutex, usually a GUID.
+    /// Gets or sets the unique identifier for the mutex associated with the current operation or resource.
     /// </summary>
     string? MutexId { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this decides what prefix the mutex name gets, true will prepend Global\ and false Local\.
+    /// Gets or sets a value indicating whether the setting applies globally to all users or contexts.
     /// </summary>
     bool IsGlobal { get; set; }
 
     /// <summary>
-    /// Gets or sets the action which is called when the mutex cannot be locked.
+    /// Gets or sets the action to execute when the current process is not the first instance of the application.
     /// </summary>
+    /// <remarks>This action is invoked with the application's host environment and logger as parameters. Use
+    /// this property to define custom behavior, such as notifying the user or logging a message, when a subsequent
+    /// instance of the application is detected.</remarks>
     Action<IHostEnvironment, ILogger>? WhenNotFirstInstance { get; set; }
 }

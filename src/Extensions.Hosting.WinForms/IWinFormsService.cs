@@ -5,12 +5,12 @@
 namespace ReactiveMarbles.Extensions.Hosting.WinForms;
 
 /// <summary>
-/// This defines a service which is called before the message loop is started.
+/// Defines a service that can be initialized from the Windows Forms UI thread.
 /// </summary>
 public interface IWinFormsService
 {
     /// <summary>
-    /// Do whatever you need to do to initialize, this is called from the UI thread.
+    /// Initializes the component and prepares it for use.
     /// </summary>
     void Initialize();
 }

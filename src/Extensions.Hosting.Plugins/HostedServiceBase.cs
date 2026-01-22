@@ -14,38 +14,35 @@ using Microsoft.Extensions.Logging;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
 
 /// <summary>
-/// HostedServiceBase.
+/// Provides a base implementation for a hosted service with support for resource cleanup, logging, and application
+/// lifetime events.
 /// </summary>
-/// <typeparam name="T">The type of Service.</typeparam>
-/// <seealso cref="IHostedService" />
-/// <seealso cref="IDisposable" />
-/// <remarks>
-/// Initializes a new instance of the <see cref="HostedServiceBase{T}"/> class.
-/// </remarks>
-/// <param name="logger">The logger.</param>
-/// <param name="hostApplicationLifetime">The host application lifetime.</param>
+/// <remarks>This base class integrates with the application's lifetime events to manage service startup,
+/// shutdown, and resource disposal. It is intended to be inherited by services that require coordinated startup and
+/// cleanup logic. The class is thread-safe for typical usage scenarios. Derived classes can override the OnStarted,
+/// OnStopping, and OnStopped methods to implement custom behavior during the service lifecycle.</remarks>
+/// <typeparam name="T">The type representing the hosted service. Used for logging and identification purposes.</typeparam>
+/// <param name="logger">The logger instance used to record diagnostic and operational information for the hosted service. Cannot be null.</param>
+/// <param name="hostApplicationLifetime">The application lifetime manager used to register callbacks for application start and stop events. Cannot be null.</param>
 public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime hostApplicationLifetime) : IHostedService, ICancelable
 {
     private bool _disposedValue;
 
     /// <summary>
-    /// Gets the clean up.
+    /// Gets the collection of disposables that are cleaned up when the owning object is disposed.
     /// </summary>
-    /// <value>
-    /// The clean up.
-    /// </value>
+    /// <remarks>Use this property to register resources or subscriptions that should be disposed together
+    /// with the parent object. Items added to this collection will be disposed automatically when the parent is
+    /// disposed.</remarks>
     public CompositeDisposable CleanUp { get; private set; } = [];
 
     /// <summary>
-    /// Gets the logger.
+    /// Gets the logger instance used for recording diagnostic and operational messages.
     /// </summary>
-    /// <value>
-    /// The logger.
-    /// </value>
     public ILogger Logger { get; } = logger;
 
     /// <summary>
-    /// Gets a value indicating whether gets a value that indicates whether the object is disposed.
+    /// Gets a value indicating whether the object has been disposed.
     /// </summary>
     public bool IsDisposed => CleanUp.IsDisposed;
 
@@ -87,14 +84,19 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
     }
 
     /// <summary>
-    /// Called when [started].
+    /// Invoked when the associated process or service has started.
     /// </summary>
-    /// <returns>A Task.</returns>
+    /// <remarks>Override this method to perform custom actions when the process or service starts. This
+    /// method is called after the start operation has been initiated.</remarks>
+    /// <returns>A task that represents the asynchronous operation. The default implementation returns a completed task.</returns>
     public virtual Task OnStarted() => Task.CompletedTask;
 
     /// <summary>
-    /// Called when [started].
+    /// Performs tasks required when the service is stopping, such as releasing resources and logging shutdown
+    /// information.
     /// </summary>
+    /// <remarks>Override this method to implement custom shutdown logic for the service. Call the base
+    /// implementation to ensure standard cleanup is performed.</remarks>
     public virtual void OnStopping()
     {
         Logger!.LogInformation($"{nameof(T)} Service OnStopping has been called.");
@@ -102,8 +104,10 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
     }
 
     /// <summary>
-    /// Called when [stopped].
+    /// Called when the service has stopped to perform any necessary cleanup or finalization logic.
     /// </summary>
+    /// <remarks>Override this method in a derived class to implement custom actions that should occur when
+    /// the service stops. The base implementation logs a message indicating that the service has stopped.</remarks>
     public virtual void OnStopped() =>
         Logger!.LogInformation($"{nameof(T)} Service OnStopped has been called.");
 

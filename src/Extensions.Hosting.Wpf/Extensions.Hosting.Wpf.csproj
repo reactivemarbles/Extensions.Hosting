@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net462;net8.0-windows;net9.0-windows;net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;net472;net481;net8.0-windows;net9.0-windows;net10.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <PackageDescription>This extension adds WPF support to generic host applications. With this you can enhance your application with a UI, and use all the services provided by the generic host like DI, logging etc.</PackageDescription>
     <PackageId>CP.Extensions.Hosting.Wpf</PackageId>

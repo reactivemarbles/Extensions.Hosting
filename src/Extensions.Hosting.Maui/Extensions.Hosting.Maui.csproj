@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net10')) ">
-    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Maui.Core" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.30" />
+    <PackageReference Include="Microsoft.Maui.Core" Version="10.0.30" />
   </ItemGroup>
   
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net9')) ">

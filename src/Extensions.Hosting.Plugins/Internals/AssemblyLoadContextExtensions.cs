@@ -7,17 +7,25 @@ using System.Reflection;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
 
 /// <summary>
-/// AssemblyLoadContext extensions.
+/// Provides extension methods for the AssemblyLoadContext class.
 /// </summary>
+/// <remarks>This static class contains methods that extend the functionality of AssemblyLoadContext, enabling
+/// additional operations such as searching for loaded assemblies by name. These methods are intended to simplify common
+/// tasks when working with assembly loading contexts.</remarks>
 public static class AssemblyLoadContextExtensions
 {
     /// <summary>
-    /// Try to get an assembly from the specified AssemblyLoadContext.
+    /// Attempts to find an assembly with the specified name in the given assembly load context.
     /// </summary>
-    /// <param name="assemblyLoadContext">AssemblyLoadContext.</param>
-    /// <param name="assemblyName">AssemblyName to look for.</param>
-    /// <param name="foundAssembly">Assembly out.</param>
-    /// <returns>bool.</returns>
+    /// <remarks>The search compares only the simple name of the assembly (the Name property) and does not
+    /// consider version, culture, or public key token. If multiple assemblies with the same name exist in the context,
+    /// the first match is returned.</remarks>
+    /// <param name="assemblyLoadContext">The assembly load context to search. If null, the method returns false and sets <paramref name="foundAssembly"/>
+    /// to null.</param>
+    /// <param name="assemblyName">The name of the assembly to locate. Only the <see cref="AssemblyName.Name"/> property is used for comparison.</param>
+    /// <param name="foundAssembly">When this method returns, contains the assembly that matches the specified name, if found; otherwise, null. This
+    /// parameter is passed uninitialized.</param>
+    /// <returns><see langword="true"/> if an assembly with the specified name is found; otherwise, <see langword="false"/>.</returns>
     public static bool TryGetAssembly(this AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName, out Assembly? foundAssembly)
     {
         if (assemblyLoadContext == null)

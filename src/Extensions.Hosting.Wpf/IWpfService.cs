@@ -7,13 +7,13 @@ using System.Windows;
 namespace ReactiveMarbles.Extensions.Hosting.Wpf;
 
 /// <summary>
-/// This defines a service which is called before the message loop is started.
+/// Defines a service for initializing Windows Presentation Foundation (WPF) components from the UI thread.
 /// </summary>
 public interface IWpfService
 {
     /// <summary>
-    /// Do whatever you need to do to initialize WPF, this is called from the UI thread.
+    /// Initializes the specified application instance, preparing it for use.
     /// </summary>
-    /// <param name="application">Application.</param>
+    /// <param name="application">The application instance to initialize. Cannot be null.</param>
     void Initialize(Application application);
 }

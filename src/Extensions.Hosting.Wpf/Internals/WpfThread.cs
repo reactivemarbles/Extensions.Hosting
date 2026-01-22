@@ -13,13 +13,16 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 namespace ReactiveMarbles.Extensions.Hosting.Wpf.Internals;
 
 /// <summary>
-/// This contains the logic for the WPF thread.
+/// Provides a dedicated UI thread for running a Windows Presentation Foundation (WPF) application, managing its
+/// lifecycle and synchronization context.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="WpfThread"/> class.
-/// This will create the WpfThread.
-/// </remarks>
-/// <param name="serviceProvider">IServiceProvider.</param>
+/// <remarks>WpfThread is intended for scenarios where a WPF application needs to be hosted on a separate thread,
+/// such as in multi-threaded or headless environments. It sets up the necessary synchronization context and manages the
+/// startup and shutdown of the WPF application. The type expects services implementing IWpfService and IWpfShell to be
+/// registered with the provided IServiceProvider. Thread safety and correct service registration are the responsibility
+/// of the caller.</remarks>
+/// <param name="serviceProvider">The service provider used to resolve WPF application services, shell windows, and related dependencies required for
+/// initializing and running the WPF UI thread. Cannot be null.</param>
 public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfContext>(serviceProvider)
 {
     /// <inheritdoc />

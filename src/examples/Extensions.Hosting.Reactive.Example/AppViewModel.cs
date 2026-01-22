@@ -34,7 +34,7 @@ public class AppViewModel : ReactiveObject
             .DistinctUntilChanged()
             .Where(term => !string.IsNullOrWhiteSpace(term))
             .SelectMany(SearchNuGetPackages)
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .ToProperty(this, x => x.SearchResults);
 
         _searchResults.ThrownExceptions.Subscribe(error => { /* Handle errors here */ });

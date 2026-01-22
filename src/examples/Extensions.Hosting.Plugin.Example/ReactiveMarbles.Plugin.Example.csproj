@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0;net48</TargetFrameworks>
+    <TargetFrameworks>net10.0-windows;net481</TargetFrameworks>
     <Platforms>AnyCPU;x64</Platforms>
     <OutputPath>..\Extensions.Hosting.Console.Example\bin\$(Configuration)\$(TargetFramework)\Plugins\</OutputPath>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
   </ItemGroup>
 
 </Project>

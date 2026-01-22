@@ -9,21 +9,21 @@ using System.Reflection;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
 
 /// <summary>
-/// This is a wrapper class to simulate the behavior of the AssemblyDependencyResolver under the .NET Framework.
+/// Provides methods for resolving the paths of managed assemblies and unmanaged DLLs relative to a specified plugin
+/// directory.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="AssemblyDependencyResolver"/> class.
-/// </remarks>
-/// <param name="pluginPath">string with the path for the plugin and where his dependencies are loaded from.</param>
+/// <param name="pluginPath">The absolute path to the root directory containing the plugin and its dependencies. Cannot be null or empty.</param>
 public class AssemblyDependencyResolver(string pluginPath)
 {
     private readonly string? _pluginPath = Path.GetDirectoryName(pluginPath);
 
     /// <summary>
-    /// Find the assembly in the directory of the plugin.
+    /// Resolves the file system path to the assembly file corresponding to the specified assembly name, if it exists in
+    /// the plugin directory.
     /// </summary>
-    /// <param name="assemblyName">AssemblyName.</param>
-    /// <returns>string path for the assembly.</returns>
+    /// <param name="assemblyName">The assembly name to resolve to a file path. Cannot be null.</param>
+    /// <returns>The full path to the assembly file if it exists in the plugin directory; otherwise, null.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if assemblyName is null.</exception>
     public string? ResolveAssemblyToPath(AssemblyName assemblyName)
     {
         if (assemblyName == null)
@@ -41,11 +41,11 @@ public class AssemblyDependencyResolver(string pluginPath)
     }
 
     /// <summary>
-    /// Find the location of an unmanaged DLL.
+    /// Resolves the specified unmanaged DLL name to an absolute file path on disk.
     /// </summary>
-    /// <param name="unmanagedDllName">string.</param>
-    /// <returns>string with the path.</returns>
-    /// <exception cref="NotImplementedException">Intensional.</exception>
+    /// <param name="unmanagedDllName">The name of the unmanaged DLL to locate. This should not include a path or file extension.</param>
+    /// <returns>The absolute path to the located unmanaged DLL, or null if the DLL cannot be found.</returns>
+    /// <exception cref="NotImplementedException">The method is not implemented.</exception>
     public string ResolveUnmanagedDllToPath(string unmanagedDllName) =>
         throw new NotImplementedException();
 }

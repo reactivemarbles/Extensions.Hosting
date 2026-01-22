@@ -13,13 +13,14 @@ using WinRT;
 namespace ReactiveMarbles.Extensions.Hosting.WinUI.Internals;
 
 /// <summary>
-/// This contains the logic for the WinUI thread.
+/// Provides a UI thread implementation for WinUI applications, enabling initialization and management of WinUI-specific
+/// services and application context.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="WinUIThread"/> class.
-/// This will create the WinUIThread.
-/// </remarks>
-/// <param name="serviceProvider">IServiceProvider.</param>
+/// <remarks>This class is intended for scenarios where a dedicated UI thread is required to host a WinUI
+/// application. It ensures that the necessary WinUI services and synchronization context are initialized on the correct
+/// thread. The WinUI application and its main window are created and activated as part of the thread startup
+/// process.</remarks>
+/// <param name="serviceProvider">The service provider used to resolve WinUI application services and dependencies. Cannot be null.</param>
 public class WinUIThread(IServiceProvider serviceProvider) : BaseUiThread<IWinUIContext>(serviceProvider)
 {
     /// <inheritdoc />

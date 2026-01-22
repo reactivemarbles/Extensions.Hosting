@@ -62,7 +62,7 @@ partial class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore, Print)
-        .Executes(() => MSBuildTasks.MSBuild(s => s
+        .Executes(() => DotNetBuild(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
                 .SetRestore(false)));

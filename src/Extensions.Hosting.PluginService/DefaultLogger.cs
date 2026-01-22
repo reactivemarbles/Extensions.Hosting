@@ -7,19 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace ReactiveMarbles.Extensions.Hosting.PluginService;
 
 /// <summary>
-/// DefaultLogger.
+/// Provides a default implementation of a logger that wraps an existing <see cref="ILogger"/> instance.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="DefaultLogger"/> class.
-/// </remarks>
-/// <param name="logger">The logger.</param>
+/// <param name="logger">The underlying <see cref="ILogger{DefaultLogger}"/> instance to use for logging operations. Cannot be null.</param>
 public class DefaultLogger(ILogger<DefaultLogger> logger)
 {
     /// <summary>
-    /// Gets the logger.
+    /// Gets the logger instance used for recording diagnostic and operational messages.
     /// </summary>
-    /// <value>
-    /// The logger.
-    /// </value>
     public ILogger Logger { get; } = logger;
 }

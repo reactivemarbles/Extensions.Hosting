@@ -7,13 +7,17 @@ using Microsoft.Maui.Controls;
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
 /// <summary>
-/// This defines a service which is called before the message loop is started.
+/// Defines a service that provides initialization logic for a .NET MAUI application. Implementations perform necessary
+/// setup when the application starts.
 /// </summary>
+/// <remarks>The Initialize method is called from the UI thread and should contain any platform-specific or
+/// application-wide initialization required before the app runs. Implementers should ensure that any long-running or
+/// blocking operations are avoided to prevent UI delays.</remarks>
 public interface IMauiService
 {
     /// <summary>
-    /// Do whatever you need to do to initialize MAUI, this is called from the UI thread.
+    /// Initializes the specified application instance, preparing it for use.
     /// </summary>
-    /// <param name="application">Application.</param>
+    /// <param name="application">The application instance to initialize. Cannot be null.</param>
     void Initialize(Application application);
 }

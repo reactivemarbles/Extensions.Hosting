@@ -8,19 +8,24 @@ using System.Reflection;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
 
 /// <summary>
-/// This AssemblyLoadContext uses an AssemblyDependencyResolver as described here: https://devblogs.microsoft.com/dotnet/announcing-net-core-3-preview-3/
-/// Before loading an assembly, the current domain is checked if this assembly was not already loaded, if so this is returned.
-/// This way the Assemblies already loaded by the application are available to all the plugins and can provide interaction.
+/// Provides an isolated assembly load context for loading plugins from a specified directory.
 /// </summary>
+/// <remarks>PluginLoadContext enables loading and resolving assemblies and unmanaged libraries for plugins
+/// without interfering with the default application context. This allows multiple plugins to be loaded with their own
+/// dependencies, reducing the risk of version conflicts. Assemblies are resolved relative to the specified plugin
+/// path.</remarks>
+/// <param name="pluginPath">The file system path to the root directory containing the plugin's assemblies and dependencies. Cannot be null or
+/// empty.</param>
+/// <param name="name">The unique name for the assembly load context. Used to identify the context within the application.</param>
 internal class PluginLoadContext(string pluginPath, string name) : AssemblyLoadContext(name)
 {
     private readonly AssemblyDependencyResolver _resolver = new(pluginPath);
 
     /// <summary>
-    /// Returns the path where the specified assembly can be found.
+    /// Resolves the file system path to the assembly specified by the given assembly name.
     /// </summary>
-    /// <param name="assemblyName">AssemblyName.</param>
-    /// <returns>string with the path.</returns>
+    /// <param name="assemblyName">The assembly name to resolve. Cannot be null.</param>
+    /// <returns>The full path to the resolved assembly file, or null if the assembly cannot be found.</returns>
     public string? ResolveAssemblyPath(AssemblyName assemblyName) =>
         _resolver.ResolveAssemblyToPath(assemblyName);
 

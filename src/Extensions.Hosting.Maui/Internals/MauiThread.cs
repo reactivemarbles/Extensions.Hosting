@@ -11,14 +11,14 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 namespace ReactiveMarbles.Extensions.Hosting.Maui.Internals;
 
 /// <summary>
-/// This contains the logic for the MAUI thread.
+/// Provides a UI thread implementation for .NET MAUI applications, enabling initialization and management of the MAUI
+/// application lifecycle within a host environment.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="MauiThread"/> class.
-/// This will create the MauiThread.
-/// </remarks>
-/// <param name="serviceProvider">IServiceProvider.</param>
-public class MauiThread(IServiceProvider serviceProvider) : BaseUiThread<IMauiContext>(serviceProvider)
+/// <remarks>This class is typically used to host and manage a MAUI application's main UI thread in scenarios
+/// where integration with a custom host or dependency injection container is required. It ensures that the MAUI
+/// application and its services are properly initialized and managed on the correct thread.</remarks>
+/// <param name="serviceProvider">The service provider used to resolve application and service dependencies required by the MAUI UI thread.</param>
+public partial class MauiThread(IServiceProvider serviceProvider) : BaseUiThread<IMauiContext>(serviceProvider)
 {
     /// <inheritdoc />
     protected override void PreUiThreadStart()

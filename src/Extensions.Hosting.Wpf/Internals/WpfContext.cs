@@ -7,7 +7,13 @@ using System.Windows.Threading;
 
 namespace ReactiveMarbles.Extensions.Hosting.Wpf.Internals;
 
-/// <inheritdoc />
+/// <summary>
+/// Provides context and state information for a running WPF application, including access to the application instance,
+/// dispatcher, and shutdown behavior.
+/// </summary>
+/// <remarks>This class is intended for internal use to coordinate WPF application lifetime and threading. It
+/// exposes properties for managing shutdown mode, application lifetime linkage, and access to the application's
+/// dispatcher for thread-safe operations.</remarks>
 internal class WpfContext : IWpfContext
 {
     /// <inheritdoc />
