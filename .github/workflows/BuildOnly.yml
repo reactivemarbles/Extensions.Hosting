@@ -70,7 +70,6 @@ jobs:
 
       
       - name: Tests + Coverage (MTP)
-        if: inputs.performTests == true && steps.detect-mode.outputs.mode == 'mtp'
         shell: bash
         working-directory: /src
         run: |
