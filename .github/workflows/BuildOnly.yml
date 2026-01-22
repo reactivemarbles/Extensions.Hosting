@@ -85,8 +85,6 @@ jobs:
         with:
           name: tmp-coverage
           path: |
-            /src/coverage.cobertura.xml
-            /src/coverage*.cobertura.xml
-            /src/TestResults/**/*.cobertura.xml
+            ./**/TestResults/**/*.cobertura.xml
           if-no-files-found: warn
           retention-days: 3

@@ -77,7 +77,6 @@ partial class Build : NukeBuild
         if (Repository.IsOnMainOrMasterBranch())
         {
             var packableProjects = Solution.GetPackableProjects();
-
             foreach (var project in packableProjects!)
             {
                 Log.Information("Packing {Project}", project.Name);
