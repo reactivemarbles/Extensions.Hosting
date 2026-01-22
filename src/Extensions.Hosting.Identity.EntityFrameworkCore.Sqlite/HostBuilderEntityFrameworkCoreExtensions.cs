@@ -46,7 +46,6 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         where TRole : class
     {
         ArgumentNullException.ThrowIfNull(services);
-
         ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(connectionStringName))
@@ -87,7 +86,6 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         where TUser : class
     {
         ArgumentNullException.ThrowIfNull(services);
-
         ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(connectionStringName))
@@ -103,6 +101,203 @@ public static class HostBuilderEntityFrameworkCoreExtensions
             .AddDefaultIdentity<TUser>()
             .AddEntityFrameworkStores<TContext>();
         return services;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQLite for the specified DbContext without ASP.NET Core Identity.
+    /// </summary>
+    /// <remarks>Use this method when you need Entity Framework Core with SQLite but do not require
+    /// ASP.NET Core Identity services. This is useful for applications that handle authentication externally or
+    /// do not need user management.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <param name="services">The service collection to which the Entity Framework Core services will be added. Cannot be null.</param>
+    /// <param name="configuration">The configuration instance containing the connection string. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IServiceCollection AddSqliteDbContext<TContext>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = configuration.GetConnectionString(connectionStringName);
+        services.AddDbContext<TContext>(
+            options => options.UseSqlite(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+            serviceLifetime);
+        return services;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQLite for the specified DbContext using a direct connection string.
+    /// </summary>
+    /// <remarks>Use this overload when you have a connection string available directly rather than from
+    /// configuration. This is useful for testing scenarios or when connection strings are obtained from
+    /// other sources such as environment variables or secret managers.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <param name="services">The service collection to which the Entity Framework Core services will be added. Cannot be null.</param>
+    /// <param name="connectionString">The SQLite connection string. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionString is null or consists only of white-space characters.</exception>
+    public static IServiceCollection AddSqliteDbContextWithConnectionString<TContext>(this IServiceCollection services, string connectionString, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionString));
+        }
+
+        services.AddDbContext<TContext>(
+            options => options.UseSqlite(connectionString),
+            serviceLifetime);
+        return services;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQLite using the IHostApplicationBuilder pattern.
+    /// </summary>
+    /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern
+    /// introduced in .NET 7+. It registers the DbContext with SQLite using the connection string
+    /// from configuration.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <param name="builder">The host application builder. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IHostApplicationBuilder AddSqliteDbContext<TContext>(this IHostApplicationBuilder builder, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = builder.Configuration.GetConnectionString(connectionStringName);
+        builder.Services.AddDbContext<TContext>(
+            options => options.UseSqlite(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+            serviceLifetime);
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQLite and ASP.NET Core Identity using IHostApplicationBuilder.
+    /// </summary>
+    /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern and
+    /// sets up both Entity Framework Core and ASP.NET Core Identity with the specified user and role types.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity.</typeparam>
+    /// <typeparam name="TRole">The type representing application roles for ASP.NET Core Identity.</typeparam>
+    /// <param name="builder">The host application builder. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IHostApplicationBuilder AddSqliteWithIdentity<TContext, TUser, TRole>(this IHostApplicationBuilder builder, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+        where TUser : class
+        where TRole : class
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = builder.Configuration.GetConnectionString(connectionStringName);
+        builder.Services
+            .AddDbContext<TContext>(
+                options => options.UseSqlite(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+                serviceLifetime)
+            .AddDefaultIdentity<TUser>()
+            .AddRoles<TRole>()
+            .AddEntityFrameworkStores<TContext>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQLite and ASP.NET Core Identity (user only) using IHostApplicationBuilder.
+    /// </summary>
+    /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern and
+    /// sets up both Entity Framework Core and ASP.NET Core Identity with the specified user type only.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity.</typeparam>
+    /// <param name="builder">The host application builder. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IHostApplicationBuilder AddSqliteWithIdentity<TContext, TUser>(this IHostApplicationBuilder builder, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+        where TUser : class
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = builder.Configuration.GetConnectionString(connectionStringName);
+        builder.Services
+            .AddDbContext<TContext>(
+                options => options.UseSqlite(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+                serviceLifetime)
+            .AddDefaultIdentity<TUser>()
+            .AddEntityFrameworkStores<TContext>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Creates a SQLite connection string for an in-memory database.
+    /// </summary>
+    /// <remarks>In-memory SQLite databases are useful for testing scenarios where you need a fast,
+    /// isolated database that doesn't persist to disk. Note that in-memory databases only persist
+    /// as long as the connection remains open.</remarks>
+    /// <param name="databaseName">Optional name for the in-memory database. If not provided, a shared in-memory database is used.</param>
+    /// <returns>A SQLite connection string for an in-memory database.</returns>
+    public static string CreateInMemoryConnectionString(string? databaseName = null)
+    {
+        if (string.IsNullOrWhiteSpace(databaseName))
+        {
+            return "DataSource=:memory:";
+        }
+
+        return $"DataSource={databaseName};Mode=Memory;Cache=Shared";
+    }
+
+    /// <summary>
+    /// Creates a SQLite connection string for a file-based database.
+    /// </summary>
+    /// <remarks>Use this helper to create properly formatted SQLite connection strings for
+    /// file-based databases. The path can be absolute or relative.</remarks>
+    /// <param name="filePath">The path to the SQLite database file. Cannot be null or whitespace.</param>
+    /// <returns>A SQLite connection string for the specified file.</returns>
+    /// <exception cref="ArgumentException">Thrown if filePath is null or consists only of white-space characters.</exception>
+    public static string CreateFileConnectionString(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(filePath));
+        }
+
+        return $"DataSource={filePath}";
     }
 
     /// <summary>

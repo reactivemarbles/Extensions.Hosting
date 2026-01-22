@@ -26,14 +26,15 @@ public static class PluginScanner
     /// exists, the method returns an empty sequence.</remarks>
     /// <param name="pluginAssembly">The assembly to search for a type named 'Plugin' within its root namespace. Cannot be null.</param>
     /// <returns>An enumerable containing the instantiated plugin if a matching type is found; otherwise, an empty enumerable.</returns>
-    public static IEnumerable<IPlugin?> ByNamingConvention(Assembly pluginAssembly)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="pluginAssembly"/> is null.</exception>
+    public static IEnumerable<IPlugin> ByNamingConvention(Assembly pluginAssembly)
     {
-        var assemblyName = pluginAssembly?.GetName().Name;
-        var type = pluginAssembly?.GetType($"{assemblyName}.Plugin", false, false);
-        if (type != null)
+        if (pluginAssembly == null)
         {
-            yield return (IPlugin?)Activator.CreateInstance(type);
+            throw new ArgumentNullException(nameof(pluginAssembly));
         }
+
+        return ByNamingConventionCore(pluginAssembly);
     }
 
     /// <summary>
@@ -45,13 +46,42 @@ public static class PluginScanner
     /// returned collection will be null.</remarks>
     /// <param name="pluginAssembly">The assembly to scan for types implementing the IPlugin interface. Cannot be null.</param>
     /// <returns>An enumerable collection of IPlugin instances representing each non-abstract, public class in the assembly that
-    /// implements IPlugin. The collection may contain null values if a plugin type cannot be instantiated. Returns null
-    /// if pluginAssembly is null.</returns>
-    public static IEnumerable<IPlugin?>? ScanForPluginInstances(Assembly pluginAssembly)
+    /// implements IPlugin. The collection may contain null values if a plugin type cannot be instantiated.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="pluginAssembly"/> is null.</exception>
+    public static IEnumerable<IPlugin> ScanForPluginInstances(Assembly pluginAssembly)
+    {
+        if (pluginAssembly == null)
+        {
+            throw new ArgumentNullException(nameof(pluginAssembly));
+        }
+
+        return ScanForPluginInstancesCore(pluginAssembly);
+    }
+
+    private static IEnumerable<IPlugin> ByNamingConventionCore(Assembly pluginAssembly)
+    {
+        var assemblyName = pluginAssembly.GetName().Name;
+        var type = pluginAssembly.GetType($"{assemblyName}.Plugin", false, false);
+        if (type != null && Activator.CreateInstance(type) is IPlugin plugin)
+        {
+            yield return plugin;
+        }
+    }
+
+    private static IEnumerable<IPlugin> ScanForPluginInstancesCore(Assembly pluginAssembly)
     {
         var pluginType = typeof(IPlugin);
-        return pluginAssembly?.ExportedTypes
-            .Where(type => pluginType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-            .Select(type => (IPlugin?)Activator.CreateInstance(type));
+        foreach (var type in pluginAssembly.ExportedTypes)
+        {
+            if (!pluginType.IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
+            {
+                continue;
+            }
+
+            if (Activator.CreateInstance(type) is IPlugin plugin)
+            {
+                yield return plugin;
+            }
+        }
     }
 }

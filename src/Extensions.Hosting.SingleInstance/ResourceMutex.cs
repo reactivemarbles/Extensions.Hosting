@@ -45,9 +45,9 @@ public sealed class ResourceMutex : IDisposable
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the object is locked.
+    /// Gets a value indicating whether the object is locked.
     /// </summary>
-    public bool IsLocked { get; set; }
+    public bool IsLocked { get; private set; }
 
     /// <summary>
     /// Creates and acquires a new resource mutex for synchronizing access to a named resource across processes.

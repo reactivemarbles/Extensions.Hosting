@@ -12,7 +12,7 @@
     <NoWarn>CS1591;IDE0190;IDE1006;IDE0130</NoWarn>
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>..\README.md</PackageReadmeFile>
     <PackageReleaseNotes>Compatability with Net 8 / 9 / 10 and net462 / net472 / net481</PackageReleaseNotes>
     <PackageTags>Microsoft;Extensions;Hosting;Rx;ReactiveUI;net;netframework</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
@@ -44,20 +44,28 @@
     <NoWarn>$(NoWarn);CS4014</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup Condition="$(IsTestProject)">
+    <PackageReference Include="TUnit" Version="1.12.15"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1"/>
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.3.2"/>
+    <PackageReference Include="PublicApiGenerator" Version="11.5.4"/>
+    <PackageReference Include="Verify.TUnit" Version="31.9.4"/>
+  </ItemGroup>
+
   <ItemGroup Condition="'$(IsTestProject)' != 'true'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)images\logo.png" Pack="true" PackagePath="\"/>
-    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="LICENSE" />
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)..\images\logo.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
     <!--<Compile Update="**\*.cs" DependentUpon="I%(Filename).cs" />-->
     <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="All" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\stylecop.json" Link="stylecop.json" />
   </ItemGroup>
 </Project>

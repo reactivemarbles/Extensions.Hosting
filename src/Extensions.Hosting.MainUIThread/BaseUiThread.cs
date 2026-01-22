@@ -22,7 +22,7 @@ namespace ReactiveMarbles.Extensions.Hosting.UiThread;
 public abstract class BaseUiThread<T> : IDisposable
     where T : class, IUiContext
 {
-    private readonly ManualResetEvent _serviceManualResetEvent = new(false);
+    private readonly System.Threading.ManualResetEventSlim _serviceManualResetEvent = new(false);
     private readonly IHostApplicationLifetime? _hostApplicationLifetime;
     private bool _disposedValue;
 
@@ -37,7 +37,12 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <param name="serviceProvider">The service provider used to resolve required services for the UI thread. Cannot be null.</param>
     protected BaseUiThread(IServiceProvider serviceProvider)
     {
-        UiContext = serviceProvider.GetService<T>();
+        if (serviceProvider is null)
+        {
+            throw new ArgumentNullException(nameof(serviceProvider));
+        }
+
+        UiContext = serviceProvider.GetRequiredService<T>();
         _hostApplicationLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
         ServiceProvider = serviceProvider;
 
@@ -59,7 +64,7 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <summary>
     /// Gets the UI context associated with the current instance.
     /// </summary>
-    protected T? UiContext { get; }
+    protected T UiContext { get; }
 
     /// <summary>
     /// Gets the service provider used to resolve application services.
@@ -72,8 +77,7 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <remarks>Call this method to allow the service to proceed if it is waiting for a start signal. This
     /// method is typically used to control the execution flow of a service that waits for an external trigger before
     /// starting.</remarks>
-    public void Start() =>
-        _serviceManualResetEvent.Set(); // Make the UI thread go
+    public void Start() => _serviceManualResetEvent.Set(); // Make the UI thread go
 
     /// <summary>
     /// Releases all resources used by the current instance of the class.
@@ -156,7 +160,15 @@ public abstract class BaseUiThread<T> : IDisposable
         PreUiThreadStart();
 
         // Wait for the startup
-        _serviceManualResetEvent.WaitOne();
+        try
+        {
+            _serviceManualResetEvent.Wait();
+        }
+        catch (ObjectDisposedException)
+        {
+            // If the event was disposed during shutdown just return
+            return;
+        }
 
         // Run the application
         UiContext!.IsRunning = true;

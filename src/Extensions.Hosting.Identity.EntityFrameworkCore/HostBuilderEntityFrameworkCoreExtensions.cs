@@ -46,7 +46,6 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         where TRole : class
     {
         ArgumentNullException.ThrowIfNull(services);
-
         ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(connectionStringName))
@@ -87,7 +86,6 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         where TUser : class
     {
         ArgumentNullException.ThrowIfNull(services);
-
         ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(connectionStringName))
@@ -103,6 +101,211 @@ public static class HostBuilderEntityFrameworkCoreExtensions
             .AddDefaultIdentity<TUser>()
             .AddEntityFrameworkStores<TContext>();
         return services;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQL Server for the specified DbContext without ASP.NET Core Identity.
+    /// </summary>
+    /// <remarks>Use this method when you need Entity Framework Core with SQL Server but do not require
+    /// ASP.NET Core Identity services. This is useful for applications that handle authentication externally or
+    /// do not need user management.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <param name="services">The service collection to which the Entity Framework Core services will be added. Cannot be null.</param>
+    /// <param name="configuration">The configuration instance containing the connection string. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IServiceCollection AddSqlServerDbContext<TContext>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = configuration.GetConnectionString(connectionStringName);
+        services.AddDbContext<TContext>(
+            options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+            serviceLifetime);
+        return services;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQL Server for the specified DbContext using a direct connection string.
+    /// </summary>
+    /// <remarks>Use this overload when you have a connection string available directly rather than from
+    /// configuration. This is useful for testing scenarios or when connection strings are obtained from
+    /// other sources such as environment variables or secret managers.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <param name="services">The service collection to which the Entity Framework Core services will be added. Cannot be null.</param>
+    /// <param name="connectionString">The SQL Server connection string. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionString is null or consists only of white-space characters.</exception>
+    public static IServiceCollection AddSqlServerDbContextWithConnectionString<TContext>(this IServiceCollection services, string connectionString, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionString));
+        }
+
+        services.AddDbContext<TContext>(
+            options => options.UseSqlServer(connectionString),
+            serviceLifetime);
+        return services;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQL Server using the IHostApplicationBuilder pattern.
+    /// </summary>
+    /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern
+    /// introduced in .NET 7+. It registers the DbContext with SQL Server using the connection string
+    /// from configuration.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <param name="builder">The host application builder. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IHostApplicationBuilder AddSqlServerDbContext<TContext>(this IHostApplicationBuilder builder, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = builder.Configuration.GetConnectionString(connectionStringName);
+        builder.Services.AddDbContext<TContext>(
+            options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+            serviceLifetime);
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQL Server and ASP.NET Core Identity using IHostApplicationBuilder.
+    /// </summary>
+    /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern and
+    /// sets up both Entity Framework Core and ASP.NET Core Identity with the specified user and role types.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity.</typeparam>
+    /// <typeparam name="TRole">The type representing application roles for ASP.NET Core Identity.</typeparam>
+    /// <param name="builder">The host application builder. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IHostApplicationBuilder AddSqlServerWithIdentity<TContext, TUser, TRole>(this IHostApplicationBuilder builder, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+        where TUser : class
+        where TRole : class
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = builder.Configuration.GetConnectionString(connectionStringName);
+        builder.Services
+            .AddDbContext<TContext>(
+                options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+                serviceLifetime)
+            .AddDefaultIdentity<TUser>()
+            .AddRoles<TRole>()
+            .AddEntityFrameworkStores<TContext>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures Entity Framework Core with SQL Server and ASP.NET Core Identity (user only) using IHostApplicationBuilder.
+    /// </summary>
+    /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern and
+    /// sets up both Entity Framework Core and ASP.NET Core Identity with the specified user type only.</remarks>
+    /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
+    /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity.</typeparam>
+    /// <param name="builder">The host application builder. Cannot be null.</param>
+    /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service. Defaults to ServiceLifetime.Scoped.</param>
+    /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
+    public static IHostApplicationBuilder AddSqlServerWithIdentity<TContext, TUser>(this IHostApplicationBuilder builder, string connectionStringName, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where TContext : DbContext
+        where TUser : class
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var conString = builder.Configuration.GetConnectionString(connectionStringName);
+        builder.Services
+            .AddDbContext<TContext>(
+                options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
+                serviceLifetime)
+            .AddDefaultIdentity<TUser>()
+            .AddEntityFrameworkStores<TContext>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Validates that a connection string exists in the configuration.
+    /// </summary>
+    /// <param name="configuration">The configuration instance to check.</param>
+    /// <param name="connectionStringName">The name of the connection string to validate.</param>
+    /// <returns>True if the connection string exists and is not empty; otherwise, false.</returns>
+    public static bool HasConnectionString(this IConfiguration configuration, string connectionStringName)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            return false;
+        }
+
+        var connectionString = configuration.GetConnectionString(connectionStringName);
+        return !string.IsNullOrWhiteSpace(connectionString);
+    }
+
+    /// <summary>
+    /// Gets a connection string from configuration, throwing a descriptive exception if not found.
+    /// </summary>
+    /// <param name="configuration">The configuration instance.</param>
+    /// <param name="connectionStringName">The name of the connection string to retrieve.</param>
+    /// <returns>The connection string value.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the connection string is not found or is empty.</exception>
+    public static string GetRequiredConnectionString(this IConfiguration configuration, string connectionStringName)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        if (string.IsNullOrWhiteSpace(connectionStringName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionStringName));
+        }
+
+        var connectionString = configuration.GetConnectionString(connectionStringName);
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException($"Connection string '{connectionStringName}' not found in configuration. Ensure it is defined in appsettings.json or environment variables under 'ConnectionStrings:{connectionStringName}'.");
+        }
+
+        return connectionString;
     }
 
     /// <summary>

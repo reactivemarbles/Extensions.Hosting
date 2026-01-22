@@ -14,10 +14,10 @@
     <File Path="../build.cmd" />
     <File Path="../build.ps1" />
     <File Path="../build.sh" />
-    <File Path="../Directory.Build.props" />
     <File Path="../LICENSE" />
     <File Path="../README.md" />
     <File Path="../version.json" />
+    <File Path="Directory.Build.props" />
   </Folder>
   <Project Path="../build/_build.csproj">
     <Build Project="false" />
@@ -36,4 +36,5 @@
   <Project Path="Extensions.Hosting.WinForms/Extensions.Hosting.WinForms.csproj" />
   <Project Path="Extensions.Hosting.WinUI/Extensions.Hosting.WinUI.csproj" />
   <Project Path="Extensions.Hosting.Wpf/Extensions.Hosting.Wpf.csproj" />
+  <Project Path="tests/Extensions.Hosting.Tests/Extensions.Hosting.Tests.csproj" />
 </Solution>
