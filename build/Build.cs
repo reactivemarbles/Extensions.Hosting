@@ -28,8 +28,10 @@ partial class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Pack);
 
+    private static AbsolutePath SolutionFile => RootDirectory / "src" / "Extensions.Hosting.slnx";
+
     [GitRepository] readonly GitRepository Repository;
-    [Solution(GenerateProjects = true)] readonly Solution Solution;
+    readonly Solution Solution = SolutionFile.ReadSolution();
     [NerdbankGitVersioning] readonly NerdbankGitVersioning NerdbankVersioning;
     [Parameter][Secret] readonly string NuGetApiKey;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -62,10 +64,10 @@ partial class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore, Print)
-        .Executes(() => MSBuildTasks.MSBuild(s => s
+        .Executes(() => DotNetBuild(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .SetRestore(false)));
+                .SetNoRestore(true)));
 
     Target Pack => _ => _
     .DependsOn(Compile)

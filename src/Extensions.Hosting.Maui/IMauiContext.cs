@@ -9,17 +9,23 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
 /// <summary>
-/// The MAUI context contains all information about the MAUI application and how it's started and stopped.
+/// Provides contextual services and resources for .NET MAUI applications, including access to the current application
+/// and dispatcher.
 /// </summary>
+/// <remarks>IMauiContext is used to supply platform-specific context and services required by .NET MAUI
+/// components. It enables access to the current Application instance and dispatcher, which are essential for
+/// interacting with the application lifecycle and performing UI operations on the correct thread.</remarks>
 public interface IMauiContext : IUiContext
 {
     /// <summary>
-    /// Gets or sets the Application.
+    /// Gets or sets the current .NET MAUI application instance associated with the host environment.
     /// </summary>
+    /// <remarks>This property is typically used to access or assign the main application object in a .NET
+    /// MAUI app. Setting this property allows integration with the MAUI application lifecycle and services.</remarks>
     Application? MauiApplication { get; set; }
 
     /// <summary>
-    /// Gets this MAUI dispatcher.
+    /// Gets the dispatcher associated with the current context, if any.
     /// </summary>
     IDispatcher? Dispatcher { get; }
 }

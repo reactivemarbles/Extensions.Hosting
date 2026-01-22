@@ -11,15 +11,15 @@ using ReactiveMarbles.Extensions.Hosting.WinUI.Internals;
 namespace ReactiveMarbles.Extensions.Hosting.WinUI;
 
 /// <summary>
-/// This hosts a WinUI service, making sure the lifecycle is managed.
+/// Provides an implementation of <see cref="IHostedService"/> that manages the lifecycle of a WinUI application within
+/// a generic host environment.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="WinUIHostedService"/> class.
-/// The constructor which takes all the DI objects.
-/// </remarks>
-/// <param name="logger">ILogger.</param>
-/// <param name="winUIThread">WinUIThread.</param>
-/// <param name="winUIContext">IWinUIContext.</param>
+/// <remarks>This service enables integration of a WinUI application with the .NET Generic Host, allowing the
+/// application to participate in the host's startup and shutdown processes. It is typically registered as a singleton
+/// in the application's dependency injection container.</remarks>
+/// <param name="logger">The logger used to record diagnostic messages and operational events for the hosted service.</param>
+/// <param name="winUIThread">The WinUI thread responsible for running the application's UI event loop.</param>
+/// <param name="winUIContext">The context that provides access to the WinUI application's dispatcher and lifecycle management.</param>
 public class WinUIHostedService(ILogger<WinUIHostedService> logger, WinUIThread winUIThread, IWinUIContext winUIContext) : IHostedService
 {
     /// <inheritdoc />

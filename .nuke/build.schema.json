@@ -29,7 +29,8 @@
         "Deploy",
         "Pack",
         "Print",
-        "Restore"
+        "Restore",
+        "Test"
       ]
     },
     "Verbosity": {
@@ -114,10 +115,6 @@
         "NuGetApiKey": {
           "type": "string",
           "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-        },
-        "Solution": {
-          "type": "string",
-          "description": "Path to a solution file that is automatically loaded"
         }
       }
     },

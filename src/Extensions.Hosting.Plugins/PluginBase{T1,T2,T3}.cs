@@ -8,12 +8,14 @@ using Microsoft.Extensions.Hosting;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
 
 /// <summary>
-/// Plugin Base.
+/// Provides a base implementation for plugins that register three hosted services with the application host.
 /// </summary>
-/// <typeparam name="T1">The type of the 1st Plugin.</typeparam>
-/// <typeparam name="T2">The type of the 2nd Plugin.</typeparam>
-/// <typeparam name="T3">The type of the 3rd Plugin.</typeparam>
-/// <seealso cref="IPlugin" />
+/// <remarks>This class is intended to be used as a base for plugins that require multiple hosted services to be
+/// added to the application's dependency injection container. All type parameters must be reference types implementing
+/// <see cref="IHostedService"/>.</remarks>
+/// <typeparam name="T1">The type of the first hosted service to register. Must implement <see cref="IHostedService"/>.</typeparam>
+/// <typeparam name="T2">The type of the second hosted service to register. Must implement <see cref="IHostedService"/>.</typeparam>
+/// <typeparam name="T3">The type of the third hosted service to register. Must implement <see cref="IHostedService"/>.</typeparam>
 public class PluginBase<T1, T2, T3> : IPlugin
     where T1 : class, IHostedService
     where T2 : class, IHostedService

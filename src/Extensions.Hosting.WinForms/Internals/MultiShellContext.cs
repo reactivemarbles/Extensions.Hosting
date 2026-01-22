@@ -8,17 +8,25 @@ using System.Windows.Forms;
 namespace ReactiveMarbles.Extensions.Hosting.WinForms.Internals;
 
 /// <summary>
-/// This provides context for running multiple forms which are defined as IWinFormsShell.
+/// Provides an application context that manages the lifetime of multiple top-level forms, ensuring the application
+/// exits when all forms are closed.
 /// </summary>
+/// <remarks>Use this context to run a Windows Forms application with multiple main forms. The application will
+/// remain running until all specified forms are closed, at which point the message loop will exit
+/// automatically.</remarks>
 internal class MultiShellContext : ApplicationContext
 {
     private int _openForms;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MultiShellContext" /> class.
-    /// Constructor which specified the.
+    /// Initializes a new instance of the <see cref="MultiShellContext"/> class with the specified collection of forms to be managed.
+    /// as part of the application context.
     /// </summary>
-    /// <param name="forms">The forms.</param>
+    /// <remarks>Each form provided is immediately shown and monitored for closure. The context remains active
+    /// until all managed forms are closed. This constructor is useful for applications that require multiple main
+    /// windows to be open simultaneously.</remarks>
+    /// <param name="forms">An array of Form instances to be shown and managed. Each form will be displayed and tracked until it is closed.
+    /// Cannot be null or contain null elements.</param>
     public MultiShellContext(params Form[] forms)
     {
         _openForms = forms.Length;
@@ -30,10 +38,13 @@ internal class MultiShellContext : ApplicationContext
     }
 
     /// <summary>
-    /// Make sure the application stops if all shells are closed.
+    /// Handles the FormClosed event for a form and performs application shutdown if all tracked forms have been closed.
     /// </summary>
-    /// <param name="s">The s.</param>
-    /// <param name="args">The <see cref="FormClosedEventArgs"/> instance containing the event data.</param>
+    /// <remarks>This method is intended to be used as an event handler for form closure events in
+    /// applications that track multiple startup forms. When the last tracked form is closed, the application thread is
+    /// terminated.</remarks>
+    /// <param name="s">The source of the event. This is typically the form that was closed.</param>
+    /// <param name="args">A FormClosedEventArgs object that contains the event data.</param>
     private void OnFormClosed(object? s, FormClosedEventArgs args)
     {
         // When we have closed the last of the "starting" forms, end the program.

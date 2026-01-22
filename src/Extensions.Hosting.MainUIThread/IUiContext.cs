@@ -5,8 +5,12 @@
 namespace ReactiveMarbles.Extensions.Hosting.UiThread;
 
 /// <summary>
-/// The UI context contains all information about a UI application and how it's started and stopped.
+/// Defines the contract for managing the lifecycle and running state of a user interface (UI) application within a host
+/// environment.
 /// </summary>
+/// <remarks>Implementations of this interface allow coordination between the UI application's lifecycle and the
+/// host application's lifecycle. This is useful for scenarios where the UI and host application need to be started,
+/// stopped, or monitored in tandem.</remarks>
 public interface IUiContext
 {
     /// <summary>

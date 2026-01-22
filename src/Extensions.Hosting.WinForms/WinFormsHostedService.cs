@@ -14,15 +14,16 @@ using ReactiveMarbles.Extensions.Hosting.WinForms.Internals;
 namespace ReactiveMarbles.Extensions.Hosting.WinForms;
 
 /// <summary>
-/// This hosts a WinForms service, making sure the lifecycle is managed.
+/// Provides an implementation of IHostedService that manages the lifecycle of a WinForms application within a generic
+/// host environment.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="WinFormsHostedService"/> class.
-/// The constructor which takes all the DI objects.
-/// </remarks>
-/// <param name="logger">ILogger.</param>
-/// <param name="winFormsThread">WinFormsThread.</param>
-/// <param name="winFormsContext">IWinFormsContext.</param>
+/// <remarks>This service enables integration of a WinForms application into a .NET generic host, allowing the
+/// application to participate in the host's startup and shutdown processes. It is typically used to coordinate graceful
+/// startup and shutdown of WinForms UI within background services or desktop applications that leverage dependency
+/// injection and hosting infrastructure.</remarks>
+/// <param name="logger">The logger used to record diagnostic messages and operational events for the hosted service.</param>
+/// <param name="winFormsThread">The thread responsible for running the WinForms message loop.</param>
+/// <param name="winFormsContext">The context that provides access to the WinForms application's state and dispatcher.</param>
 public class WinFormsHostedService(ILogger<WinFormsHostedService> logger, WinFormsThread winFormsThread, IWinFormsContext winFormsContext) : IHostedService
 {
     /// <inheritdoc />

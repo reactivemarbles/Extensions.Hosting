@@ -13,13 +13,14 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 namespace ReactiveMarbles.Extensions.Hosting.WinForms.Internals;
 
 /// <summary>
-/// This contains the logic for the WinForms thread.
+/// Provides a dedicated UI thread for running Windows Forms applications with dependency injection support.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="WinFormsThread"/> class.
-/// Constructor which is called from the IWinFormsContext.
-/// </remarks>
-/// <param name="serviceProvider">IServiceProvider.</param>
+/// <remarks>This class manages the lifecycle of a Windows Forms message loop on a separate thread, allowing for
+/// integration with dependency injection and service-based architectures. It is typically used in scenarios where
+/// Windows Forms UI components need to be hosted or controlled from a background or non-main thread context. The thread
+/// automatically configures the synchronization context and visual styles as needed. Thread safety and correct disposal
+/// of UI resources are the responsibility of the caller.</remarks>
+/// <param name="serviceProvider">The service provider used to resolve Windows Forms services and shells required by the UI thread. Cannot be null.</param>
 public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWinFormsContext>(serviceProvider)
 {
     /// <inheritdoc />
@@ -40,9 +41,7 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
         Application.ApplicationExit += OnApplicationExit;
     }
 
-    /// <summary>
-    /// Start Windows Forms.
-    /// </summary>
+    /// <inheritdoc />
     protected override void UiThreadStart()
     {
         // Use the provided IWinFormsService
@@ -52,7 +51,7 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
             winFormService.Initialize();
         }
 
-        // Run the WPF application in this thread which was specifically created for it, with the specified shell
+        // Run the WinForms application in this thread which was specifically created for it, with the specified shell
         var shells = ServiceProvider.GetServices<IWinFormsShell>().Cast<Form>().ToArray();
 
         switch (shells.Length)
@@ -70,6 +69,11 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
         }
     }
 
+    /// <summary>
+    /// Handles the application exit event to perform necessary cleanup operations before the application shuts down.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the application object.</param>
+    /// <param name="eventArgs">An object that contains the event data associated with the application exit event.</param>
     private void OnApplicationExit(object? sender, EventArgs eventArgs)
     {
         Application.ApplicationExit -= OnApplicationExit;

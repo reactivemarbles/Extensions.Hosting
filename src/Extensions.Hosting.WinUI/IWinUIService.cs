@@ -7,13 +7,13 @@ using Microsoft.UI.Xaml;
 namespace ReactiveMarbles.Extensions.Hosting.WinUI;
 
 /// <summary>
-/// This defines a service which is called before the message loop is started.
+/// Defines a service for initializing WinUI components from the UI thread.
 /// </summary>
 public interface IWinUIService
 {
     /// <summary>
-    /// Do whatever you need to do to initialize WinUI, this is called from the UI thread.
+    /// Initializes the specified application instance, preparing it for use.
     /// </summary>
-    /// <param name="application">Application.</param>
+    /// <param name="application">The application instance to initialize. Cannot be null.</param>
     void Initialize(Application application);
 }

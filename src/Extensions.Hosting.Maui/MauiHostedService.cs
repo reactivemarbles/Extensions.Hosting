@@ -11,15 +11,15 @@ using ReactiveMarbles.Extensions.Hosting.Maui.Internals;
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
 /// <summary>
-/// This hosts a MAUI service, making sure the lifecycle is managed.
+/// Provides an implementation of the IHostedService interface to manage the lifecycle of a .NET MAUI application within
+/// a generic host environment.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="MauiHostedService"/> class.
-/// The constructor which takes all the DI objects.
-/// </remarks>
-/// <param name="logger">ILogger.</param>
-/// <param name="mauiThread">MauiThread.</param>
-/// <param name="mauiContext">IMauiContext.</param>
+/// <remarks>This service enables integration of a MAUI application's startup and shutdown with the ASP.NET Core
+/// hosting model. It is typically used to coordinate application lifetime events between the MAUI UI thread and the
+/// host.</remarks>
+/// <param name="logger">The logger used to record diagnostic messages and operational events for the hosted service.</param>
+/// <param name="mauiThread">The thread responsible for running the MAUI application's UI loop.</param>
+/// <param name="mauiContext">The context that provides access to the MAUI application's services and dispatcher.</param>
 public class MauiHostedService(ILogger<MauiHostedService> logger, MauiThread mauiThread, IMauiContext mauiContext) : IHostedService
 {
     /// <inheritdoc />

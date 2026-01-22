@@ -7,7 +7,12 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 
 namespace ReactiveMarbles.Extensions.Hosting.WinForms.Internals;
 
-/// <inheritdoc cref="IWinFormsContext"/>
+/// <summary>
+/// Provides a Windows Forms-specific UI context for managing application-wide settings and services.
+/// </summary>
+/// <remarks>Use this class to configure and interact with Windows Forms application features, such as enabling
+/// visual styles and accessing the UI dispatcher. This context is typically used to coordinate UI-related operations in
+/// a Windows Forms environment.</remarks>
 public class WinFormsContext : BaseUiContext, IWinFormsContext
 {
     /// <inheritdoc />

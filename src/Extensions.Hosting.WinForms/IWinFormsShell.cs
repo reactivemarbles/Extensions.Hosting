@@ -5,6 +5,9 @@
 namespace ReactiveMarbles.Extensions.Hosting.WinForms;
 
 /// <summary>
-/// This marker interface defines the shell of the WinForms application.
+/// Represents a shell interface for hosting and managing Windows Forms-based user interfaces within an application.
 /// </summary>
+/// <remarks>Implement this interface to provide integration points for Windows Forms UI components, such as main
+/// windows, dialogs, or tool windows, within a host application. The specific responsibilities and capabilities of the
+/// shell are defined by the implementing class.</remarks>
 public interface IWinFormsShell;

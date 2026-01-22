@@ -8,10 +8,10 @@ using Microsoft.Extensions.Hosting;
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
 
 /// <summary>
-/// Plugin Base.
+/// Provides a base implementation for plugins that register a hosted service of the specified type with the
+/// application's dependency injection container.
 /// </summary>
-/// <typeparam name="T">The type of Plugin.</typeparam>
-/// <seealso cref="IPlugin" />
+/// <typeparam name="T">The type of the hosted service to register. Must implement <see cref="IHostedService"/>.</typeparam>
 public class PluginBase<T> : IPlugin
     where T : class, IHostedService
 {

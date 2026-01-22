@@ -41,7 +41,7 @@ jobs:
          cache: true
          cache-dependency-path: |
            **/Directory.Packages.props
-           **/*.sln
+           **/*.slnx
            **/*.csproj
            **/global.json
            **/nuget.config
@@ -67,3 +67,26 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
       - name: 'Run: Compile'
         run: ./build.cmd Compile
+
+      
+      - name: Tests + Coverage (MTP)
+        shell: bash
+        working-directory: 'src'
+        run: |
+          dotnet test --solution Extensions.Hosting.slnx \
+            --no-build \
+            --configuration Release \
+            --coverage \
+            --coverage-output-format cobertura \
+            --results-directory ./TestResults
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v6
+        with:
+          name: tmp-coverage
+          path: |
+            /src/coverage.cobertura.xml
+            /src/coverage*.cobertura.xml
+            /src/TestResults/**/*.cobertura.xml
+          if-no-files-found: warn
+          retention-days: 3

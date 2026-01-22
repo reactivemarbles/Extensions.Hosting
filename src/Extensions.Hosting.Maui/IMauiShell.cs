@@ -5,6 +5,10 @@
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
 /// <summary>
-/// This marker interface defines the shell of the MAUI application.
+/// Represents a contract for a Shell implementation in a .NET MAUI application, providing the structure and navigation
+/// model for multi-page apps.
 /// </summary>
+/// <remarks>Implementations of this interface define the application's navigation hierarchy, visual structure,
+/// and routing logic using the Shell paradigm. This interface is typically used internally by the .NET MAUI framework
+/// and is not intended to be implemented directly by application code.</remarks>
 public interface IMauiShell;

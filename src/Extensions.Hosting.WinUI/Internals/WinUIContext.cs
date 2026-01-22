@@ -8,7 +8,14 @@ using Microsoft.UI.Xaml;
 
 namespace ReactiveMarbles.Extensions.Hosting.WinUI.Internals;
 
-/// <inheritdoc />
+/// <summary>
+/// Provides context information and access to core WinUI application components, including the main window, dispatcher,
+/// and application instance.
+/// </summary>
+/// <remarks>Use this class to interact with and manage the state of a WinUI application's main elements. It
+/// exposes properties for accessing the application window, dispatcher queue, and application instance, as well as
+/// flags indicating the application's running state and lifetime linkage. This context is typically used to coordinate
+/// UI operations and manage application lifecycle events in WinUI-based applications.</remarks>
 public class WinUIContext : IWinUIContext
 {
     /// <inheritdoc />
