@@ -41,7 +41,7 @@ jobs:
          cache: true
          cache-dependency-path: |
            **/Directory.Packages.props
-           **/*.sln
+           **/*.slnx
            **/*.csproj
            **/global.json
            **/nuget.config
