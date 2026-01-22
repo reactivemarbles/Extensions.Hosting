@@ -73,17 +73,11 @@ partial class Build : NukeBuild
         .DependsOn(Compile)
         .Executes(() =>
         {
-            var testProjects = Solution.GetTestProjects();
-            foreach (var project in testProjects!)
-            {
-                Log.Information("Testing {Project}", project.Name);
-            }
             DotNetTest(settings => settings
                 .SetConfiguration(Configuration)
                 .SetNoBuild(true)
                 .SetResultsDirectory(RootDirectory / "TestResults")
-                .CombineWith(testProjects, (testSettings, project) =>
-                    testSettings.SetProjectFile(project)));
+                .SetProjectFile(Solution));
         });
 
     Target Pack => _ => _
