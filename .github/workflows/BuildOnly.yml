@@ -71,7 +71,7 @@ jobs:
       
       - name: Tests + Coverage (MTP)
         shell: bash
-        working-directory: /src
+        working-directory: 'src'
         run: |
           dotnet test Extensions.Hosting.slnx \
             --no-build \
@@ -79,3 +79,14 @@ jobs:
             --coverage \
             --coverage-output-format cobertura \
             --results-directory ./TestResults
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v6
+        with:
+          name: tmp-coverage
+          path: |
+            /src/**/coverage.cobertura.xml
+            /src/**/coverage*.cobertura.xml
+            /src/**/TestResults/**/*.cobertura.xml
+          if-no-files-found: warn
+          retention-days: 3
