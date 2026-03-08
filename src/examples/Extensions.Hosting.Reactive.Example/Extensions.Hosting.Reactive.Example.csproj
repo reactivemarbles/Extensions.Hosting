@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NuGet.Protocol" Version="7.0.1" />
+    <PackageReference Include="NuGet.Protocol" Version="7.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="$(CoreVersion)" />
   </ItemGroup>
 
