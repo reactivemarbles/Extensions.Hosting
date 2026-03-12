@@ -20,25 +20,25 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <!-- Align MSBuild dependencies to avoid NU1605 downgrades from transitive EF tooling -->
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="18.3.3" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.3.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="18.4.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.4.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net9')) ">
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.13">
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net8')) ">
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.23" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.23" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.23" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.23">
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.25" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.25" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.25" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.25">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

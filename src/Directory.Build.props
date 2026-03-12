@@ -30,7 +30,7 @@
     <!-- Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-    <CoreVersion>10.0.3</CoreVersion>
+    <CoreVersion>10.0.5</CoreVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
@@ -46,7 +46,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(IsTestProject)">
-    <PackageReference Include="TUnit" Version="1.19.11"/>
+    <PackageReference Include="TUnit" Version="1.19.22"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0"/>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.5.2"/>
     <PackageReference Include="PublicApiGenerator" Version="11.5.4"/>
@@ -59,7 +59,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' != 'true'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.201" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
