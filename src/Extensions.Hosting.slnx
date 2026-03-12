@@ -1,11 +1,13 @@
 <Solution>
   <Folder Name="/Examples/">
+    <Project Path="examples/Extensions.Hosting.Avalonia.Example/Extensions.Hosting.Avalonia.Example.csproj" />
     <Project Path="examples/Extensions.Hosting.Console.Example/Extensions.Hosting.Console.Example.csproj" />
     <Project Path="examples/Extensions.Hosting.Maui.Example/Extensions.Hosting.Maui.Example.csproj">
       <Deploy Solution="Debug|*" />
     </Project>
     <Project Path="examples/Extensions.Hosting.Plugin.Example/ReactiveMarbles.Plugin.Example.csproj" />
-    <Project Path="examples/Extensions.Hosting.Reactive.Example/Extensions.Hosting.Reactive.Example.csproj" />
+    <Project Path="examples/Extensions.Hosting.ReactiveAvalonia.Example/Extensions.Hosting.ReactiveAvalonia.Example.csproj" />
+    <Project Path="examples/Extensions.Hosting.ReactiveWpf.Example/Extensions.Hosting.ReactiveWpf.Example.csproj" />
     <Project Path="examples/Extensions.Hosting.Wpf.Example/Extensions.Hosting.Wpf.Example.csproj" />
   </Folder>
   <Folder Name="/SolutionConfig/">
@@ -22,12 +24,14 @@
   <Project Path="../build/_build.csproj">
     <Build Project="false" />
   </Project>
+  <Project Path="Extensions.Hosting.Avalonia/Extensions.Hosting.Avalonia.csproj" />
   <Project Path="Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite/Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite.csproj" />
   <Project Path="Extensions.Hosting.Identity.EntityFrameworkCore/Extensions.Hosting.Identity.EntityFrameworkCore.SqlServer.csproj" />
   <Project Path="Extensions.Hosting.MainUIThread/Extensions.Hosting.MainUIThread.csproj" />
   <Project Path="Extensions.Hosting.Maui/Extensions.Hosting.Maui.csproj" />
   <Project Path="Extensions.Hosting.Plugins/Extensions.Hosting.Plugins.csproj" />
   <Project Path="Extensions.Hosting.PluginService/Extensions.Hosting.PluginService.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.Avalonia/Extensions.Hosting.ReactiveUI.Avalonia.csproj" Id="711b6a7d-e7b8-4903-9015-43116783fc45" />
   <Project Path="Extensions.Hosting.ReactiveUI.Maui/Extensions.Hosting.ReactiveUI.Maui.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.WinForms/Extensions.Hosting.ReactiveUI.WinForms.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.WinUI/Extensions.Hosting.ReactiveUI.WinUI.csproj" />

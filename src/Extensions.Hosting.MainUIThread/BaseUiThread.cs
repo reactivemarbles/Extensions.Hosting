@@ -24,6 +24,7 @@ public abstract class BaseUiThread<T> : IDisposable
 {
     private readonly System.Threading.ManualResetEventSlim _serviceManualResetEvent = new(false);
     private readonly IHostApplicationLifetime? _hostApplicationLifetime;
+    private readonly bool _useDedicatedUiThread;
     private bool _disposedValue;
 
     /// <summary>
@@ -35,7 +36,8 @@ public abstract class BaseUiThread<T> : IDisposable
     /// The provided service provider is used to resolve dependencies needed by the UI thread and is stored for later
     /// use.</remarks>
     /// <param name="serviceProvider">The service provider used to resolve required services for the UI thread. Cannot be null.</param>
-    protected BaseUiThread(IServiceProvider serviceProvider)
+    /// <param name="useDedicatedUiThread">If set to <c>true</c>, a dedicated UI thread is created and started immediately; otherwise, UI initialization and startup run on the caller thread when <see cref="Start"/> is invoked.</param>
+    protected BaseUiThread(IServiceProvider serviceProvider, bool useDedicatedUiThread = true)
     {
         if (serviceProvider is null)
         {
@@ -45,6 +47,12 @@ public abstract class BaseUiThread<T> : IDisposable
         UiContext = serviceProvider.GetRequiredService<T>();
         _hostApplicationLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
         ServiceProvider = serviceProvider;
+        _useDedicatedUiThread = useDedicatedUiThread;
+
+        if (!_useDedicatedUiThread)
+        {
+            return;
+        }
 
         // Create a thread which runs the UI
         var newUiThread = new Thread(InternalUiThreadStart)
@@ -52,10 +60,11 @@ public abstract class BaseUiThread<T> : IDisposable
             IsBackground = true
         };
 
-#if WINDOWS
-        // Set the apartment state
-        newUiThread.SetApartmentState(ApartmentState.STA);
-#endif
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            // Set the apartment state for Windows desktop UI frameworks.
+            newUiThread.SetApartmentState(ApartmentState.STA);
+        }
 
         // Start the new UI thread
         newUiThread.Start();
@@ -77,7 +86,16 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <remarks>Call this method to allow the service to proceed if it is waiting for a start signal. This
     /// method is typically used to control the execution flow of a service that waits for an external trigger before
     /// starting.</remarks>
-    public void Start() => _serviceManualResetEvent.Set(); // Make the UI thread go
+    public void Start()
+    {
+        if (_useDedicatedUiThread)
+        {
+            _serviceManualResetEvent.Set(); // Make the UI thread go
+            return;
+        }
+
+        InternalUiThreadStart();
+    }
 
     /// <summary>
     /// Releases all resources used by the current instance of the class.
@@ -159,15 +177,18 @@ public abstract class BaseUiThread<T> : IDisposable
         // Do the pre initialization, if any
         PreUiThreadStart();
 
-        // Wait for the startup
-        try
+        if (_useDedicatedUiThread)
         {
-            _serviceManualResetEvent.Wait();
-        }
-        catch (ObjectDisposedException)
-        {
-            // If the event was disposed during shutdown just return
-            return;
+            // Wait for the startup
+            try
+            {
+                _serviceManualResetEvent.Wait();
+            }
+            catch (ObjectDisposedException)
+            {
+                // If the event was disposed during shutdown just return
+                return;
+            }
         }
 
         // Run the application

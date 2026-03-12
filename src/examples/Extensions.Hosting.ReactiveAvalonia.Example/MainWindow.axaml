@@ -1,0 +1,50 @@
+<reactiveui:ReactiveWindow
+    x:Class="Extensions.Hosting.ReactiveAvalonia.Example.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Extensions.Hosting.ReactiveAvalonia.Example"
+    xmlns:reactiveui="clr-namespace:ReactiveUI.Avalonia;assembly=ReactiveUI.Avalonia"
+    x:TypeArguments="local:AppViewModel"
+    Height="450"
+    Title="ReactiveMarbles NuGet Browser"
+    Width="800">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            VerticalAlignment="Center"
+            FontSize="16"
+            FontWeight="SemiBold"
+            Text="Search for: " />
+
+        <TextBox
+            x:Name="SearchTextBox"
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="6,0,0,0"
+            Text="{Binding SearchTerm, Mode=TwoWay}" />
+
+        <ListBox
+            x:Name="SearchResultsListBox"
+            Grid.Row="1"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Margin="0,6,0,0"
+            IsVisible="{Binding IsAvailable}"
+            ItemsSource="{Binding SearchResults}"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <local:NugetDetailsView />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</reactiveui:ReactiveWindow>
