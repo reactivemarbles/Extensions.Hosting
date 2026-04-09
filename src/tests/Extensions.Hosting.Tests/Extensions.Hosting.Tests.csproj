@@ -22,6 +22,8 @@
     <Using Include="TUnit.Core" />
     <Using Include="TUnit.Core.Executors" />
     <Using Include="TUnit.Core.Interfaces" />
+    <Using Include="TUnit.Assertions"/>
+    <Using Include="TUnit.Assertions.Extensions"/>
     <Using Include="System" />
     <Using Include="System.Collections.Generic" />
     <Using Include="System.ComponentModel" />
