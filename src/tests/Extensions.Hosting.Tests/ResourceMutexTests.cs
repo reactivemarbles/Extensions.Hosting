@@ -2,11 +2,8 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveMarbles.Extensions.Hosting.AppServices;
-using TUnit;
 
 namespace Extensions.Hosting.Tests;
 
