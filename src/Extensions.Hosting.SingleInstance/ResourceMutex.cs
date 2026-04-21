@@ -27,8 +27,10 @@ public sealed class ResourceMutex : IDisposable
     private readonly ILogger _logger;
     private readonly string _mutexId;
     private readonly string _resourceName;
-    private Mutex? _applicationMutex;
+    private readonly ManualResetEventSlim _lockAcquiredSignal = new(initialState: false);
+    private readonly ManualResetEventSlim _releaseSignal = new(initialState: false);
     private bool _disposedValue;
+    private Thread? _ownerThread;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ResourceMutex"/> class with the specified logger, mutex identifier, and optional.
@@ -78,11 +80,12 @@ public sealed class ResourceMutex : IDisposable
     /// <summary>
     /// Attempts to acquire an exclusive application-wide mutex to prevent multiple instances from running concurrently.
     /// </summary>
-    /// <remarks>This method ensures that only one instance of the resource identified by the mutex ID can
-    /// hold the lock at a time. If the mutex is already held by another process or user, the method waits for a short
-    /// period before failing to acquire the lock. If the mutex cannot be acquired due to permission issues or other
-    /// errors, the method returns false. The lock should be released appropriately when no longer needed to avoid
-    /// resource contention.</remarks>
+    /// <remarks>This method spawns a dedicated background thread to own the mutex for its entire lifetime.
+    /// This ensures that <see cref="Dispose"/> can safely release the mutex from any calling thread, because
+    /// <see cref="System.Threading.Mutex.ReleaseMutex"/> is always invoked on the thread that originally
+    /// acquired it. If the mutex is already held by another process or user, the method returns false. The lock
+    /// should be released by calling <see cref="Dispose"/> when no longer needed to avoid resource
+    /// contention.</remarks>
     /// <returns>true if the mutex was successfully acquired and the lock is held by the current instance; otherwise, false.</returns>
     public bool Lock()
     {
@@ -91,68 +94,15 @@ public sealed class ResourceMutex : IDisposable
             _logger.LogDebug("{resourceName} is trying to get Mutex {mutexId}", _resourceName, _mutexId);
         }
 
-        IsLocked = true;
-
-        // check whether there's an local instance running already, but use local so this works in a multi-user environment
-        try
+        _ownerThread = new Thread(AcquireAndHoldMutex)
         {
-#if NET462
-            // Added Mutex Security, hopefully this prevents the UnauthorizedAccessException more gracefully
-            var sid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            var mutexsecurity = new MutexSecurity();
-            mutexsecurity.AddAccessRule(new MutexAccessRule(sid, MutexRights.FullControl, AccessControlType.Allow));
-            mutexsecurity.AddAccessRule(new MutexAccessRule(sid, MutexRights.ChangePermissions, AccessControlType.Deny));
-            mutexsecurity.AddAccessRule(new MutexAccessRule(sid, MutexRights.Delete, AccessControlType.Deny));
+            IsBackground = true,
+            Name = $"ResourceMutex-{_mutexId}",
+        };
+        _ownerThread.Start();
 
-            // 1) Create Mutex
-            _applicationMutex = new Mutex(true, _mutexId, out var createdNew, mutexsecurity);
-#else
-            // 1) Create Mutex
-            _applicationMutex = new Mutex(true, _mutexId, out var createdNew);
-#endif
-
-            // 2) if the mutex wasn't created new get the right to it, this returns false if it's already locked
-            if (!createdNew)
-            {
-                IsLocked = _applicationMutex.WaitOne(2000, false);
-                if (!IsLocked)
-                {
-                    _logger.LogWarning("Mutex {mutexId} is already in use and couldn't be locked for the caller {resourceName}", _mutexId, _resourceName);
-
-                    // Clean up
-                    _applicationMutex.Dispose();
-                    _applicationMutex = null;
-                }
-                else
-                {
-                    _logger.LogInformation("{resourceName} has claimed the mutex {mutexId}", _resourceName, _mutexId);
-                }
-            }
-            else
-            {
-                _logger.LogInformation("{resourceName} has created & claimed the mutex {mutexId}", _resourceName, _mutexId);
-            }
-        }
-        catch (AbandonedMutexException e)
-        {
-            // Another instance didn't cleanup correctly!
-            // we can ignore the exception, it happened on the "WaitOne" but still the mutex belongs to us
-            _logger.LogWarning(e, "{resourceName} didn't cleanup correctly, but we got the mutex {mutexId}.", _resourceName, _mutexId);
-        }
-        catch (UnauthorizedAccessException e)
-        {
-            _logger.LogError(
-                e,
-                "{resourceName} is most likely already running for a different user in the same session, can't create/get mutex {mutexId} due to error.",
-                _resourceName,
-                _mutexId);
-            IsLocked = false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Problem obtaining the Mutex {mutexId} for {resourceName}, assuming it was already taken!", _resourceName, _mutexId);
-            IsLocked = false;
-        }
+        // Wait until the dedicated thread has finished the acquire attempt.
+        _lockAcquiredSignal.Wait();
 
         return IsLocked;
     }
@@ -171,27 +121,118 @@ public sealed class ResourceMutex : IDisposable
         }
 
         _disposedValue = true;
-        if (_applicationMutex == null)
+
+        // Signal the owning thread to release the mutex, then wait for it to finish.
+        _releaseSignal.Set();
+        _ownerThread?.Join();
+
+        _releaseSignal.Dispose();
+        _lockAcquiredSignal.Dispose();
+    }
+
+    /// <summary>
+    /// Runs on the dedicated owner thread: acquires the mutex, signals the caller, waits for the dispose
+    /// signal, then releases the mutex — all on the same thread to satisfy <see cref="System.Threading.Mutex"/>
+    /// thread-affinity requirements.
+    /// </summary>
+    private void AcquireAndHoldMutex()
+    {
+        IsLocked = true;
+        var shouldRelease = false;
+        Mutex? applicationMutex = null;
+
+        // check whether there's an local instance running already, but use local so this works in a multi-user environment
+        try
+        {
+#if NET462
+            // Added Mutex Security, hopefully this prevents the UnauthorizedAccessException more gracefully
+            var sid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            var mutexsecurity = new MutexSecurity();
+            mutexsecurity.AddAccessRule(new MutexAccessRule(sid, MutexRights.FullControl, AccessControlType.Allow));
+            mutexsecurity.AddAccessRule(new MutexAccessRule(sid, MutexRights.ChangePermissions, AccessControlType.Deny));
+            mutexsecurity.AddAccessRule(new MutexAccessRule(sid, MutexRights.Delete, AccessControlType.Deny));
+
+            // 1) Create Mutex
+            applicationMutex = new Mutex(true, _mutexId, out var createdNew, mutexsecurity);
+#else
+            // 1) Create Mutex
+            applicationMutex = new Mutex(true, _mutexId, out var createdNew);
+#endif
+
+            // 2) if the mutex wasn't created new get the right to it, this returns false if it's already locked
+            if (!createdNew)
+            {
+                IsLocked = applicationMutex.WaitOne(2000, false);
+                if (!IsLocked)
+                {
+                    _logger.LogWarning("Mutex {mutexId} is already in use and couldn't be locked for the caller {resourceName}", _mutexId, _resourceName);
+
+                    // Clean up
+                    applicationMutex.Dispose();
+                    applicationMutex = null;
+                }
+                else
+                {
+                    _logger.LogInformation("{resourceName} has claimed the mutex {mutexId}", _resourceName, _mutexId);
+                    shouldRelease = true;
+                }
+            }
+            else
+            {
+                _logger.LogInformation("{resourceName} has created & claimed the mutex {mutexId}", _resourceName, _mutexId);
+                shouldRelease = true;
+            }
+        }
+        catch (AbandonedMutexException e)
+        {
+            // Another instance didn't cleanup correctly!
+            // we can ignore the exception, it happened on the "WaitOne" but still the mutex belongs to us
+            _logger.LogWarning(e, "{resourceName} didn't cleanup correctly, but we got the mutex {mutexId}.", _resourceName, _mutexId);
+            shouldRelease = true;
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            _logger.LogError(
+                e,
+                "{resourceName} is most likely already running for a different user in the same session, can't create/get mutex {mutexId} due to error.",
+                _resourceName,
+                _mutexId);
+            IsLocked = false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Problem obtaining the Mutex {mutexId} for {resourceName}, assuming it was already taken!", _resourceName, _mutexId);
+            IsLocked = false;
+        }
+        finally
+        {
+            // Always unblock the caller of Lock() once the acquire attempt is complete.
+            _lockAcquiredSignal.Set();
+        }
+
+        if (!shouldRelease)
         {
             return;
         }
 
+        // Hold until Dispose() signals that we should release.
+        _releaseSignal.Wait();
+
+        // Release on this thread — the same thread that acquired the mutex — to satisfy Mutex thread-affinity.
         try
         {
-            if (IsLocked)
+            if (IsLocked && applicationMutex != null)
             {
-                _applicationMutex.ReleaseMutex();
+                applicationMutex.ReleaseMutex();
                 IsLocked = false;
                 _logger.LogInformation("Released Mutex {mutexId} for {resourceName}", _mutexId, _resourceName);
             }
 
-            _applicationMutex.Dispose();
+            applicationMutex?.Dispose();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error releasing Mutex {mutexId} for {resourceName}", _mutexId, _resourceName);
         }
-
-        _applicationMutex = null!;
     }
 }

@@ -168,4 +168,38 @@ public class ResourceMutexTests
 
         await Assert.That(exception).IsNull();
     }
+
+    /// <summary>
+    /// Verifies that disposing a ResourceMutex from a different thread than the one that acquired it does not throw.
+    /// This validates the fix for the thread-affinity issue where Mutex.ReleaseMutex() must be called from
+    /// the thread that originally acquired the mutex.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Dispose_FromDifferentThread_DoesNotThrow()
+    {
+        var logger = NullLogger.Instance;
+        var id = "test-mutex-cross-thread-" + Guid.NewGuid().ToString("N");
+
+        var mutex = ResourceMutex.Create(logger, id);
+        await Assert.That(mutex.IsLocked).IsTrue();
+
+        Exception? exception = null;
+        var disposeThread = new Thread(() =>
+        {
+            try
+            {
+                mutex.Dispose();
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+        });
+        disposeThread.Start();
+        disposeThread.Join();
+
+        await Assert.That(exception).IsNull();
+        await Assert.That(mutex.IsLocked).IsFalse();
+    }
 }
