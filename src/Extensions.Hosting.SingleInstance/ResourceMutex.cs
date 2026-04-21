@@ -97,7 +97,7 @@ public sealed class ResourceMutex : IDisposable
         _ownerThread = new Thread(AcquireAndHoldMutex)
         {
             IsBackground = true,
-            Name = $"ResourceMutex-{_mutexId}",
+            Name = $"ResourceMutex-{_resourceName}",
         };
         _ownerThread.Start();
 
@@ -124,7 +124,10 @@ public sealed class ResourceMutex : IDisposable
 
         // Signal the owning thread to release the mutex, then wait for it to finish.
         _releaseSignal.Set();
-        _ownerThread?.Join();
+        if (_ownerThread?.Join(TimeSpan.FromSeconds(5)) == false)
+        {
+            _logger.LogWarning("Timed out waiting for mutex owner thread to release Mutex {mutexId} for {resourceName}", _mutexId, _resourceName);
+        }
 
         _releaseSignal.Dispose();
         _lockAcquiredSignal.Dispose();
@@ -138,7 +141,7 @@ public sealed class ResourceMutex : IDisposable
     private void AcquireAndHoldMutex()
     {
         IsLocked = true;
-        var shouldRelease = false;
+        var mutexAcquired = false;
         Mutex? applicationMutex = null;
 
         // check whether there's an local instance running already, but use local so this works in a multi-user environment
@@ -174,13 +177,13 @@ public sealed class ResourceMutex : IDisposable
                 else
                 {
                     _logger.LogInformation("{resourceName} has claimed the mutex {mutexId}", _resourceName, _mutexId);
-                    shouldRelease = true;
+                    mutexAcquired = true;
                 }
             }
             else
             {
                 _logger.LogInformation("{resourceName} has created & claimed the mutex {mutexId}", _resourceName, _mutexId);
-                shouldRelease = true;
+                mutexAcquired = true;
             }
         }
         catch (AbandonedMutexException e)
@@ -188,7 +191,7 @@ public sealed class ResourceMutex : IDisposable
             // Another instance didn't cleanup correctly!
             // we can ignore the exception, it happened on the "WaitOne" but still the mutex belongs to us
             _logger.LogWarning(e, "{resourceName} didn't cleanup correctly, but we got the mutex {mutexId}.", _resourceName, _mutexId);
-            shouldRelease = true;
+            mutexAcquired = true;
         }
         catch (UnauthorizedAccessException e)
         {
@@ -210,7 +213,7 @@ public sealed class ResourceMutex : IDisposable
             _lockAcquiredSignal.Set();
         }
 
-        if (!shouldRelease)
+        if (!mutexAcquired)
         {
             return;
         }
