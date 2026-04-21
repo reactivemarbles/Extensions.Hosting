@@ -10,13 +10,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="$(CoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="$(CoreVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="$(CoreVersion)" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="$(CoreVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
+    <ProjectReference Include="..\Extensions.Logging.Log4Net\Extensions.Logging.Log4Net.csproj" />
   </ItemGroup>
 
 </Project>

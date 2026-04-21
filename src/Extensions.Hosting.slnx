@@ -40,5 +40,6 @@
   <Project Path="Extensions.Hosting.WinForms/Extensions.Hosting.WinForms.csproj" />
   <Project Path="Extensions.Hosting.WinUI/Extensions.Hosting.WinUI.csproj" />
   <Project Path="Extensions.Hosting.Wpf/Extensions.Hosting.Wpf.csproj" />
+  <Project Path="Extensions.Logging.Log4Net/Extensions.Logging.Log4Net.csproj" />
   <Project Path="tests/Extensions.Hosting.Tests/Extensions.Hosting.Tests.csproj" />
 </Solution>
