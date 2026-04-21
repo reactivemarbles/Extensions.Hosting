@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Extensions.Hosting.ReactiveAvalonia.Example"
     xmlns:reactiveui="clr-namespace:ReactiveUI.Avalonia;assembly=ReactiveUI.Avalonia"
-    x:TypeArguments="local:NugetDetailsViewModel">
+    x:TypeArguments="local:NugetDetailsViewModel"
+    x:DataType="local:NugetDetailsViewModel">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />

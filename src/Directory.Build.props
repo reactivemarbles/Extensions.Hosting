@@ -30,7 +30,8 @@
     <!-- Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-    <CoreVersion>10.0.5</CoreVersion>
+    <CoreVersion>10.0.6</CoreVersion>
+    <AvaloniaVersion>12.0.1</AvaloniaVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
@@ -46,11 +47,11 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(IsTestProject)">
-    <PackageReference Include="TUnit" Version="1.30.0"/>
+    <PackageReference Include="TUnit" Version="1.37.10"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0"/>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.6.2"/>
     <PackageReference Include="PublicApiGenerator" Version="11.5.4"/>
-    <PackageReference Include="Verify.TUnit" Version="31.15.0"/>
+    <PackageReference Include="Verify.TUnit" Version="31.16.1"/>
 
     <None Include="$(MSBuildThisFileDirectory)testconfig.json">
       <Link>$(AssemblyName).testconfig.json</Link>
@@ -59,7 +60,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' != 'true'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.201" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.202" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

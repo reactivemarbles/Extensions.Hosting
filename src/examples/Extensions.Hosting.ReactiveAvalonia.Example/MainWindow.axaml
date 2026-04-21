@@ -5,6 +5,7 @@
     xmlns:local="using:Extensions.Hosting.ReactiveAvalonia.Example"
     xmlns:reactiveui="clr-namespace:ReactiveUI.Avalonia;assembly=ReactiveUI.Avalonia"
     x:TypeArguments="local:AppViewModel"
+    x:DataType="local:AppViewModel"
     Height="450"
     Title="ReactiveMarbles NuGet Browser"
     Width="800">

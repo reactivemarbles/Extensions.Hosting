@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ReactiveMarbles.Extensions.Hosting.Plugins;
+using ReactiveMarbles.Extensions.Logging;
 
 namespace ReactiveMarbles.Extensions.Hosting.PluginService;
 
