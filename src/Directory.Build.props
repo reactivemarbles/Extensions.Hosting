@@ -30,8 +30,8 @@
     <!-- Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-    <CoreVersion>10.0.6</CoreVersion>
-    <AvaloniaVersion>12.0.1</AvaloniaVersion>
+    <CoreVersion>10.0.7</CoreVersion>
+    <AvaloniaVersion>12.0.2</AvaloniaVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
