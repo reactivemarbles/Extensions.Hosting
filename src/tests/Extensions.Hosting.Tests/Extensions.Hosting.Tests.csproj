@@ -40,6 +40,6 @@
     <Using Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="TUnit" Version="1.53.0" />
+    <PackageReference Update="TUnit" Version="1.55.2" />
   </ItemGroup>
 </Project>
