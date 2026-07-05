@@ -7,7 +7,11 @@ using ReactiveUI.Builder;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.ReactiveUI;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.ReactiveUI;
+#endif
 
 /// <summary>Provides extension methods for configuring ReactiveUI with Microsoft dependency injection in .NET host builders.</summary>
 /// <remarks>These extensions enable integration of ReactiveUI's dependency resolution with the

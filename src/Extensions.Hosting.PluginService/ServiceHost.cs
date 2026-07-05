@@ -7,10 +7,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+#if REACTIVE_SHIM
+using ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 using ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 using ReactiveMarbles.Extensions.Logging;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.PluginService;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.PluginService;
+#endif
 
 /// <summary>Provides static methods for configuring and running a host or application host with plugin and logging support.</summary>
 /// <remarks>The ServiceHost class simplifies the setup of .NET hosts, including configuration, logging, and

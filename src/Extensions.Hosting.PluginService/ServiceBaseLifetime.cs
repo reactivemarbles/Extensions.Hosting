@@ -5,7 +5,11 @@
 using System.ServiceProcess;
 using Microsoft.Extensions.Hosting;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.PluginService;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.PluginService;
+#endif
 
 /// <summary>Provides an <see cref="IHostLifetime"/> implementation backed by <see cref="ServiceBase"/>.</summary>
 /// <seealso cref="ServiceBase" />
