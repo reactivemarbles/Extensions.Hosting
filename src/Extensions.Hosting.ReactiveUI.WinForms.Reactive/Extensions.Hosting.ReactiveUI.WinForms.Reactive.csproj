@@ -17,9 +17,8 @@
   <ItemGroup>
     <PackageReference Include="Splat" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="ReactiveUI.Drawing" />
-    <PackageReference Include="ReactiveUI.WinForms" />
-    <PackageReference Include="ReactiveUI.Primitives.WinForms.Reactive" />
+    <PackageReference Include="ReactiveUI.Drawing.Reactive" />
+    <PackageReference Include="ReactiveUI.WinForms.Reactive" />
   </ItemGroup>
 
   <ItemGroup>

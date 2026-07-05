@@ -3,8 +3,13 @@
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Hosting;
+#if REACTIVE_SHIM
+using ReactiveUI.Avalonia.Reactive;
+using ReactiveUI.Reactive.Builder;
+#else
 using ReactiveUI.Avalonia;
 using ReactiveUI.Builder;
+#endif
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 

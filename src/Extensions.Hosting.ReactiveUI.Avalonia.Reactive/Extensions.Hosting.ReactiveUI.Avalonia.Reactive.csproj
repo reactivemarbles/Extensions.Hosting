@@ -19,7 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Splat" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="ReactiveUI.Avalonia" />
+    <PackageReference Include="ReactiveUI.Avalonia.Reactive" />
     <PackageReference Include="ReactiveUI.Primitives.Reactive" />
   </ItemGroup>
 

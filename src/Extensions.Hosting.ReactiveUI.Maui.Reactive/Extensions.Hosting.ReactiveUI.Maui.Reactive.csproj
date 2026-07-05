@@ -17,8 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Splat" />
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="ReactiveUI.Maui" />
-    <PackageReference Include="ReactiveUI.Primitives.Maui.Reactive" />
+    <PackageReference Include="ReactiveUI.Maui.Reactive" />
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net10')) ">

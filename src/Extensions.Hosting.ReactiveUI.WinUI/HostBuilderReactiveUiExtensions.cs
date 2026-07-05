@@ -4,6 +4,10 @@
 
 using Microsoft.Extensions.Hosting;
 using ReactiveUI.Builder;
+
+#if REACTIVE_SHIM
+using ReactiveUI.Reactive.Builder;
+#endif
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 
