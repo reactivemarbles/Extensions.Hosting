@@ -2,11 +2,11 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <Net8PackageVersion>8.0.28</Net8PackageVersion>
-    <Net9PackageVersion>9.0.17</Net9PackageVersion>
+    <Net8PackageVersion>10.0.9</Net8PackageVersion>
+    <Net9PackageVersion>10.0.9</Net9PackageVersion>
     <Net10PackageVersion>10.0.9</Net10PackageVersion>
     <Net11PreviewPackageVersion>11.0.0-preview.5.26302.115</Net11PreviewPackageVersion>
-    <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
+    <MauiNet9PackageVersion>10.0.80</MauiNet9PackageVersion>
     <MauiNet10PackageVersion>10.0.71</MauiNet10PackageVersion>
     <MauiNet11PackageVersion>11.0.0-preview.5.26304.4</MauiNet11PackageVersion>
   </PropertyGroup>
