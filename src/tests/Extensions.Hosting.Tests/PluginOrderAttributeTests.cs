@@ -1,19 +1,15 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using ReactiveMarbles.Extensions.Hosting.Plugins;
 
 namespace Extensions.Hosting.Tests;
 
-/// <summary>
-/// Contains unit tests for the PluginOrderAttribute class.
-/// </summary>
+/// <summary>Contains unit tests for the PluginOrderAttribute class.</summary>
 public class PluginOrderAttributeTests
 {
-    /// <summary>
-    /// Verifies that the default constructor sets Order to 0.
-    /// </summary>
+    /// <summary>Verifies that the default constructor sets Order to 0.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task DefaultConstructor_SetsOrderToZero()
@@ -22,9 +18,7 @@ public class PluginOrderAttributeTests
         await Assert.That(attribute.Order).IsEqualTo(0);
     }
 
-    /// <summary>
-    /// Verifies that the int constructor sets the Order property correctly.
-    /// </summary>
+    /// <summary>Verifies that the int constructor sets the Order property correctly.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task IntConstructor_SetsOrderCorrectly()
@@ -33,9 +27,7 @@ public class PluginOrderAttributeTests
         await Assert.That(attribute.Order).IsEqualTo(42);
     }
 
-    /// <summary>
-    /// Verifies that the int constructor handles negative values.
-    /// </summary>
+    /// <summary>Verifies that the int constructor handles negative values.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task IntConstructor_WithNegativeValue_SetsOrderCorrectly()
@@ -44,9 +36,7 @@ public class PluginOrderAttributeTests
         await Assert.That(attribute.Order).IsEqualTo(-10);
     }
 
-    /// <summary>
-    /// Verifies that the enum constructor converts the enum to its int value.
-    /// </summary>
+    /// <summary>Verifies that the enum constructor converts the enum to its int value.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task EnumConstructor_ConvertsToIntValue()
@@ -55,9 +45,7 @@ public class PluginOrderAttributeTests
         await Assert.That(attribute.Order).IsEqualTo((int)TestOrder.High);
     }
 
-    /// <summary>
-    /// Verifies that the attribute can be retrieved from a decorated class.
-    /// </summary>
+    /// <summary>Verifies that the attribute can be retrieved from a decorated class.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Attribute_CanBeRetrievedFromClass()

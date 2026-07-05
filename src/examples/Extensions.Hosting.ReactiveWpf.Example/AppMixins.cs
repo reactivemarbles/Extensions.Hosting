@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -9,36 +9,49 @@ using Microsoft.Extensions.Logging;
 
 namespace Extensions.Hosting.Reactive.Example;
 
-/// <summary>
-/// AppMixins.
-/// </summary>
+/// <summary>Provides host builder extension methods for the reactive WPF sample application.</summary>
 public static class AppMixins
 {
+    /// <summary>Stores the host settings file value.</summary>
     private const string HostSettingsFile = "hostsettings.json";
+
+    /// <summary>Stores the app settings file prefix value.</summary>
     private const string AppSettingsFilePrefix = "appsettings";
+
+    /// <summary>Stores the prefix value.</summary>
     private const string Prefix = "PREFIX_";
 
-    internal static IHostBuilder ConfigureLogging(this IHostBuilder hostBuilder) =>
-        hostBuilder.ConfigureLogging((hostContext, configLogging) =>
-            configLogging
-                .AddConfiguration(hostContext.Configuration.GetSection("Logging"))
-                .AddConsole()
-                .AddDebug());
+    /// <summary>Provides extension members for this receiver.</summary>
+    /// <param name="hostBuilder">The receiver instance.</param>
+    extension(IHostBuilder hostBuilder)
+    {
+        /// <summary>Configures logging for the sample host.</summary>
+        /// <returns>The configured host builder.</returns>
+        internal IHostBuilder ConfigureLogging() =>
+            hostBuilder.ConfigureLogging((hostContext, configLogging) =>
+                configLogging
+                    .AddConfiguration(hostContext.Configuration.GetSection("Logging"))
+                    .AddConsole()
+                    .AddDebug());
 
-    internal static IHostBuilder ConfigureConfiguration(this IHostBuilder hostBuilder, string[] args) =>
-        hostBuilder.ConfigureHostConfiguration(configHost => configHost.SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile(HostSettingsFile, optional: true)
-            .AddEnvironmentVariables(prefix: Prefix)
-            .AddCommandLine(args))
-            .ConfigureAppConfiguration((hostContext, configApp) =>
-            {
-                configApp.AddJsonFile(AppSettingsFilePrefix + ".json", optional: true);
-                if (!string.IsNullOrEmpty(hostContext.HostingEnvironment.EnvironmentName))
+        /// <summary>Configures host and application configuration sources.</summary>
+        /// <param name="args">The command-line arguments.</param>
+        /// <returns>The configured host builder.</returns>
+        internal IHostBuilder ConfigureConfiguration(string[] args) =>
+            hostBuilder.ConfigureHostConfiguration(configHost => configHost.SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile(HostSettingsFile, optional: true)
+                .AddEnvironmentVariables(prefix: Prefix)
+                .AddCommandLine(args))
+                .ConfigureAppConfiguration((hostContext, configApp) =>
                 {
-                    configApp.AddJsonFile(AppSettingsFilePrefix + $".{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
-                }
+                    _ = configApp.AddJsonFile(AppSettingsFilePrefix + ".json", optional: true);
+                    if (!string.IsNullOrEmpty(hostContext.HostingEnvironment.EnvironmentName))
+                    {
+                        _ = configApp.AddJsonFile(AppSettingsFilePrefix + $".{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
+                    }
 
-                configApp.AddEnvironmentVariables(prefix: Prefix)
-                .AddCommandLine(args);
-            });
+                    _ = configApp.AddEnvironmentVariables(prefix: Prefix)
+                    .AddCommandLine(args);
+                });
+    }
 }

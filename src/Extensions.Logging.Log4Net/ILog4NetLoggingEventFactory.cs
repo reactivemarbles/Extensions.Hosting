@@ -1,22 +1,18 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using log4net.Core;
 using Microsoft.Extensions.Logging;
 using ReactiveMarbles.Extensions.Logging.Log4Net.Entities;
+using Log4NetCoreLogger = log4net.Core.ILogger;
+using LoggingEvent = log4net.Core.LoggingEvent;
 
 namespace ReactiveMarbles.Extensions.Logging;
 
-/// <summary>
-/// Represents a factory that creates the log4net <see cref="log4net.Core.LoggingEvent"/> from a <see cref="MessageCandidate{TState}"/>.
-/// </summary>
+/// <summary>Represents a factory that creates the log4net <see cref="log4net.Core.LoggingEvent"/> from a <see cref="MessageCandidate{TState}"/>.</summary>
 public interface ILog4NetLoggingEventFactory
 {
-    /// <summary>
-    /// Creates a new log4net LoggingEvent instance using the specified message candidate, logger, provider options,
-    /// and external scope provider.
-    /// </summary>
+    /// <summary>Creates a new log4net LoggingEvent instance using the specified message candidate, logger, provider options, and external scope provider.</summary>
     /// <typeparam name="TState">The type of the state object associated with the log message.</typeparam>
     /// <param name="messageCandidate">The candidate message containing the log state and related metadata to be included in the logging event.</param>
     /// <param name="logger">The log4net logger to associate with the created logging event. Cannot be null.</param>
@@ -26,7 +22,7 @@ public interface ILog4NetLoggingEventFactory
     /// <returns>A LoggingEvent instance populated with the provided message, logger, options, and scope information.</returns>
     LoggingEvent? CreateLoggingEvent<TState>(
         in MessageCandidate<TState> messageCandidate,
-        log4net.Core.ILogger logger,
+        Log4NetCoreLogger logger,
         Log4NetProviderOptions options,
         IExternalScopeProvider scopeProvider);
 }

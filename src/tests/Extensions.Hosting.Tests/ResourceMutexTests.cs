@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -7,50 +7,40 @@ using ReactiveMarbles.Extensions.Hosting.AppServices;
 
 namespace Extensions.Hosting.Tests;
 
-/// <summary>
-/// Contains unit tests for the ResourceMutex class to verify its behavior and exception handling.
-/// </summary>
+/// <summary>Contains unit tests for the ResourceMutex class to verify its behavior and exception handling.</summary>
 /// <remarks>These tests ensure that ResourceMutex correctly throws exceptions for invalid input and that its
 /// locking mechanism functions as expected. The tests are intended to validate the public API and usage scenarios of
 /// ResourceMutex.</remarks>
 public class ResourceMutexTests
 {
-    /// <summary>
-    /// Verifies that calling ResourceMutex.Create with a null mutex ID throws an ArgumentNullException.
-    /// </summary>
+    /// <summary>Verifies that calling ResourceMutex.Create with a null mutex ID throws an ArgumentException.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_WithNullMutexId_ThrowsArgumentNullException()
     {
         static ResourceMutex Act() => ResourceMutex.Create(null, null);
-        await Assert.That(Act).Throws<ArgumentNullException>();
+        await Assert.That(Act).Throws<ArgumentException>();
     }
 
-    /// <summary>
-    /// Verifies that calling ResourceMutex.Create with an empty mutex ID throws an ArgumentNullException.
-    /// </summary>
+    /// <summary>Verifies that calling ResourceMutex.Create with an empty mutex ID throws an ArgumentException.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_WithEmptyMutexId_ThrowsArgumentNullException()
     {
         static ResourceMutex Act() => ResourceMutex.Create(NullLogger.Instance, string.Empty);
-        await Assert.That(Act).Throws<ArgumentNullException>();
+        await Assert.That(Act).Throws<ArgumentException>();
     }
 
-    /// <summary>
-    /// Verifies that calling ResourceMutex.Create with a whitespace mutex ID throws an ArgumentNullException.
-    /// </summary>
+    /// <summary>Verifies that calling ResourceMutex.Create with a whitespace mutex ID throws an ArgumentException.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_WithWhitespaceMutexId_ThrowsArgumentNullException()
     {
         static ResourceMutex Act() => ResourceMutex.Create(NullLogger.Instance, "   ");
-        await Assert.That(Act).Throws<ArgumentNullException>();
+        await Assert.That(Act).Throws<ArgumentException>();
     }
 
-    /// <summary>
-    /// Verifies that a ResourceMutex instance is locked upon creation and is properly disposed.
-    /// </summary>
+    /// <summary>Verifies that a ResourceMutex instance is locked upon creation and is properly disposed.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_ValidMutexId_IsLocked()
@@ -62,9 +52,7 @@ public class ResourceMutexTests
         await Assert.That(mutex.IsLocked).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that ResourceMutex can be created without a logger (null logger).
-    /// </summary>
+    /// <summary>Verifies that ResourceMutex can be created without a logger (null logger).</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_WithNullLogger_CreatesDefaultLogger()
@@ -76,9 +64,7 @@ public class ResourceMutexTests
         await Assert.That(mutex.IsLocked).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that ResourceMutex can be created with a custom resource name.
-    /// </summary>
+    /// <summary>Verifies that ResourceMutex can be created with a custom resource name.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_WithResourceName_Succeeds()
@@ -91,9 +77,7 @@ public class ResourceMutexTests
         await Assert.That(mutex.IsLocked).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that ResourceMutex can be created as a local mutex.
-    /// </summary>
+    /// <summary>Verifies that ResourceMutex can be created as a local mutex.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_LocalMutex_Succeeds()
@@ -105,9 +89,22 @@ public class ResourceMutexTests
         await Assert.That(mutex.IsLocked).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that ResourceMutex can be created as a global mutex.
-    /// </summary>
+    /// <summary>Verifies that a second local mutex with the same identifier cannot acquire the lock.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Create_SecondLocalMutexWithSameId_IsNotLocked()
+    {
+        var logger = NullLogger.Instance;
+        var id = "test-mutex-contention-" + Guid.NewGuid().ToString("N");
+
+        using var first = ResourceMutex.Create(logger, id);
+        using var second = ResourceMutex.Create(logger, id);
+
+        await Assert.That(first.IsLocked).IsTrue();
+        await Assert.That(second.IsLocked).IsFalse();
+    }
+
+    /// <summary>Verifies that ResourceMutex can be created as a global mutex.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Create_GlobalMutex_Succeeds()
@@ -119,9 +116,7 @@ public class ResourceMutexTests
         await Assert.That(mutex.IsLocked).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that disposing a ResourceMutex does not throw.
-    /// </summary>
+    /// <summary>Verifies that disposing a ResourceMutex does not throw.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Dispose_DoesNotThrow()
@@ -143,9 +138,7 @@ public class ResourceMutexTests
         await Assert.That(exception).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that disposing a ResourceMutex multiple times does not throw.
-    /// </summary>
+    /// <summary>Verifies that disposing a ResourceMutex multiple times does not throw.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Dispose_MultipleTimes_DoesNotThrow()

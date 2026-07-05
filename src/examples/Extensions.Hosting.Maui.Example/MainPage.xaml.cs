@@ -1,24 +1,24 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using ReactiveMarbles.Extensions.Hosting.Maui;
 
 namespace Extensions.Hosting.Maui.Example;
 
-/// <summary>
-/// MainPage.
-/// </summary>
+/// <summary>Represents the main sample MAUI page.</summary>
 public partial class MainPage : ContentPage, IMauiShell
 {
-    private int _count = 0;
+    /// <summary>Stores the count value.</summary>
+    private int _count;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MainPage"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="MainPage"/> class.</summary>
     public MainPage() => InitializeComponent();
 
-    private void OnCounterClicked(object? sender, EventArgs e)
+    /// <summary>Handles counter button clicks.</summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The event arguments.</param>
+    protected void OnCounterClicked(object? sender, EventArgs e)
     {
         _count++;
 
@@ -34,5 +34,8 @@ public partial class MainPage : ContentPage, IMauiShell
         SemanticScreenReader.Announce(CounterBtn.Text);
     }
 
-    private async void OnNavigateClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new SecondPage());
+    /// <summary>Handles navigation to the second page.</summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The event arguments.</param>
+    protected async void OnNavigateClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new SecondPage());
 }

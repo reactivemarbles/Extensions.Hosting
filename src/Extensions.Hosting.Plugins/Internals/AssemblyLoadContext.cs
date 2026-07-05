@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -8,10 +8,7 @@ using System.Reflection;
 
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
 
-/// <summary>
-/// Provides functionality for loading and managing assemblies in a custom context, enabling isolation and control over
-/// assembly loading behavior.
-/// </summary>
+/// <summary>Provides functionality for loading and managing assemblies in a custom context, enabling isolation and control over assembly loading behavior.</summary>
 /// <remarks>AssemblyLoadContext allows applications to load assemblies into isolated contexts, which can be
 /// useful for plugin architectures, unloading assemblies, or resolving assembly version conflicts. Each context
 /// maintains its own set of loaded assemblies and can customize how assemblies and unmanaged libraries are resolved.
@@ -21,27 +18,19 @@ namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
 /// purposes and can be null or empty.</param>
 public class AssemblyLoadContext(string name)
 {
-    /// <summary>
-    /// Gets the default assembly load context for the application domain.
-    /// </summary>
+    /// <summary>Gets the default assembly load context for the application domain.</summary>
     /// <remarks>The default context is used to load assemblies that are part of the application or shared
     /// framework. Assemblies loaded into the default context are visible to all code in the application domain. Use
     /// this property to access the standard assembly loading behavior provided by .NET.</remarks>
     public static AssemblyLoadContext Default { get; } = new AssemblyLoadContext("default");
 
-    /// <summary>
-    /// Gets the name associated with the current instance.
-    /// </summary>
+    /// <summary>Gets the name associated with the current instance.</summary>
     public string Name { get; } = name;
 
-    /// <summary>
-    /// Gets the assemblies that are loaded into the current application domain.
-    /// </summary>
+    /// <summary>Gets the assemblies that are loaded into the current application domain.</summary>
     public IEnumerable<Assembly> Assemblies => AppDomain.CurrentDomain.GetAssemblies();
 
-    /// <summary>
-    /// Loads an assembly given its display name.
-    /// </summary>
+    /// <summary>Loads an assembly given its display name.</summary>
     /// <remarks>This method loads the assembly into the current load context. If the assembly has already
     /// been loaded, the existing assembly is returned.</remarks>
     /// <param name="assemblyName">The assembly name object that specifies the display name of the assembly to load. Cannot be null.</param>
@@ -49,7 +38,7 @@ public class AssemblyLoadContext(string name)
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="assemblyName"/> is null.</exception>
     public Assembly LoadFromAssemblyName(AssemblyName assemblyName)
     {
-        if (assemblyName == null)
+        if (assemblyName is null)
         {
             throw new ArgumentNullException(nameof(assemblyName));
         }
@@ -58,9 +47,7 @@ public class AssemblyLoadContext(string name)
         return Load(assemblyName);
     }
 
-    /// <summary>
-    /// Loads an assembly from the specified file path.
-    /// </summary>
+    /// <summary>Loads an assembly from the specified file path.</summary>
     /// <remarks>The assembly is loaded into the load-from context. If the assembly has already been loaded,
     /// this method may return a reference to the existing assembly. This method does not resolve dependencies
     /// automatically; dependent assemblies must be available to the loader.</remarks>
@@ -68,17 +55,13 @@ public class AssemblyLoadContext(string name)
     /// <returns>The loaded assembly represented by the specified file path.</returns>
     public Assembly LoadFromAssemblyPath(string assemblyPath) => Assembly.LoadFrom(assemblyPath);
 
-    /// <summary>
-    /// Loads the assembly with the specified name.
-    /// </summary>
+    /// <summary>Loads the assembly with the specified name.</summary>
     /// <remarks>Override this method to implement custom assembly loading logic in a derived class.</remarks>
     /// <param name="assemblyName">The name of the assembly to load. Cannot be null.</param>
     /// <returns>The loaded assembly, or null if the assembly cannot be found.</returns>
     protected virtual Assembly Load(AssemblyName assemblyName) => null!;
 
-    /// <summary>
-    /// Loads an unmanaged dynamic-link library (DLL) from the specified absolute path.
-    /// </summary>
+    /// <summary>Loads an unmanaged dynamic-link library (DLL) from the specified absolute path.</summary>
     /// <remarks>This method is intended to be called by derived classes to provide custom logic for loading
     /// unmanaged libraries. The caller is responsible for ensuring that the specified path points to a valid and
     /// compatible DLL.</remarks>
@@ -86,9 +69,7 @@ public class AssemblyLoadContext(string name)
     /// <returns>A handle to the loaded unmanaged DLL. Returns <see cref="IntPtr.Zero"/> if the library could not be loaded.</returns>
     protected IntPtr LoadUnmanagedDllFromPath(string dllPath) => IntPtr.Zero;
 
-    /// <summary>
-    /// Loads the specified unmanaged DLL into the process address space.
-    /// </summary>
+    /// <summary>Loads the specified unmanaged DLL into the process address space.</summary>
     /// <remarks>Override this method to provide custom logic for loading unmanaged libraries when resolving
     /// native dependencies. The default implementation returns <see cref="IntPtr.Zero"/>, indicating that the DLL could
     /// not be loaded.</remarks>

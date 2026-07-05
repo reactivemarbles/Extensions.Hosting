@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -12,9 +12,7 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 
 namespace ReactiveMarbles.Extensions.Hosting.WinForms.Internals;
 
-/// <summary>
-/// Provides a dedicated UI thread for running Windows Forms applications with dependency injection support.
-/// </summary>
+/// <summary>Provides a dedicated UI thread for running Windows Forms applications with dependency injection support.</summary>
 /// <remarks>This class manages the lifecycle of a Windows Forms message loop on a separate thread, allowing for
 /// integration with dependency injection and service-based architectures. It is typically used in scenarios where
 /// Windows Forms UI components need to be hosted or controlled from a background or non-main thread context. The thread
@@ -45,8 +43,7 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
     protected override void UiThreadStart()
     {
         // Use the provided IWinFormsService
-        var winFormServices = ServiceProvider.GetServices<IWinFormsService>();
-        foreach (var winFormService in winFormServices)
+        foreach (var winFormService in ServiceProvider.GetServices<IWinFormsService>())
         {
             winFormService.Initialize();
         }
@@ -57,21 +54,27 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
         switch (shells.Length)
         {
             case 1:
+            {
                 Application.Run(shells[0]);
                 break;
+            }
+
             case 0:
+            {
                 Application.Run();
                 break;
+            }
+
             default:
+            {
                 var multiShellContext = new MultiShellContext(shells);
                 Application.Run(multiShellContext);
                 break;
+            }
         }
     }
 
-    /// <summary>
-    /// Handles the application exit event to perform necessary cleanup operations before the application shuts down.
-    /// </summary>
+    /// <summary>Handles the application exit event to perform necessary cleanup operations before the application shuts down.</summary>
     /// <param name="sender">The source of the event, typically the application object.</param>
     /// <param name="eventArgs">An object that contains the event data associated with the application exit event.</param>
     private void OnApplicationExit(object? sender, EventArgs eventArgs)

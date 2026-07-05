@@ -1,14 +1,13 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
+
+using Microsoft.Maui;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
-/// <summary>
-/// Represents a contract for a Shell implementation in a .NET MAUI application, providing the structure and navigation
-/// model for multi-page apps.
-/// </summary>
+/// <summary>Represents a contract for a Shell implementation in a .NET MAUI application, providing the structure and navigation model for multi-page apps.</summary>
 /// <remarks>Implementations of this interface define the application's navigation hierarchy, visual structure,
 /// and routing logic using the Shell paradigm. This interface is typically used internally by the .NET MAUI framework
 /// and is not intended to be implemented directly by application code.</remarks>
-public interface IMauiShell;
+public interface IMauiShell : IView;

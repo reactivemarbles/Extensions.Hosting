@@ -1,11 +1,10 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Configuration;
@@ -14,18 +13,16 @@ using ReactiveUI;
 
 namespace Extensions.Hosting.ReactiveAvalonia.Example;
 
-/// <summary>
-/// Represents the root view model for the sample NuGet browser application.
-/// </summary>
+/// <summary>Represents the root view model for the sample NuGet browser application.</summary>
 public class AppViewModel : ReactiveObject
 {
+    /// <summary>Stores the search results value.</summary>
     private readonly ObservableAsPropertyHelper<IEnumerable<NugetDetailsViewModel>> _searchResults;
-    private readonly ObservableAsPropertyHelper<bool> _isAvailable;
-    private string? _searchTerm;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AppViewModel"/> class.
-    /// </summary>
+    /// <summary>Stores the is available value.</summary>
+    private readonly ObservableAsPropertyHelper<bool> _isAvailable;
+
+    /// <summary>Initializes a new instance of the <see cref="AppViewModel"/> class.</summary>
     public AppViewModel()
     {
         _searchResults = this
@@ -34,38 +31,36 @@ public class AppViewModel : ReactiveObject
             .Select(term => term?.Trim())
             .DistinctUntilChanged()
             .Where(term => !string.IsNullOrWhiteSpace(term))
-            .SelectMany(SearchNuGetPackages)
+            .SelectMany(term => Signal.FromAsync(token => SearchNuGetPackages(term, token)))
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .ToProperty(this, x => x.SearchResults);
 
-        _searchResults.ThrownExceptions.Subscribe(error => { });
+        _ = _searchResults.ThrownExceptions.Subscribe(error => { });
 
         _isAvailable = this
             .WhenAnyValue(x => x.SearchResults)
-            .Select(searchResults => searchResults != null)
+            .Select(searchResults => searchResults is not null)
             .ToProperty(this, x => x.IsAvailable);
     }
 
-    /// <summary>
-    /// Gets or sets the search term.
-    /// </summary>
+    /// <summary>Gets or sets the search term.</summary>
     public string? SearchTerm
     {
-        get => _searchTerm;
-        set => this.RaiseAndSetIfChanged(ref _searchTerm, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    /// <summary>
-    /// Gets the search results.
-    /// </summary>
+    /// <summary>Gets the search results.</summary>
     public IEnumerable<NugetDetailsViewModel> SearchResults => _searchResults.Value;
 
-    /// <summary>
-    /// Gets a value indicating whether results are available.
-    /// </summary>
+    /// <summary>Gets a value indicating whether results are available.</summary>
     public bool IsAvailable => _isAvailable.Value;
 
-    private async Task<IEnumerable<NugetDetailsViewModel>> SearchNuGetPackages(string? term, CancellationToken token)
+    /// <summary>Searches NuGet packages that match the supplied term.</summary>
+    /// <param name="term">The search term.</param>
+    /// <param name="token">The cancellation token.</param>
+    /// <returns>The package detail view models that match the search term.</returns>
+    private static async Task<IEnumerable<NugetDetailsViewModel>> SearchNuGetPackages(string? term, CancellationToken token)
     {
         var providers = new List<Lazy<INuGetResourceProvider>>();
         providers.AddRange(Repository.Provider.GetCoreV3());

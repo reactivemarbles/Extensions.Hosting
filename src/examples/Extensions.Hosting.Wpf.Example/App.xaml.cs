@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
@@ -13,14 +13,14 @@ using ReactiveMarbles.Extensions.Hosting.Wpf;
 
 namespace Extensions.Hosting.Wpf.Example;
 
-/// <summary>
-/// Interaction logic for App.xaml.
-/// </summary>
+/// <summary>Interaction logic for App.xaml.</summary>
 public partial class App
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="App"/> class.
-    /// </summary>
+    /// <summary>Logs that another instance is already running.</summary>
+    private static readonly Action<ILogger, string, Exception?> ApplicationAlreadyRunning =
+        LoggerMessage.Define<string>(LogLevel.Warning, new EventId(1, nameof(ApplicationAlreadyRunning)), "Application {ApplicationName} already running.");
+
+    /// <summary>Initializes a new instance of the <see cref="App"/> class.</summary>
     public App()
     {
         // Replace the namespace with the namespace of your plugins
@@ -35,7 +35,7 @@ public partial class App
 
                 // This is called when an instance was already started, this is in the second instance
                 builder.WhenNotFirstInstance = (hostingEnvironment, logger) =>
-                    logger.LogWarning("Application {ApplicationName} already running.", hostingEnvironment.ApplicationName);
+                    ApplicationAlreadyRunning(logger, hostingEnvironment.ApplicationName, null);
             })
             .ConfigurePlugins(pluginBuilder =>
             {
@@ -57,6 +57,6 @@ public partial class App
             .UseConsoleLifetime()
             .Build();
 
-        host.RunAsync();
+        _ = host.RunAsync();
     }
 }

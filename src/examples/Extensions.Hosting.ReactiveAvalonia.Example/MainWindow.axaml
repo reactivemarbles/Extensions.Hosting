@@ -42,8 +42,8 @@
             ItemsSource="{Binding SearchResults}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <local:NugetDetailsView />
+                <DataTemplate DataType="local:NugetDetailsViewModel">
+                    <local:NugetDetailsView DataContext="{Binding}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

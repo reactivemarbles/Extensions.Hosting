@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -9,10 +9,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.UiThread;
 
-/// <summary>
-/// Provides a base class for managing a UI thread and its associated context using dependency injection. Intended for
-/// use with UI frameworks that require operations to run on a dedicated thread.
-/// </summary>
+/// <summary>Provides a base class for managing a UI thread and its associated context using dependency injection. Intended for use with UI frameworks that require operations to run on a dedicated thread.</summary>
 /// <remarks>This class is designed to be inherited by platform-specific UI thread implementations. It manages the
 /// lifecycle of a UI thread, including initialization, startup synchronization, and graceful shutdown. The class uses
 /// dependency injection to provide services and context to the UI thread. Derived classes must implement the <see
@@ -22,15 +19,19 @@ namespace ReactiveMarbles.Extensions.Hosting.UiThread;
 public abstract class BaseUiThread<T> : IDisposable
     where T : class, IUiContext
 {
-    private readonly System.Threading.ManualResetEventSlim _serviceManualResetEvent = new(false);
+    /// <summary>Stores the service manual reset event value.</summary>
+    private readonly ManualResetEventSlim _serviceManualResetEvent = new(false);
+
+    /// <summary>Stores the host application lifetime value.</summary>
     private readonly IHostApplicationLifetime? _hostApplicationLifetime;
+
+    /// <summary>Stores the use dedicated ui thread value.</summary>
     private readonly bool _useDedicatedUiThread;
+
+    /// <summary>Stores the disposed value.</summary>
     private bool _disposedValue;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BaseUiThread{T}"/> class and starts a dedicated UI thread using the specified.
-    /// service provider.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="BaseUiThread{T}"/> class and starts a dedicated UI thread using the specified. service provider.</summary>
     /// <remarks>The constructor creates and starts a new background thread to run the UI. On Windows
     /// platforms, the thread is set to single-threaded apartment (STA) state to support UI frameworks that require it.
     /// The provided service provider is used to resolve dependencies needed by the UI thread and is stored for later
@@ -70,19 +71,13 @@ public abstract class BaseUiThread<T> : IDisposable
         newUiThread.Start();
     }
 
-    /// <summary>
-    /// Gets the UI context associated with the current instance.
-    /// </summary>
+    /// <summary>Gets the UI context associated with the current instance.</summary>
     protected T UiContext { get; }
 
-    /// <summary>
-    /// Gets the service provider used to resolve application services.
-    /// </summary>
+    /// <summary>Gets the service provider used to resolve application services.</summary>
     protected IServiceProvider ServiceProvider { get; }
 
-    /// <summary>
-    /// Signals the service to begin processing or resume operation.
-    /// </summary>
+    /// <summary>Signals the service to begin processing or resume operation.</summary>
     /// <remarks>Call this method to allow the service to proceed if it is waiting for a start signal. This
     /// method is typically used to control the execution flow of a service that waits for an external trigger before
     /// starting.</remarks>
@@ -97,9 +92,7 @@ public abstract class BaseUiThread<T> : IDisposable
         InternalUiThreadStart();
     }
 
-    /// <summary>
-    /// Releases all resources used by the current instance of the class.
-    /// </summary>
+    /// <summary>Releases all resources used by the current instance of the class.</summary>
     /// <remarks>Call this method when you are finished using the object to release unmanaged resources and
     /// perform other cleanup operations. After calling Dispose, the object should not be used further.</remarks>
     public void Dispose()
@@ -109,25 +102,19 @@ public abstract class BaseUiThread<T> : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Performs custom initialization logic before the UI thread starts.
-    /// </summary>
+    /// <summary>Performs custom initialization logic before the UI thread starts.</summary>
     /// <remarks>Override this method to execute any setup required prior to launching the UI thread. This
     /// method is called during the application startup sequence, before any UI components are created or
     /// shown.</remarks>
     protected abstract void PreUiThreadStart();
 
-    /// <summary>
-    /// Executes the main logic for the UI thread. Called when the UI thread is started.
-    /// </summary>
+    /// <summary>Executes the main logic for the UI thread. Called when the UI thread is started.</summary>
     /// <remarks>Override this method to implement the operations that should run on the UI thread. This
     /// method is invoked on the thread designated for UI processing and typically contains the application's message
     /// loop or event handling logic.</remarks>
     protected abstract void UiThreadStart();
 
-    /// <summary>
-    /// Handles application exit by updating the UI context and initiating application shutdown if appropriate.
-    /// </summary>
+    /// <summary>Handles application exit by updating the UI context and initiating application shutdown if appropriate.</summary>
     /// <remarks>This method sets the UI context to indicate that the application is no longer running. If the
     /// UI context is configured to link its lifetime to the host application, this method will request application
     /// shutdown unless the application is already stopping or has stopped. Intended to be called during application
@@ -148,27 +135,24 @@ public abstract class BaseUiThread<T> : IDisposable
         _hostApplicationLifetime?.StopApplication();
     }
 
-    /// <summary>
-    /// Releases unmanaged and - optionally - managed resources.
-    /// </summary>
+    /// <summary>Releases unmanaged and - optionally - managed resources.</summary>
     /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposedValue)
+        if (_disposedValue)
         {
-            if (disposing)
-            {
-                _serviceManualResetEvent.Dispose();
-            }
-
-            _disposedValue = true;
+            return;
         }
+
+        if (disposing)
+        {
+            _serviceManualResetEvent.Dispose();
+        }
+
+        _disposedValue = true;
     }
 
-    /// <summary>
-    /// Initializes and starts the UI thread, performing any required pre-initialization and waiting for the service to
-    /// signal readiness before running the main UI logic.
-    /// </summary>
+    /// <summary>Initializes and starts the UI thread, performing any required pre-initialization and waiting for the service to signal readiness before running the main UI logic.</summary>
     /// <remarks>This method is intended for internal use to coordinate the startup sequence of the UI thread.
     /// It ensures that any necessary pre-initialization is completed and that the service is ready before the UI thread
     /// begins execution. This method should not be called directly by user code.</remarks>

@@ -13,7 +13,7 @@
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Compatability with Net 8 / 9 / 10 and net462 / net472 / net481</PackageReleaseNotes>
+    <PackageReleaseNotes>Compatability with Net 8 / 9 / 10 / 11 and net462 / net472 / net481</PackageReleaseNotes>
     <PackageTags>Microsoft;Extensions;Hosting;Rx;ReactiveUI;net;netframework</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
@@ -30,8 +30,10 @@
     <!-- Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-    <CoreVersion>10.0.7</CoreVersion>
-    <AvaloniaVersion>12.0.2</AvaloniaVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
+    <Features>$(Features);runtime-async=on</Features>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
@@ -47,11 +49,11 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(IsTestProject)">
-    <PackageReference Include="TUnit" Version="1.56.35"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0"/>
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.8.0"/>
-    <PackageReference Include="PublicApiGenerator" Version="11.5.4"/>
-    <PackageReference Include="Verify.TUnit" Version="31.20.0"/>
+    <PackageReference Include="TUnit"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage"/>
+    <PackageReference Include="PublicApiGenerator"/>
+    <PackageReference Include="Verify.TUnit"/>
 
     <None Include="$(MSBuildThisFileDirectory)testconfig.json">
       <Link>$(AssemblyName).testconfig.json</Link>
@@ -60,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' != 'true'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,9 +72,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--<Compile Update="**\*.cs" DependentUpon="I%(Filename).cs" />-->
-    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
-    <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="All" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\stylecop.json" Link="stylecop.json" />
+    <PackageReference Include="StyleSharp.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="All" />
   </ItemGroup>
 </Project>

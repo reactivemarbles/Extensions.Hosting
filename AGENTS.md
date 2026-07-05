@@ -1,4 +1,4 @@
-# agent.md
+# AGENTS.md
 
 This file is the single source of truth for AI/agent assistance in this repository (Claude Code, GitHub Copilot, and other coding agents). It consolidates build/test commands, architecture context, coding standards, and AOT guidance.
 
@@ -373,3 +373,8 @@ _total = this.WhenAnyValue(
 * Expression trees in hot paths without caching
 * Platform-specific code in `src/Extensions.Hosting.SingleInstance/` core library
 * Breaking public APIs without proper versioning and documentation
+
+
+Follow the canonical repository agent guidance in @agent.md.
+
+If anything in this file conflicts with @agent.md, follow @agent.md.
