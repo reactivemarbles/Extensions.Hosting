@@ -27,18 +27,27 @@
     <PackageVersion Include="NuGet.Protocol" Version="7.6.0" />
     <PackageVersion Include="Nuke.Common" Version="10.1.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
+    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="6.0.0" />
+    <!--Reactive UI with ReactiveUI.Primitives support-->
+    <PackageVersion Include="ReactiveUI.Primitives" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.0-beta.1" />
     <PackageVersion Include="ReactiveUI.Core" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Disposables" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Maui" Version="24.0.0-beta.3" />
-    <PackageVersion Include="ReactiveUI.Primitives" Version="6.0.0" />
-    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="6.0.0" />
-    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI.WinForms" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.WinUI" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.WPF" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Reactive" Version="24.0.0-beta.3" />
+    <!--Reactive UI with System.Reactive support-->
+    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.Avalonia.Reactive" Version="12.1.0-beta.1" />
+    <PackageVersion Include="ReactiveUI.Drawing.Reactive" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Maui.Reactive" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.WinForms.Reactive" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.WinUI.Reactive" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.WPF.Reactive" Version="24.0.0-beta.3" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="Splat" Version="20.0.0" />
     <PackageVersion Include="Splat.Microsoft.Extensions.DependencyInjection" Version="20.0.0" />

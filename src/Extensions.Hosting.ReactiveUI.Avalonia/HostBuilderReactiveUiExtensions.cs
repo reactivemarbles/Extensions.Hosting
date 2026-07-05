@@ -3,12 +3,21 @@
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Hosting;
+#if REACTIVE_SHIM
+using ReactiveUI.Avalonia.Reactive;
+using ReactiveUI.Reactive.Builder;
+#else
 using ReactiveUI.Avalonia;
 using ReactiveUI.Builder;
+#endif
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.ReactiveUI;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.ReactiveUI;
+#endif
 
 /// <summary>Provides extension methods for configuring ReactiveUI with Microsoft dependency injection in .NET host builder scenarios.</summary>
 /// <remarks>These extension methods enable seamless integration of ReactiveUI and Splat with the Microsoft

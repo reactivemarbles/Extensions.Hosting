@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--ReactiveUI only supports windows 10.0.19041 plus-->
+    <TargetFrameworks>net462;net472;net48;net481;net8.0-windows10.0.19041;net9.0-windows10.0.19041;net10.0-windows10.0.19041;net11.0-windows10.0.19041</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageDescription>This extension adds reactive ReactiveUI support to generic host based WinForms applications.</PackageDescription>
+    <PackageId>CP.Extensions.Hosting.ReactiveUI.WinForms.Reactive</PackageId>
+    <DefineConstants>$(DefineConstants);REACTIVE_SHIM</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Extensions.Hosting.ReactiveUI.WinForms\**\*.cs" Exclude="..\Extensions.Hosting.ReactiveUI.WinForms\bin\**;..\Extensions.Hosting.ReactiveUI.WinForms\obj\**" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Splat" />
+    <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="ReactiveUI.Drawing.Reactive" />
+    <PackageReference Include="ReactiveUI.WinForms.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Extensions.Hosting.WinForms\Extensions.Hosting.WinForms.csproj" />
+  </ItemGroup>
+
+</Project>

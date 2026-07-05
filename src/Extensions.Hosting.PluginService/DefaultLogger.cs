@@ -4,7 +4,11 @@
 
 using Microsoft.Extensions.Logging;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.PluginService;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.PluginService;
+#endif
 
 /// <summary>Provides a default implementation of a logger that wraps an existing <see cref="ILogger"/> instance.</summary>
 /// <param name="logger">The underlying <see cref="ILogger{DefaultLogger}"/> instance to use for logging operations. Cannot be null.</param>

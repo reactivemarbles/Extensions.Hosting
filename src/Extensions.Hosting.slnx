@@ -33,11 +33,17 @@
   <Project Path="Extensions.Hosting.Plugins/Extensions.Hosting.Plugins.csproj" />
   <Project Path="Extensions.Hosting.Plugins.Reactive/Extensions.Hosting.Plugins.Reactive.csproj" />
   <Project Path="Extensions.Hosting.PluginService/Extensions.Hosting.PluginService.csproj" />
+  <Project Path="Extensions.Hosting.PluginService.Reactive/Extensions.Hosting.PluginService.Reactive.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.Avalonia/Extensions.Hosting.ReactiveUI.Avalonia.csproj" Id="711b6a7d-e7b8-4903-9015-43116783fc45" />
+  <Project Path="Extensions.Hosting.ReactiveUI.Avalonia.Reactive/Extensions.Hosting.ReactiveUI.Avalonia.Reactive.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.Maui/Extensions.Hosting.ReactiveUI.Maui.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.Maui.Reactive/Extensions.Hosting.ReactiveUI.Maui.Reactive.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.WinForms/Extensions.Hosting.ReactiveUI.WinForms.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.WinForms.Reactive/Extensions.Hosting.ReactiveUI.WinForms.Reactive.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.WinUI/Extensions.Hosting.ReactiveUI.WinUI.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.WinUI.Reactive/Extensions.Hosting.ReactiveUI.WinUI.Reactive.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.Wpf/Extensions.Hosting.ReactiveUI.Wpf.csproj" />
+  <Project Path="Extensions.Hosting.ReactiveUI.Wpf.Reactive/Extensions.Hosting.ReactiveUI.Wpf.Reactive.csproj" />
   <Project Path="Extensions.Hosting.SingleInstance/Extensions.Hosting.SingleInstance.csproj" />
   <Project Path="Extensions.Hosting.WinForms/Extensions.Hosting.WinForms.csproj" />
   <Project Path="Extensions.Hosting.WinUI/Extensions.Hosting.WinUI.csproj" />
