@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -12,10 +12,7 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 
 namespace ReactiveMarbles.Extensions.Hosting.Wpf.Internals;
 
-/// <summary>
-/// Provides a dedicated UI thread for running a Windows Presentation Foundation (WPF) application, managing its
-/// lifecycle and synchronization context.
-/// </summary>
+/// <summary>Provides a dedicated UI thread for running a Windows Presentation Foundation (WPF) application, managing its lifecycle and synchronization context.</summary>
 /// <remarks>WpfThread is intended for scenarios where a WPF application needs to be hosted on a separate thread,
 /// such as in multi-threaded or headless environments. It sets up the necessary synchronization context and manages the
 /// startup and shutdown of the WPF application. The type expects services implementing IWpfService and IWpfShell to be
@@ -38,7 +35,7 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
         };
 
         // Register to the WPF application exit to stop the host application
-        wpfApplication.Dispatcher.InvokeAsync(() => wpfApplication.Exit += (s, e) => HandleApplicationExit());
+        _ = wpfApplication.Dispatcher.InvokeAsync(() => wpfApplication.Exit += (s, e) => HandleApplicationExit());
 
         // Store the application for others to interact
         UiContext!.WpfApplication = wpfApplication;
@@ -52,8 +49,7 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
             UiContext.IsRunning = true;
 
             // Use the provided IWpfService
-            var wpfServices = ServiceProvider.GetServices<IWpfService>();
-            foreach (var wpfService in wpfServices)
+            foreach (var wpfService in ServiceProvider.GetServices<IWpfService>())
             {
                 wpfService.Initialize(UiContext.WpfApplication);
             }
@@ -64,13 +60,14 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
             switch (shellWindows.Count)
             {
                 case 1:
+                {
                     if (UiContext.WpfApplication.Dispatcher.Thread.ThreadState != ThreadState.Running)
                     {
-                        UiContext.WpfApplication.Run(shellWindows[0]);
+                        _ = UiContext.WpfApplication.Run(shellWindows[0]);
                     }
-                    else if (UiContext.WpfApplication.StartupUri != null)
+                    else if (UiContext.WpfApplication.StartupUri is not null)
                     {
-                        MessageBox.Show("Please remove the StartupUri configuration in App.xaml");
+                        _ = MessageBox.Show("Please remove the StartupUri configuration in App.xaml");
                     }
                     else
                     {
@@ -78,12 +75,15 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
                     }
 
                     break;
+                }
+
                 case 0:
+                {
                     if (UiContext.WpfApplication.Dispatcher.Thread.ThreadState != ThreadState.Running)
                     {
-                        UiContext.WpfApplication.Run();
+                        _ = UiContext.WpfApplication.Run();
                     }
-                    else if (UiContext.WpfApplication.MainWindow != null)
+                    else if (UiContext.WpfApplication.MainWindow is not null)
                     {
                         // show window if possible
                         UiContext.WpfApplication.MainWindow.Show();
@@ -94,7 +94,10 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
                     }
 
                     break;
+                }
+
                 default:
+                {
                     UiContext.WpfApplication.Startup += (sender, args) =>
                     {
                         foreach (var window in shellWindows)
@@ -105,10 +108,11 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
 
                     if (UiContext.WpfApplication.Dispatcher.Thread.ThreadState != ThreadState.Running)
                     {
-                        UiContext.WpfApplication.Run();
+                        _ = UiContext.WpfApplication.Run();
                     }
 
                     break;
+                }
             }
         });
 }

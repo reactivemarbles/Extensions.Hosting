@@ -1,17 +1,13 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 namespace Extensions.Hosting.Tests;
 
-/// <summary>
-/// Contains unit tests for the IMutexBuilder interface and its implementation.
-/// </summary>
+/// <summary>Contains unit tests for the IMutexBuilder interface and its implementation.</summary>
 public class MutexBuilderTests
 {
-    /// <summary>
-    /// Verifies that TestMutexBuilder has null MutexId by default.
-    /// </summary>
+    /// <summary>Verifies that TestMutexBuilder has null MutexId by default.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_MutexId_DefaultsToNull()
@@ -20,21 +16,20 @@ public class MutexBuilderTests
         await Assert.That(builder.MutexId).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that MutexId can be set and retrieved.
-    /// </summary>
+    /// <summary>Verifies that MutexId can be set and retrieved.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_MutexId_CanBeSetAndRetrieved()
     {
-        var builder = new TestMutexBuilder();
-        builder.MutexId = "test-mutex-id";
+        var builder = new TestMutexBuilder
+        {
+            MutexId = "test-mutex-id"
+        };
+
         await Assert.That(builder.MutexId).IsEqualTo("test-mutex-id");
     }
 
-    /// <summary>
-    /// Verifies that IsGlobal defaults to false.
-    /// </summary>
+    /// <summary>Verifies that IsGlobal defaults to false.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_IsGlobal_DefaultsToFalse()
@@ -43,21 +38,20 @@ public class MutexBuilderTests
         await Assert.That(builder.IsGlobal).IsFalse();
     }
 
-    /// <summary>
-    /// Verifies that IsGlobal can be set and retrieved.
-    /// </summary>
+    /// <summary>Verifies that IsGlobal can be set and retrieved.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_IsGlobal_CanBeSetAndRetrieved()
     {
-        var builder = new TestMutexBuilder();
-        builder.IsGlobal = true;
+        var builder = new TestMutexBuilder
+        {
+            IsGlobal = true
+        };
+
         await Assert.That(builder.IsGlobal).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that WhenNotFirstInstance defaults to null.
-    /// </summary>
+    /// <summary>Verifies that WhenNotFirstInstance defaults to null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_WhenNotFirstInstance_DefaultsToNull()
@@ -66,9 +60,7 @@ public class MutexBuilderTests
         await Assert.That(builder.WhenNotFirstInstance).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that WhenNotFirstInstance can be set and invoked.
-    /// </summary>
+    /// <summary>Verifies that WhenNotFirstInstance can be set and invoked.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_WhenNotFirstInstance_CanBeSetAndInvoked()
@@ -77,14 +69,12 @@ public class MutexBuilderTests
         var wasInvoked = false;
 
         builder.WhenNotFirstInstance = (_, _) => wasInvoked = true;
-        builder.WhenNotFirstInstance?.Invoke(null!, null!);
+        builder.WhenNotFirstInstance.Invoke(null!, null!);
 
         await Assert.That(wasInvoked).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that all properties can be configured together.
-    /// </summary>
+    /// <summary>Verifies that all properties can be configured together.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task MutexBuilder_AllProperties_CanBeConfiguredTogether()

@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -12,20 +12,15 @@ using ReactiveMarbles.Extensions.Hosting.Avalonia.Internals;
 
 namespace ReactiveMarbles.Extensions.Hosting.Avalonia;
 
-/// <summary>
-/// Provides utility methods for configuring Avalonia integration within a host application, enabling proper lifetime
-/// management and service registration.
-/// </summary>
+/// <summary>Provides utility methods for configuring Avalonia integration within a host application, enabling proper lifetime management and service registration.</summary>
 /// <remarks>This class contains static methods that facilitate the setup of Avalonia in a generic host
 /// environment, ensuring that the application can manage its lifecycle and dependencies effectively.</remarks>
 internal static class InternalBuilderAvaloniaUtility
 {
+    /// <summary>Stores the avalonia context key value.</summary>
     private const string AvaloniaContextKey = "AvaloniaContext";
 
-    /// <summary>
-    /// Configures Avalonia lifetime management for the application host, enabling proper shutdown behavior based on the
-    /// specified shutdown mode.
-    /// </summary>
+    /// <summary>Configures Avalonia lifetime management for the application host, enabling proper shutdown behavior based on the specified shutdown mode.</summary>
     /// <remarks>This method integrates Avalonia's window management with the application's lifetime, ensuring
     /// that the application shuts down according to user interactions with the UI. Use this method to enable
     /// Avalonia-specific lifetime handling in a generic host environment.</remarks>
@@ -36,10 +31,7 @@ internal static class InternalBuilderAvaloniaUtility
     internal static IHostBuilder UseAvaloniaLifetime(IHostBuilder hostBuilder, ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose) =>
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => InnerUseAvaloniaLifetime(hostBuilder.Properties, shutdownMode));
 
-    /// <summary>
-    /// Configures the Avalonia application by adding Avalonia services to the host builder and applying an optional
-    /// configuration delegate.
-    /// </summary>
+    /// <summary>Configures the Avalonia application by adding Avalonia services to the host builder and applying an optional configuration delegate.</summary>
     /// <remarks>This method integrates Avalonia into the application's dependency injection system, enabling
     /// Avalonia UI functionality within a generic host environment. Use the configuration delegate to customize
     /// Avalonia-specific options as needed.</remarks>
@@ -50,10 +42,7 @@ internal static class InternalBuilderAvaloniaUtility
     internal static IHostBuilder ConfigureAvalonia(IHostBuilder hostBuilder, Action<IAvaloniaBuilder>? configureDelegate = null) =>
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => InnerConfigureAvalonia(hostBuilder.Properties, serviceCollection, configureDelegate));
 
-    /// <summary>
-    /// Configures Avalonia lifetime management for the application host, enabling proper shutdown behavior according to
-    /// the specified shutdown mode.
-    /// </summary>
+    /// <summary>Configures Avalonia lifetime management for the application host, enabling proper shutdown behavior according to the specified shutdown mode.</summary>
     /// <remarks>This method integrates Avalonia's lifetime management into the application's host, ensuring
     /// that the application shuts down correctly based on the defined shutdown mode.</remarks>
     /// <param name="hostApplicationBuilder">The application builder used to configure the host for the Avalonia application.</param>
@@ -67,10 +56,7 @@ internal static class InternalBuilderAvaloniaUtility
         return hostApplicationBuilder;
     }
 
-    /// <summary>
-    /// Configures the Avalonia application within the specified host application builder, optionally allowing further
-    /// customization through a delegate.
-    /// </summary>
+    /// <summary>Configures the Avalonia application within the specified host application builder, optionally allowing further customization through a delegate.</summary>
     /// <remarks>This method sets up Avalonia integration for the host application builder and applies any
     /// custom configuration provided by the delegate. Use this method to prepare the application builder for
     /// Avalonia-specific features before building the host.</remarks>
@@ -86,9 +72,7 @@ internal static class InternalBuilderAvaloniaUtility
         return hostApplicationBuilder;
     }
 
-    /// <summary>
-    /// Helper method to retrieve the IAvaloniaContext.
-    /// </summary>
+    /// <summary>Helper method to retrieve the IAvaloniaContext.</summary>
     /// <param name="properties">IDictionary.</param>
     /// <param name="avaloniaContext">IAvaloniaContext out value.</param>
     /// <returns>bool if there was already an IAvaloniaContext.</returns>
@@ -105,6 +89,10 @@ internal static class InternalBuilderAvaloniaUtility
         return false;
     }
 
+    /// <summary>Applies Avalonia lifetime settings to an existing configured Avalonia context.</summary>
+    /// <param name="properties">The host builder property bag that stores the Avalonia context.</param>
+    /// <param name="shutdownMode">The Avalonia shutdown mode to apply.</param>
+    /// <exception cref="NotSupportedException">Thrown when Avalonia has not been configured yet.</exception>
     private static void InnerUseAvaloniaLifetime(IDictionary<object, object> properties, ShutdownMode shutdownMode)
     {
         if (!TryRetrieveAvaloniaContext(properties, out var avaloniaContext))
@@ -116,10 +104,83 @@ internal static class InternalBuilderAvaloniaUtility
         avaloniaContext.IsLifetimeLinked = true;
     }
 
-    /// <summary>
-    /// Configures the Avalonia application and registers its services with the provided service collection using the
-    /// specified properties and optional configuration delegate.
-    /// </summary>
+    /// <summary>Registers the core Avalonia hosting services.</summary>
+    /// <param name="serviceCollection">The service collection to register services into.</param>
+    /// <param name="avaloniaContext">The Avalonia context instance to register.</param>
+    /// <param name="avaloniaBuilder">The builder that can customize the application builder.</param>
+    private static void RegisterAvaloniaHostingServices(IServiceCollection serviceCollection, IAvaloniaContext avaloniaContext, AvaloniaBuilder avaloniaBuilder)
+    {
+        _ = serviceCollection.AddSingleton(avaloniaContext);
+
+        _ = serviceCollection.AddSingleton(serviceProvider =>
+        {
+            var appBuilder = AppBuilder.Configure(() => serviceProvider.GetService<Application>() ?? new Application())
+                .UsePlatformDetect()
+                .LogToTrace();
+
+            avaloniaBuilder.ConfigureAppBuilderAction?.Invoke(appBuilder);
+
+            return new AvaloniaThread(serviceProvider, appBuilder);
+        });
+
+        _ = serviceCollection.AddHostedService<AvaloniaHostedService>();
+    }
+
+    /// <summary>Registers a configured Avalonia application type or instance.</summary>
+    /// <param name="serviceCollection">The service collection to register services into.</param>
+    /// <param name="avaloniaBuilder">The builder that contains the application configuration.</param>
+    /// <param name="parameterName">The public parameter name used for exception reporting.</param>
+    /// <exception cref="ArgumentException">Thrown if the configured application type does not derive from <see cref="Application"/>.</exception>
+    private static void RegisterAvaloniaApplication(IServiceCollection serviceCollection, AvaloniaBuilder avaloniaBuilder, string parameterName)
+    {
+        if (avaloniaBuilder.ApplicationType is null)
+        {
+            return;
+        }
+
+        var baseApplicationType = typeof(Application);
+        if (!baseApplicationType.IsAssignableFrom(avaloniaBuilder.ApplicationType))
+        {
+            throw new ArgumentException("The registered Application type must inherit Avalonia.Application", parameterName);
+        }
+
+        if (avaloniaBuilder.Application is not null)
+        {
+            _ = serviceCollection.AddSingleton(avaloniaBuilder.ApplicationType, avaloniaBuilder.Application);
+        }
+        else
+        {
+            _ = serviceCollection.AddSingleton(avaloniaBuilder.ApplicationType);
+        }
+
+        if (avaloniaBuilder.ApplicationType == baseApplicationType)
+        {
+            return;
+        }
+
+        _ = serviceCollection.AddSingleton(serviceProvider => (Application)serviceProvider.GetRequiredService(avaloniaBuilder.ApplicationType));
+    }
+
+    /// <summary>Registers configured Avalonia shell windows.</summary>
+    /// <param name="serviceCollection">The service collection to register services into.</param>
+    /// <param name="avaloniaBuilder">The builder that contains the window configuration.</param>
+    private static void RegisterAvaloniaWindows(IServiceCollection serviceCollection, AvaloniaBuilder avaloniaBuilder)
+    {
+        foreach (var avaloniaWindowType in avaloniaBuilder.WindowTypes)
+        {
+            _ = serviceCollection.AddSingleton(avaloniaWindowType);
+
+            var shellInterfaceType = typeof(IAvaloniaShell);
+            if (!shellInterfaceType.IsAssignableFrom(avaloniaWindowType))
+            {
+                continue;
+            }
+
+            _ = serviceCollection.AddSingleton(shellInterfaceType, serviceProvider => serviceProvider.GetRequiredService(avaloniaWindowType));
+        }
+    }
+
+    /// <summary>Configures the Avalonia application and registers its services with the provided service collection using the specified properties and optional configuration delegate.</summary>
     /// <remarks>This method sets up the Avalonia application context and registers necessary services for
     /// dependency injection, including hosted services and window types. It ensures that the Application type is valid
     /// and allows for custom configuration through the provided delegate. Window types implementing IAvaloniaShell are
@@ -137,65 +198,11 @@ internal static class InternalBuilderAvaloniaUtility
 
         if (!TryRetrieveAvaloniaContext(properties, out var avaloniaContext))
         {
-            serviceCollection.AddSingleton(avaloniaContext);
-
-            // The AppBuilder will be created by resolving the Application from DI
-            // and applying any custom configuration
-            serviceCollection.AddSingleton(serviceProvider =>
-            {
-                var appBuilder = AppBuilder.Configure(() => serviceProvider.GetService<Application>() ?? new Application())
-                    .UsePlatformDetect()
-                    .LogToTrace();
-
-                // Allow custom configuration of the AppBuilder
-                avaloniaBuilder.ConfigureAppBuilderAction?.Invoke(appBuilder);
-
-                return new AvaloniaThread(serviceProvider, appBuilder);
-            });
-
-            serviceCollection.AddHostedService<AvaloniaHostedService>();
+            RegisterAvaloniaHostingServices(serviceCollection, avaloniaContext, avaloniaBuilder);
         }
 
         avaloniaBuilder.ConfigureContextAction?.Invoke(avaloniaContext);
-
-        if (avaloniaBuilder.ApplicationType != null)
-        {
-            // Check if the registered application does inherit Avalonia.Application
-            var baseApplicationType = typeof(Application);
-            if (!baseApplicationType.IsAssignableFrom(avaloniaBuilder.ApplicationType))
-            {
-                throw new ArgumentException("The registered Application type must inherit Avalonia.Application", nameof(configureDelegate));
-            }
-
-            if (avaloniaBuilder.Application != null)
-            {
-                // Add existing Application
-                serviceCollection.AddSingleton(avaloniaBuilder.ApplicationType, avaloniaBuilder.Application);
-            }
-            else
-            {
-                serviceCollection.AddSingleton(avaloniaBuilder.ApplicationType);
-            }
-
-            if (avaloniaBuilder.ApplicationType != baseApplicationType)
-            {
-                serviceCollection.AddSingleton(serviceProvider => (Application)serviceProvider.GetRequiredService(avaloniaBuilder.ApplicationType));
-            }
-        }
-
-        if (avaloniaBuilder.WindowTypes.Count > 0)
-        {
-            foreach (var avaloniaWindowType in avaloniaBuilder.WindowTypes)
-            {
-                serviceCollection.AddSingleton(avaloniaWindowType);
-
-                // Check if it also implements IAvaloniaShell so we can register it as this
-                var shellInterfaceType = typeof(IAvaloniaShell);
-                if (shellInterfaceType.IsAssignableFrom(avaloniaWindowType))
-                {
-                    serviceCollection.AddSingleton(shellInterfaceType, serviceProvider => serviceProvider.GetRequiredService(avaloniaWindowType));
-                }
-            }
-        }
+        RegisterAvaloniaApplication(serviceCollection, avaloniaBuilder, nameof(configureDelegate));
+        RegisterAvaloniaWindows(serviceCollection, avaloniaBuilder);
     }
 }

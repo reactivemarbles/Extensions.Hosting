@@ -1,16 +1,12 @@
-﻿using Foundation;
+using Foundation;
 
 namespace Extensions.Hosting.Maui.Example;
 
-/// <summary>
-/// AppDelegate.
-/// </summary>
+/// <summary>Provides the Mac Catalyst application delegate for the sample MAUI application.</summary>
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate
 {
-    /// <summary>
-    /// Creates the maui application.
-    /// </summary>
+    /// <summary>Creates the maui application.</summary>
     /// <returns>A MauiApp.</returns>
     protected override MauiApp CreateMauiApp() => MauiProgram.GetMauiApp();
 }

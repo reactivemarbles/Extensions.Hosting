@@ -1,45 +1,43 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Hosting;
+#if DEBUG
 using Microsoft.Extensions.Logging;
+#endif
 using ReactiveMarbles.Extensions.Hosting.Maui;
 
 namespace Extensions.Hosting.Maui.Example;
 
-/// <summary>
-/// MauiProgram.
-/// </summary>
+/// <summary>Configures and exposes the sample MAUI host.</summary>
 public static class MauiProgram
 {
-    /// <summary>
-    /// Initializes the <see cref="MauiProgram"/> class.
-    /// </summary>
+    /// <summary>Initializes the <see cref="MauiProgram"/> class.</summary>
     static MauiProgram()
     {
         // Create the host
         var builder = Host.CreateApplicationBuilder();
-        builder.Services.AddSingleton<IMauiService, ExampleMauiService>();
-        builder
+        _ = builder.Services.AddSingleton<IMauiService, ExampleMauiService>();
+        _ = builder
             .ConfigureMaui(maui =>
             {
-                maui.UseMauiApp<App>(mauiapp =>
+                _ = maui.UseMauiApp<App>(mauiapp =>
                 {
-                    mauiapp
-                    .ConfigureFonts(fonts =>
+                    _ = mauiapp
+                        .ConfigureFonts(fonts =>
                     {
-                        fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                        fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                        _ = fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                        _ = fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                     });
 
 #if DEBUG
-                    mauiapp.Logging.AddDebug();
+                    _ = mauiapp.Logging.AddDebug();
 #endif
                 });
-                maui.AddSingletonPage<MainPage>();
-                maui.AddSingletonPage<SecondPage>();
-                maui.ConfigureContext(ctx =>
+                _ = maui.AddSingletonPage<MainPage>();
+                _ = maui.AddSingletonPage<SecondPage>();
+                _ = maui.ConfigureContext(ctx =>
                 {
                     // Example: configure the MAUI context
                     ctx.IsLifetimeLinked = true;
@@ -50,17 +48,13 @@ public static class MauiProgram
         HostApp = builder.Build();
     }
 
-    /// <summary>
-    /// Gets the host.
-    /// </summary>
+    /// <summary>Gets the host.</summary>
     /// <value>
     /// The host.
     /// </value>
     public static IHost HostApp { get; }
 
-    /// <summary>
-    /// Creates the maui app.
-    /// </summary>
+    /// <summary>Creates the maui app.</summary>
     /// <returns>A MauiApp.</returns>
     public static MauiApp GetMauiApp() => HostApp.Services.GetRequiredService<MauiApp>();
 }

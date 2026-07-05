@@ -1,7 +1,8 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -10,10 +11,7 @@ using ReactiveMarbles.Extensions.Hosting.Maui.Internals;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
-/// <summary>
-/// Provides an implementation of the IHostedService interface to manage the lifecycle of a .NET MAUI application within
-/// a generic host environment.
-/// </summary>
+/// <summary>Provides an implementation of the IHostedService interface to manage the lifecycle of a .NET MAUI application within a generic host environment.</summary>
 /// <remarks>This service enables integration of a MAUI application's startup and shutdown with the ASP.NET Core
 /// hosting model. It is typically used to coordinate application lifetime events between the MAUI UI thread and the
 /// host.</remarks>
@@ -22,6 +20,10 @@ namespace ReactiveMarbles.Extensions.Hosting.Maui;
 /// <param name="mauiContext">The context that provides access to the MAUI application's services and dispatcher.</param>
 public class MauiHostedService(ILogger<MauiHostedService> logger, MauiThread mauiThread, IMauiContext mauiContext) : IHostedService
 {
+    /// <summary>Logs when the MAUI application is stopping.</summary>
+    private static readonly Action<ILogger, Exception?> LogStoppingMaui =
+        LoggerMessage.Define(LogLevel.Debug, new EventId(1, nameof(LogStoppingMaui)), "Stopping MAUI due to application exit.");
+
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -38,18 +40,20 @@ public class MauiHostedService(ILogger<MauiHostedService> logger, MauiThread mau
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (mauiContext.IsRunning)
+        if (!mauiContext.IsRunning)
         {
-            logger.LogDebug("Stopping MAUI due to application exit.");
-
-            // Stop application
-            var completion = new TaskCompletionSource();
-            mauiContext.Dispatcher?.Dispatch(() =>
-            {
-                mauiContext.MauiApplication?.Quit();
-                completion.SetResult();
-            });
-            await completion.Task;
+            return;
         }
+
+        LogStoppingMaui(logger, null);
+
+        // Stop application
+        var completion = new TaskCompletionSource();
+        _ = mauiContext.Dispatcher?.Dispatch(() =>
+        {
+            mauiContext.MauiApplication?.Quit();
+            completion.SetResult();
+        });
+        await completion.Task;
     }
 }

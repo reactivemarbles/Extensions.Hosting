@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -12,10 +12,7 @@ using ReactiveMarbles.Extensions.Hosting.UiThread;
 
 namespace ReactiveMarbles.Extensions.Hosting.Avalonia.Internals;
 
-/// <summary>
-/// Manages the Avalonia UI thread and application lifetime for desktop applications, ensuring proper initialization and
-/// integration of Avalonia services and shell windows.
-/// </summary>
+/// <summary>Manages the Avalonia UI thread and application lifetime for desktop applications, ensuring proper initialization and integration of Avalonia services and shell windows.</summary>
 /// <remarks>This class is responsible for starting the Avalonia UI thread, initializing the application lifetime,
 /// and registering Avalonia-specific services. It ensures that the application is properly set up and that any shell
 /// windows are displayed according to the application's startup configuration.</remarks>
@@ -31,7 +28,7 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
     /// <inheritdoc />
     protected override void UiThreadStart()
     {
-        appBuilder.StartWithClassicDesktopLifetime([], lifetime =>
+        _ = appBuilder.StartWithClassicDesktopLifetime([], lifetime =>
         {
             lifetime.ShutdownMode = UiContext.ShutdownMode;
             UiContext.ApplicationLifetime = lifetime;
@@ -42,8 +39,7 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
                 UiContext.AvaloniaApplication = Application.Current ?? ServiceProvider.GetService<Application>()
                     ?? throw new InvalidOperationException("Unable to initialize the Avalonia application.");
 
-                var avaloniaServices = ServiceProvider.GetServices<IAvaloniaService>();
-                foreach (var avaloniaService in avaloniaServices)
+                foreach (var avaloniaService in ServiceProvider.GetServices<IAvaloniaService>())
                 {
                     avaloniaService.Initialize(UiContext.AvaloniaApplication);
                 }
@@ -53,12 +49,19 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
                 switch (shellWindows.Count)
                 {
                     case 1:
+                    {
                         lifetime.MainWindow = shellWindows[0];
                         shellWindows[0].Show();
                         break;
+                    }
+
                     case 0:
+                    {
                         break;
+                    }
+
                     default:
+                    {
                         lifetime.MainWindow = shellWindows[0];
 
                         for (var i = 0; i < shellWindows.Count; i++)
@@ -67,6 +70,7 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
                         }
 
                         break;
+                    }
                 }
 
                 UiContext.IsRunning = true;

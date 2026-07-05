@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.DependencyInjection;
@@ -7,40 +7,30 @@ using ReactiveMarbles.Extensions.Hosting.Plugins;
 
 namespace Extensions.Hosting.Tests;
 
-/// <summary>
-/// Contains unit tests for the PluginScanner class, verifying its behavior when scanning for plugin instances and
-/// handling invalid input.
-/// </summary>
+/// <summary>Contains unit tests for the PluginScanner class, verifying its behavior when scanning for plugin instances and handling invalid input.</summary>
 /// <remarks>These tests ensure that PluginScanner methods correctly handle null arguments and return expected
 /// results when no plugins are found. The class uses the TUnit testing framework.</remarks>
 public class PluginScannerTests
 {
-    /// <summary>
-    /// Verifies that ScanForPluginInstances throws an ArgumentNullException when passed a null argument.
-    /// </summary>
+    /// <summary>Verifies that ScanForPluginInstances throws an ArgumentNullException when passed a null argument.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ScanForPluginInstances_WithNull_ThrowsArgumentNullException()
     {
-        static System.Collections.Generic.IEnumerable<IPlugin> Act() => PluginScanner.ScanForPluginInstances(null!);
+        static IEnumerable<IPlugin> Act() => PluginScanner.ScanForPluginInstances(null!);
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that ByNamingConvention throws an ArgumentNullException when passed a null argument.
-    /// </summary>
+    /// <summary>Verifies that ByNamingConvention throws an ArgumentNullException when passed a null argument.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ByNamingConvention_WithNull_ThrowsArgumentNullException()
     {
-        static System.Collections.Generic.IEnumerable<IPlugin> Act() => PluginScanner.ByNamingConvention(null!);
+        static IEnumerable<IPlugin> Act() => PluginScanner.ByNamingConvention(null!);
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that the plugin scanner returns an empty collection when no plugins are found by naming convention in
-    /// the current assembly.
-    /// </summary>
+    /// <summary>Verifies that the plugin scanner returns an empty collection when no plugins are found by naming convention in the current assembly.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ByNamingConvention_FindsNoPlugin_ReturnsEmpty()
@@ -51,9 +41,7 @@ public class PluginScannerTests
         await Assert.That(plugins.Any()).IsFalse();
     }
 
-    /// <summary>
-    /// Verifies that ScanForPluginInstances returns a non-null collection for a valid assembly.
-    /// </summary>
+    /// <summary>Verifies that ScanForPluginInstances returns a non-null collection for a valid assembly.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ScanForPluginInstances_WithValidAssembly_ReturnsNonNullCollection()
@@ -63,9 +51,7 @@ public class PluginScannerTests
         await Assert.That(plugins).IsNotNull();
     }
 
-    /// <summary>
-    /// Verifies that ScanForPluginInstances discovers the TestPlugin class.
-    /// </summary>
+    /// <summary>Verifies that ScanForPluginInstances discovers the TestPlugin class.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ScanForPluginInstances_FindsTestPlugin()
@@ -76,9 +62,7 @@ public class PluginScannerTests
         await Assert.That(plugins.Any(p => p is TestPlugin)).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that ScanForPluginInstances does not include abstract plugin classes.
-    /// </summary>
+    /// <summary>Verifies that ScanForPluginInstances does not include abstract plugin classes.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ScanForPluginInstances_DoesNotIncludeAbstractPlugins()
@@ -88,9 +72,7 @@ public class PluginScannerTests
         await Assert.That(plugins.Any(p => p.GetType() == typeof(AbstractTestPlugin))).IsFalse();
     }
 
-    /// <summary>
-    /// Verifies that the test plugin can be configured via ConfigureHost.
-    /// </summary>
+    /// <summary>Verifies that the test plugin can be configured via ConfigureHost.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task TestPlugin_ConfigureHost_DoesNotThrow()

@@ -1,16 +1,12 @@
-﻿using ObjCRuntime;
+using ObjCRuntime;
 using UIKit;
 
 namespace Extensions.Hosting.Maui.Example;
 
-/// <summary>
-/// Program.
-/// </summary>
+/// <summary>Provides the iOS entry point for the sample MAUI application.</summary>
 public class Program
 {
-    /// <summary>
-    /// Defines the entry point of the application.
-    /// </summary>
+    /// <summary>Defines the entry point of the application.</summary>
     /// <param name="args">The arguments.</param>
     public static void Main(string[] args)
     {

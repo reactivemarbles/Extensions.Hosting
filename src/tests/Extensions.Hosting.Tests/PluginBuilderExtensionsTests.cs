@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -7,14 +7,10 @@ using ReactiveMarbles.Extensions.Hosting.Plugins;
 
 namespace Extensions.Hosting.Tests;
 
-/// <summary>
-/// Contains unit tests for the PluginBuilderExtensions class.
-/// </summary>
+/// <summary>Contains unit tests for the PluginBuilderExtensions class.</summary>
 public class PluginBuilderExtensionsTests
 {
-    /// <summary>
-    /// Verifies that AddScanDirectories throws when directories is null.
-    /// </summary>
+    /// <summary>Verifies that AddScanDirectories throws when directories is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task AddScanDirectories_WithNullDirectories_ThrowsArgumentNullException()
@@ -24,9 +20,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that AddScanDirectories adds directories to both collections.
-    /// </summary>
+    /// <summary>Verifies that AddScanDirectories adds directories to both collections.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task AddScanDirectories_WithValidDirectories_AddsToBothCollections()
@@ -40,9 +34,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(builder.FrameworkDirectories.Count).IsEqualTo(1);
     }
 
-    /// <summary>
-    /// Verifies that ExcludeFrameworks throws when frameworkGlobs is null.
-    /// </summary>
+    /// <summary>Verifies that ExcludeFrameworks throws when frameworkGlobs is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ExcludeFrameworks_WithNullGlobs_ThrowsArgumentNullException()
@@ -52,9 +44,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that ExcludeFrameworks does not throw with valid input.
-    /// </summary>
+    /// <summary>Verifies that ExcludeFrameworks does not throw with valid input.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ExcludeFrameworks_WithValidGlobs_DoesNotThrow()
@@ -73,9 +63,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(exception).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that ExcludePlugins throws when pluginGlobs is null.
-    /// </summary>
+    /// <summary>Verifies that ExcludePlugins throws when pluginGlobs is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ExcludePlugins_WithNullGlobs_ThrowsArgumentNullException()
@@ -85,9 +73,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that ExcludePlugins does not throw with valid input.
-    /// </summary>
+    /// <summary>Verifies that ExcludePlugins does not throw with valid input.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ExcludePlugins_WithValidGlobs_DoesNotThrow()
@@ -106,9 +92,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(exception).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that IncludeFrameworks throws when frameworkGlobs is null.
-    /// </summary>
+    /// <summary>Verifies that IncludeFrameworks throws when frameworkGlobs is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task IncludeFrameworks_WithNullGlobs_ThrowsArgumentNullException()
@@ -118,9 +102,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that IncludeFrameworks does not throw with valid input.
-    /// </summary>
+    /// <summary>Verifies that IncludeFrameworks does not throw with valid input.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task IncludeFrameworks_WithValidGlobs_DoesNotThrow()
@@ -139,9 +121,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(exception).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that IncludePlugins throws when pluginGlobs is null.
-    /// </summary>
+    /// <summary>Verifies that IncludePlugins throws when pluginGlobs is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task IncludePlugins_WithNullGlobs_ThrowsArgumentNullException()
@@ -151,9 +131,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that IncludePlugins does not throw with valid input.
-    /// </summary>
+    /// <summary>Verifies that IncludePlugins does not throw with valid input.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task IncludePlugins_WithValidGlobs_DoesNotThrow()
@@ -172,9 +150,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(exception).IsNull();
     }
 
-    /// <summary>
-    /// Verifies that RequirePlugins throws when pluginBuilder is null.
-    /// </summary>
+    /// <summary>Verifies that RequirePlugins throws when pluginBuilder is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task RequirePlugins_WithNullBuilder_ThrowsArgumentNullException()
@@ -183,9 +159,7 @@ public class PluginBuilderExtensionsTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>
-    /// Verifies that RequirePlugins sets FailIfNoPlugins to true by default.
-    /// </summary>
+    /// <summary>Verifies that RequirePlugins sets FailIfNoPlugins to true by default.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task RequirePlugins_Default_SetsFailIfNoPluginsTrue()
@@ -195,22 +169,21 @@ public class PluginBuilderExtensionsTests
         await Assert.That(builder.FailIfNoPlugins).IsTrue();
     }
 
-    /// <summary>
-    /// Verifies that RequirePlugins sets FailIfNoPlugins to false when specified.
-    /// </summary>
+    /// <summary>Verifies that RequirePlugins sets FailIfNoPlugins to false when specified.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task RequirePlugins_WithFalse_SetsFailIfNoPluginsFalse()
     {
-        var builder = new TestPluginBuilder();
-        builder.FailIfNoPlugins = true;
+        var builder = new TestPluginBuilder
+        {
+            FailIfNoPlugins = true
+        };
+
         builder.RequirePlugins(false);
         await Assert.That(builder.FailIfNoPlugins).IsFalse();
     }
 
-    /// <summary>
-    /// Verifies that multiple directories can be added.
-    /// </summary>
+    /// <summary>Verifies that multiple directories can be added.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task AddScanDirectories_MultipleDirectories_AddsAll()

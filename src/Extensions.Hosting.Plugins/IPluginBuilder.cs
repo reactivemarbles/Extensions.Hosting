@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -9,49 +9,32 @@ using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
 
-/// <summary>
-/// Defines a contract for configuring and building plugin discovery and loading behavior within an application.
-/// </summary>
+/// <summary>Defines a contract for configuring and building plugin discovery and loading behavior within an application.</summary>
 /// <remarks>Implementations of this interface allow customization of plugin and framework assembly scanning,
 /// validation, and loading strategies. Use this interface to specify directories to scan, matching patterns, validation
 /// logic, and assembly scanning functions to control how plugins are discovered and loaded at application
 /// startup.</remarks>
 public interface IPluginBuilder
 {
-    /// <summary>
-    /// Gets the list of directory paths where plugins are located.
-    /// </summary>
+    /// <summary>Gets the list of directory paths where plugins are located.</summary>
     IList<string> PluginDirectories { get; }
 
-    /// <summary>
-    /// Gets the list of directories that contain framework assemblies required for compilation.
-    /// </summary>
+    /// <summary>Gets the list of directories that contain framework assemblies required for compilation.</summary>
     IList<string> FrameworkDirectories { get; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether specify to use the content root for scanning.
-    /// </summary>
+    /// <summary>Gets or sets a value indicating whether specify to use the content root for scanning.</summary>
     bool UseContentRoot { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether to fail startup when no plugins are loaded.
-    /// Defaults to false for backwards compatibility.
-    /// </summary>
+    /// <summary>Gets or sets a value indicating whether to fail startup when no plugins are loaded. Defaults to false for backwards compatibility.</summary>
     bool FailIfNoPlugins { get; set; }
 
-    /// <summary>
-    /// Gets the matcher used to find all the framework assemblies.
-    /// </summary>
+    /// <summary>Gets the matcher used to find all the framework assemblies.</summary>
     Matcher FrameworkMatcher { get; }
 
-    /// <summary>
-    /// Gets the matcher to find all the plugins.
-    /// </summary>
+    /// <summary>Gets the matcher to find all the plugins.</summary>
     Matcher PluginMatcher { get; }
 
-    /// <summary>
-    /// Gets or sets specifies a way to validate the plugin file before it's being loaded.
-    /// </summary>
+    /// <summary>Gets or sets specifies a way to validate the plugin file before it's being loaded.</summary>
     Func<string, bool> ValidatePlugin { get; set; }
 
     /// <summary>

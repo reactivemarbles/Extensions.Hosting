@@ -1,0 +1,138 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <Net8PackageVersion>8.0.28</Net8PackageVersion>
+    <Net9PackageVersion>9.0.17</Net9PackageVersion>
+    <Net10PackageVersion>10.0.9</Net10PackageVersion>
+    <Net11PreviewPackageVersion>11.0.0-preview.5.26302.115</Net11PreviewPackageVersion>
+    <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
+    <MauiNet10PackageVersion>10.0.71</MauiNet10PackageVersion>
+    <MauiNet11PackageVersion>11.0.0-preview.5.26304.4</MauiNet11PackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Avalonia" Version="12.0.5" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.0.5" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.0.5" />
+    <PackageVersion Include="CP.Nuke.BuildTools" Version="3.0.2" />
+    <PackageVersion Include="log4net" Version="3.3.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.7.1" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.7.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.8.0" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.85" />
+    <PackageVersion Include="NuGet.Protocol" Version="7.6.0" />
+    <PackageVersion Include="Nuke.Common" Version="10.1.0" />
+    <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
+    <PackageVersion Include="ReactiveUI" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.0-beta.1" />
+    <PackageVersion Include="ReactiveUI.Core" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Disposables" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.Drawing" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Maui" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Primitives" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.WinForms" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.WinUI" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="24.0.0-beta.3" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="Splat" Version="20.0.0" />
+    <PackageVersion Include="Splat.Microsoft.Extensions.DependencyInjection" Version="20.0.0" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
+    <PackageVersion Include="StyleSharp.Analyzers" Version="3.16.0" />
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
+    <PackageVersion Include="TUnit" Version="1.58.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.20.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) != 'true'">
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.TraceSource" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(Net10PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) == 'true'">
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.TraceSource" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(Net11PreviewPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net8'))">
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(Net8PackageVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="$(Net8PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(Net8PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(Net8PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(Net8PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(Net10PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(Net10PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net9'))">
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(Net9PackageVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="$(Net9PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(Net9PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(Net9PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(Net9PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiNet9PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Core" Version="$(MauiNet9PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Essentials" Version="$(MauiNet9PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net10')) or '$(TargetFramework)' == ''">
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiNet10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Core" Version="$(MauiNet10PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Essentials" Version="$(MauiNet10PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) == 'true'">
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(Net11PreviewPackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiNet11PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Core" Version="$(MauiNet11PackageVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Essentials" Version="$(MauiNet11PackageVersion)" />
+  </ItemGroup>
+</Project>

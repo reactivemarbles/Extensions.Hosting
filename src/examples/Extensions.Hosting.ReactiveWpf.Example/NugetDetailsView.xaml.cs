@@ -1,8 +1,7 @@
-﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System.Reactive.Disposables.Fluent;
 using System.Windows.Media.Imaging;
 using ReactiveUI;
 
@@ -17,36 +16,34 @@ namespace Extensions.Hosting.Reactive.Example;
 /// <seealso cref="System.Windows.Markup.IComponentConnector" />
 public partial class NugetDetailsView : ReactiveUserControl<NugetDetailsViewModel>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="NugetDetailsView"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="NugetDetailsView"/> class.</summary>
     public NugetDetailsView()
     {
         InitializeComponent();
-        this.WhenActivated(disposableRegistration =>
+        _ = this.WhenActivated(disposableRegistration =>
         {
             // Our 4th parameter we convert from Url into a BitmapImage.
             // This is an easy way of doing value conversion using ReactiveUI binding.
-            this.OneWayBind(
+            _ = this.OneWayBind(
                     ViewModel,
                     viewModel => viewModel.IconUrl,
                     view => view.IconImage.Source,
-                    url => url == null ? null : new BitmapImage(url))
+                    url => url is null ? null : new BitmapImage(url))
                 .DisposeWith(disposableRegistration);
 
-            this.OneWayBind(
+            _ = this.OneWayBind(
                     ViewModel,
                     viewModel => viewModel.Title,
                     view => view.TitleRun.Text)
                 .DisposeWith(disposableRegistration);
 
-            this.OneWayBind(
+            _ = this.OneWayBind(
                     ViewModel,
                     viewModel => viewModel.Description,
                     view => view.DescriptionRun.Text)
                 .DisposeWith(disposableRegistration);
 
-            this.BindCommand(
+            _ = this.BindCommand(
                     ViewModel,
                     viewModel => viewModel.OpenPage,
                     view => view.OpenButton)

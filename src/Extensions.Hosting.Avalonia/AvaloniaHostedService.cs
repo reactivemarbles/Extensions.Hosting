@@ -1,5 +1,5 @@
-// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
-// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
+// ReactiveUI and Contributors licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -11,9 +11,7 @@ using ReactiveMarbles.Extensions.Hosting.Avalonia.Internals;
 
 namespace ReactiveMarbles.Extensions.Hosting.Avalonia;
 
-/// <summary>
-/// Provides a hosted service for managing the lifecycle of an Avalonia application within a hosted environment.
-/// </summary>
+/// <summary>Provides a hosted service for managing the lifecycle of an Avalonia application within a hosted environment.</summary>
 /// <remarks>This service is responsible for starting and stopping the Avalonia application, ensuring that the UI
 /// thread is properly managed. It requires a valid logger, threading model, and Avalonia context to function
 /// correctly.</remarks>
@@ -28,6 +26,10 @@ namespace ReactiveMarbles.Extensions.Hosting.Avalonia;
 /// <param name="avaloniaContext">The IAvaloniaContext instance that provides access to Avalonia-specific services and context information.</param>
 public class AvaloniaHostedService(ILogger<AvaloniaHostedService> logger, AvaloniaThread avaloniaThread, IAvaloniaContext avaloniaContext) : IHostedService
 {
+    /// <summary>Logs when the Avalonia application is stopping.</summary>
+    private static readonly Action<ILogger, Exception?> LogStoppingAvalonia =
+        LoggerMessage.Define(LogLevel.Debug, new EventId(1, nameof(LogStoppingAvalonia)), "Stopping Avalonia due to application exit.");
+
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -48,10 +50,12 @@ public class AvaloniaHostedService(ILogger<AvaloniaHostedService> logger, Avalon
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (avaloniaContext.IsRunning)
+        if (!avaloniaContext.IsRunning)
         {
-            logger.LogDebug("Stopping Avalonia due to application exit.");
-            await avaloniaContext.Dispatcher.InvokeAsync(() => avaloniaContext.ApplicationLifetime?.Shutdown());
+            return;
         }
+
+        LogStoppingAvalonia(logger, null);
+        await avaloniaContext.Dispatcher.InvokeAsync(() => avaloniaContext.ApplicationLifetime?.Shutdown());
     }
 }
