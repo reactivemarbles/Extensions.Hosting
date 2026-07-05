@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using Avalonia;
 using Microsoft.Extensions.Hosting;
 using ReactiveMarbles.Extensions.Hosting.Avalonia;
 
@@ -39,8 +38,6 @@ public static class Program
             .UseAvaloniaLifetime()
             .UseConsoleLifetime()
             .Build();
-
-        Console.WriteLine("Run!");
 
         host.Run();
 

@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveMarbles.Extensions.Hosting.Avalonia;
 
 namespace Extensions.Hosting.Avalonia.Example;
@@ -22,6 +23,12 @@ public partial class MainWindow : Window, IAvaloniaShell
     /// <summary>Stores the logger value.</summary>
     private readonly ILogger<MainWindow> _logger;
 
+    /// <summary>Initializes a new instance of the <see cref="MainWindow"/> class for the Avalonia runtime loader.</summary>
+    public MainWindow()
+        : this(NullLogger<MainWindow>.Instance)
+    {
+    }
+
     /// <summary>Initializes a new instance of the <see cref="MainWindow"/> class and sets up the user interface and event handlers.</summary>
     /// <remarks>This constructor initializes the UI components and attaches the Click event handler for the
     /// Exit button, enabling the application to close when the button is clicked.</remarks>
@@ -32,7 +39,7 @@ public partial class MainWindow : Window, IAvaloniaShell
         _logger = logger;
 
         // Attach event handlers
-        var exitButton = this.FindControl<Button>("ExitButton");
+        var exitButton = this.FindControl<Button>(nameof(ExitButton));
         exitButton?.Click += ExitButton_Click;
     }
 

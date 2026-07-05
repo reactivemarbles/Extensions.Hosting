@@ -4,7 +4,11 @@
 
 using System.Reflection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.Internals;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
+#endif
 
 /// <summary>Provides extension methods for the AssemblyLoadContext class.</summary>
 /// <remarks>This static class contains methods that extend the functionality of AssemblyLoadContext, enabling
@@ -32,7 +36,7 @@ public static class AssemblyLoadContextExtensions
                 return false;
             }
 
-            foreach (var assembly in assemblyLoadContext.Assemblies)
+            foreach (var assembly in AssemblyLoadContext.Assemblies)
             {
                 var name = assembly.GetName().Name;
                 if (name is null)

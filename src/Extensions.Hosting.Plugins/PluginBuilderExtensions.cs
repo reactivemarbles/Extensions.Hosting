@@ -5,7 +5,11 @@
 using System;
 using System.IO;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Provides extension methods for configuring plug-in and framework assembly scanning behavior on an <see cref="IPluginBuilder"/> instance.</summary>
 /// <remarks>These extension methods allow customization of directory scanning, inclusion and exclusion patterns

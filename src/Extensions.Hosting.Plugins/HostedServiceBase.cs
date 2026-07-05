@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Provides a base implementation for a hosted service with support for resource cleanup, logging, and application lifetime events.</summary>
 /// <remarks>This base class integrates with the application's lifetime events to manage service startup,

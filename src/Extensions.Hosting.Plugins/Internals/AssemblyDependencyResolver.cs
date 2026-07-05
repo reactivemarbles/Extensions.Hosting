@@ -6,7 +6,11 @@ using System;
 using System.IO;
 using System.Reflection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.Internals;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
+#endif
 
 /// <summary>Provides methods for resolving the paths of managed assemblies and unmanaged DLLs relative to a specified plugin directory.</summary>
 /// <param name="pluginPath">The absolute path to the root directory containing the plugin and its dependencies. Cannot be null or empty.</param>

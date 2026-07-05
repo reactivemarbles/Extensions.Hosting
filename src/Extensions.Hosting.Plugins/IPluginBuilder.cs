@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Extensions.FileSystemGlobbing;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Defines a contract for configuring and building plugin discovery and loading behavior within an application.</summary>
 /// <remarks>Implementations of this interface allow customization of plugin and framework assembly scanning,

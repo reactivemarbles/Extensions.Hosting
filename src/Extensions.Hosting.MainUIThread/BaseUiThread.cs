@@ -61,7 +61,11 @@ public abstract class BaseUiThread<T> : IDisposable
             IsBackground = true
         };
 
+#if NET5_0_OR_GREATER
+        if (OperatingSystem.IsWindows())
+#else
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+#endif
         {
             // Set the apartment state for Windows desktop UI frameworks.
             newUiThread.SetApartmentState(ApartmentState.STA);

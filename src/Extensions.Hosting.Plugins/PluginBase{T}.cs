@@ -5,7 +5,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Provides a base implementation for plugins that register a hosted service of the specified type with the application's dependency injection container.</summary>
 /// <typeparam name="T">The type of the hosted service to register. Must implement <see cref="IHostedService"/>.</typeparam>

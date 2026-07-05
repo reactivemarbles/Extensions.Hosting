@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Extensions.FileSystemGlobbing;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.Internals;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
+#endif
 
 /// <summary>Provides configuration and matching logic for plugin discovery and loading within the application.</summary>
 /// <remarks>The PluginBuilder class exposes properties and delegates that allow customization of plugin scanning,

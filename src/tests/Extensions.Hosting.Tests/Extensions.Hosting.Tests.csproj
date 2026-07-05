@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\Extensions.Hosting.SingleInstance\Extensions.Hosting.SingleInstance.csproj" />
     <ProjectReference Include="..\..\Extensions.Hosting.MainUIThread\Extensions.Hosting.MainUIThread.csproj" />
     <ProjectReference Include="..\..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.Plugins.Reactive\Extensions.Hosting.Plugins.Reactive.csproj" />
   </ItemGroup>
   
   <ItemGroup>

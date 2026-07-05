@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveMarbles.Extensions.Hosting.UiThread;
 

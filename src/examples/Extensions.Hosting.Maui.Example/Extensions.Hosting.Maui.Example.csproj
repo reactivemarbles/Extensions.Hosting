@@ -37,7 +37,7 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-    <NoWarn>NU1605;SA1633;SA1600;SA1601;SA1027;SA1137;SX1309;CA1805;CA1400;RCS1102;SA1400;SA1508;SA1512;SA1642;SX1101</NoWarn>
+    <NoWarn>$(NoWarn);NU1605;SA1633;SA1600;SA1601;SA1027;SA1137;SX1309;CA1805;CA1400;RCS1102;SA1400;SA1508;SA1512;SA1642;SX1101</NoWarn>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 

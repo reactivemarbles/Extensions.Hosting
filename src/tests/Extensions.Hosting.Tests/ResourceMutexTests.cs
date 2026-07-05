@@ -104,6 +104,81 @@ public class ResourceMutexTests
         await Assert.That(second.IsLocked).IsFalse();
     }
 
+    /// <summary>Verifies that ResourceMutex can claim an existing named mutex that is not owned.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Create_WhenNamedMutexExistsButIsUnowned_ClaimsMutex()
+    {
+        var logger = NullLogger.Instance;
+        var id = "test-mutex-existing-" + Guid.NewGuid().ToString("N");
+        using var existing = new Mutex(initiallyOwned: false, @"Local\" + id);
+
+        using var mutex = ResourceMutex.Create(logger, id);
+
+        await Assert.That(mutex.IsLocked).IsTrue();
+    }
+
+    /// <summary>Verifies that ResourceMutex reports an unlocked state when mutex creation fails.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Create_WithInvalidMutexName_ReturnsUnlockedMutex()
+    {
+        var logger = NullLogger.Instance;
+        var id = "test-mutex-invalid-" + Guid.NewGuid().ToString("N") + @"\child";
+
+        using var mutex = ResourceMutex.Create(logger, id);
+
+        await Assert.That(mutex.IsLocked).IsFalse();
+    }
+
+    /// <summary>Verifies that ResourceMutex recovers ownership from an abandoned named mutex.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Create_WhenNamedMutexIsAbandoned_RecoversMutex()
+    {
+        var logger = NullLogger.Instance;
+        var id = "test-mutex-abandoned-" + Guid.NewGuid().ToString("N");
+        var ready = new ManualResetEventSlim(initialState: false);
+        var abandonThread = new Thread(() =>
+        {
+            _ = new Mutex(initiallyOwned: true, @"Local\" + id);
+            ready.Set();
+        });
+
+        abandonThread.Start();
+        ready.Wait();
+        abandonThread.Join();
+
+        using var mutex = ResourceMutex.Create(logger, id);
+
+        await Assert.That(mutex.IsLocked).IsTrue();
+    }
+
+    /// <summary>Verifies that ResourceMutex reports an unlocked state when mutex creation is unauthorized.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Create_WhenMutexFactoryThrowsUnauthorized_ReturnsUnlockedMutex()
+    {
+        static (Mutex Mutex, bool CreatedNew) ThrowUnauthorized(string mutexId)
+        {
+            _ = mutexId;
+            throw new UnauthorizedAccessException();
+        }
+
+        using var mutex = new ResourceMutex(
+            NullLogger.Instance,
+            "test-mutex-unauthorized-" + Guid.NewGuid().ToString("N"),
+            resourceName: null,
+            ThrowUnauthorized,
+            static mutex => mutex.ReleaseMutex(),
+            TimeSpan.FromSeconds(5));
+
+        var locked = mutex.Lock();
+
+        await Assert.That(locked).IsFalse();
+        await Assert.That(mutex.IsLocked).IsFalse();
+    }
+
     /// <summary>Verifies that ResourceMutex can be created as a global mutex.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -194,5 +269,91 @@ public class ResourceMutexTests
 
         await Assert.That(exception).IsNull();
         await Assert.That(mutex.IsLocked).IsFalse();
+    }
+
+    /// <summary>Verifies that ResourceMutex does not throw when the owner thread cannot exit before the dispose timeout.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Dispose_WhenOwnerThreadDoesNotExitWithinTimeout_DoesNotThrow()
+    {
+        var id = "test-mutex-timeout-" + Guid.NewGuid().ToString("N");
+        using var releaseStarted = new ManualResetEventSlim(initialState: false);
+        using var releaseCanContinue = new ManualResetEventSlim(initialState: false);
+        var mutex = new ResourceMutex(
+            NullLogger.Instance,
+            @"Local\" + id,
+            resourceName: null,
+            CreateNamedMutex,
+            static mutex => mutex.ReleaseMutex(),
+            TimeSpan.FromSeconds(1),
+            beforeReleaseMutex: () =>
+            {
+                releaseStarted.Set();
+                releaseCanContinue.Wait();
+            });
+
+        Exception? exception = null;
+        try
+        {
+            var locked = mutex.Lock();
+            await Assert.That(locked).IsTrue();
+
+            mutex.Dispose();
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+        finally
+        {
+            releaseCanContinue.Set();
+        }
+
+        await Assert.That(exception).IsNull();
+        await Assert.That(releaseStarted.IsSet).IsTrue();
+    }
+
+    /// <summary>Verifies that ResourceMutex does not throw when releasing the underlying mutex fails.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Dispose_WhenReleaseOperationThrows_DoesNotThrow()
+    {
+        static void ReleaseThenThrow(Mutex mutex)
+        {
+            mutex.ReleaseMutex();
+            throw new InvalidOperationException("Release failure.");
+        }
+
+        var id = "test-mutex-release-failure-" + Guid.NewGuid().ToString("N");
+        var mutex = new ResourceMutex(
+            NullLogger.Instance,
+            @"Local\" + id,
+            resourceName: null,
+            CreateNamedMutex,
+            ReleaseThenThrow,
+            TimeSpan.FromSeconds(5));
+
+        Exception? exception = null;
+        try
+        {
+            var locked = mutex.Lock();
+            await Assert.That(locked).IsTrue();
+
+            mutex.Dispose();
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+
+        await Assert.That(exception).IsNull();
+    }
+
+    /// <summary>Creates a named mutex for ResourceMutex test seams.</summary>
+    /// <param name="mutexId">The fully qualified mutex identifier.</param>
+    /// <returns>The created mutex and a value indicating whether it was newly created.</returns>
+    private static (Mutex Mutex, bool CreatedNew) CreateNamedMutex(string mutexId)
+    {
+        return (new Mutex(true, mutexId, out var createdNew), createdNew);
     }
 }

@@ -40,6 +40,9 @@ internal sealed class MultiShellContext : ApplicationContext
     /// <param name="args">A FormClosedEventArgs object that contains the event data.</param>
     private void OnFormClosed(object? s, FormClosedEventArgs args)
     {
+        _ = s;
+        _ = args;
+
         // When we have closed the last of the "starting" forms, end the program.
         if (Interlocked.Decrement(ref _openForms) != 0)
         {

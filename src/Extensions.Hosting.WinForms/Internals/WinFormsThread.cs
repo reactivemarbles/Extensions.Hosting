@@ -79,6 +79,9 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
     /// <param name="eventArgs">An object that contains the event data associated with the application exit event.</param>
     private void OnApplicationExit(object? sender, EventArgs eventArgs)
     {
+        _ = sender;
+        _ = eventArgs;
+
         Application.ApplicationExit -= OnApplicationExit;
 
         HandleApplicationExit();

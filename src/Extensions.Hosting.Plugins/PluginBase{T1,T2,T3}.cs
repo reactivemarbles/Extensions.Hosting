@@ -5,7 +5,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Provides a base implementation for plugins that register three hosted services with the application host.</summary>
 /// <remarks>This class is intended to be used as a base for plugins that require multiple hosted services to be

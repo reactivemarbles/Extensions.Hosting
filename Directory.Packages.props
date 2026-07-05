@@ -35,6 +35,7 @@
     <PackageVersion Include="ReactiveUI.Maui" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Primitives" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI.Primitives.Core" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI.WinForms" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.WinUI" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.WPF" Version="24.0.0-beta.3" />

@@ -4,7 +4,11 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Defines a contract for plug-ins that can configure services and settings for the application host during startup.</summary>
 /// <remarks>Implementations of this interface can be used to extend or modify the application's dependency
