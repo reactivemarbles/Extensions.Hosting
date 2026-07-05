@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET (With cache)
+      - name: Setup .NET
         uses: actions/setup-dotnet@v5.3.0
         with:
          dotnet-version: |
@@ -39,13 +39,6 @@ jobs:
             10.0.x
             11.0.x
          dotnet-quality: 'preview'
-         cache: true
-         cache-dependency-path: |
-           **/Directory.Packages.props
-           **/*.slnx
-           **/*.csproj
-           **/global.json
-           **/nuget.config
 
       - name: NBGV
         id: nbgv
