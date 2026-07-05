@@ -5,7 +5,11 @@
 using System;
 using System.Reflection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.Internals;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
+#endif
 
 /// <summary>Provides an isolated assembly load context for loading plugins from a specified directory.</summary>
 /// <remarks>PluginLoadContext enables loading and resolving assemblies and unmanaged libraries for plugins
@@ -45,6 +49,6 @@ internal sealed class PluginLoadContext(string pluginPath, string name) : Assemb
     private Assembly? LoadAssemblyFromResolvedPath(AssemblyName assemblyName)
     {
         var assemblyPath = ResolveAssemblyPath(assemblyName);
-        return assemblyPath is null ? null : LoadFromAssemblyPath(assemblyPath);
+        return assemblyPath is null ? null : AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
     }
 }

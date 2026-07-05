@@ -12,11 +12,13 @@
                 "skipAutoProperties": true,
                 "modulePaths": {
                     "include": [
-                        "Extensions.Hosting\\..*"
+                        "^Extensions\\.Hosting\\..*$"
                     ],
                     "exclude": [
                         ".*Tests.*",
-                        ".*TestRunner.*"
+                        ".*TestRunner.*",
+                        "^Extensions\\.Hosting\\..*\\.Example$",
+                        "^Extensions\\.Logging\\..*"
                     ]
                 }
             }

@@ -6,7 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.Internals;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
+#endif
 
 /// <summary>Provides functionality for loading and managing assemblies in a custom context, enabling isolation and control over assembly loading behavior.</summary>
 /// <remarks>AssemblyLoadContext allows applications to load assemblies into isolated contexts, which can be
@@ -24,11 +28,19 @@ public class AssemblyLoadContext(string name)
     /// this property to access the standard assembly loading behavior provided by .NET.</remarks>
     public static AssemblyLoadContext Default { get; } = new AssemblyLoadContext("default");
 
+    /// <summary>Gets the assemblies that are loaded into the current application domain.</summary>
+    public static IEnumerable<Assembly> Assemblies => AppDomain.CurrentDomain.GetAssemblies();
+
     /// <summary>Gets the name associated with the current instance.</summary>
     public string Name { get; } = name;
 
-    /// <summary>Gets the assemblies that are loaded into the current application domain.</summary>
-    public IEnumerable<Assembly> Assemblies => AppDomain.CurrentDomain.GetAssemblies();
+    /// <summary>Loads an assembly from the specified file path.</summary>
+    /// <remarks>The assembly is loaded into the load-from context. If the assembly has already been loaded,
+    /// this method may return a reference to the existing assembly. This method does not resolve dependencies
+    /// automatically; dependent assemblies must be available to the loader.</remarks>
+    /// <param name="assemblyPath">The path to the assembly file to load. The path must be a valid file system path to a managed assembly file.</param>
+    /// <returns>The loaded assembly represented by the specified file path.</returns>
+    public static Assembly LoadFromAssemblyPath(string assemblyPath) => Assembly.LoadFrom(assemblyPath);
 
     /// <summary>Loads an assembly given its display name.</summary>
     /// <remarks>This method loads the assembly into the current load context. If the assembly has already
@@ -47,27 +59,19 @@ public class AssemblyLoadContext(string name)
         return Load(assemblyName);
     }
 
-    /// <summary>Loads an assembly from the specified file path.</summary>
-    /// <remarks>The assembly is loaded into the load-from context. If the assembly has already been loaded,
-    /// this method may return a reference to the existing assembly. This method does not resolve dependencies
-    /// automatically; dependent assemblies must be available to the loader.</remarks>
-    /// <param name="assemblyPath">The path to the assembly file to load. The path must be a valid file system path to a managed assembly file.</param>
-    /// <returns>The loaded assembly represented by the specified file path.</returns>
-    public Assembly LoadFromAssemblyPath(string assemblyPath) => Assembly.LoadFrom(assemblyPath);
-
-    /// <summary>Loads the assembly with the specified name.</summary>
-    /// <remarks>Override this method to implement custom assembly loading logic in a derived class.</remarks>
-    /// <param name="assemblyName">The name of the assembly to load. Cannot be null.</param>
-    /// <returns>The loaded assembly, or null if the assembly cannot be found.</returns>
-    protected virtual Assembly Load(AssemblyName assemblyName) => null!;
-
     /// <summary>Loads an unmanaged dynamic-link library (DLL) from the specified absolute path.</summary>
     /// <remarks>This method is intended to be called by derived classes to provide custom logic for loading
     /// unmanaged libraries. The caller is responsible for ensuring that the specified path points to a valid and
     /// compatible DLL.</remarks>
     /// <param name="dllPath">The absolute path to the unmanaged DLL to load. Cannot be null or empty.</param>
     /// <returns>A handle to the loaded unmanaged DLL. Returns <see cref="IntPtr.Zero"/> if the library could not be loaded.</returns>
-    protected IntPtr LoadUnmanagedDllFromPath(string dllPath) => IntPtr.Zero;
+    protected static IntPtr LoadUnmanagedDllFromPath(string dllPath) => IntPtr.Zero;
+
+    /// <summary>Loads the assembly with the specified name.</summary>
+    /// <remarks>Override this method to implement custom assembly loading logic in a derived class.</remarks>
+    /// <param name="assemblyName">The name of the assembly to load. Cannot be null.</param>
+    /// <returns>The loaded assembly, or null if the assembly cannot be found.</returns>
+    protected virtual Assembly Load(AssemblyName assemblyName) => null!;
 
     /// <summary>Loads the specified unmanaged DLL into the process address space.</summary>
     /// <remarks>Override this method to provide custom logic for loading unmanaged libraries when resolving

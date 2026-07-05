@@ -43,6 +43,21 @@ public class HostBuilderApplicationExtensionsTests
         await Assert.That(result).IsEqualTo(hostBuilder);
     }
 
+    /// <summary>Verifies that ConfigureSingleInstance with mutexId stores the mutex identifier on IHostBuilder.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureSingleInstance_WithMutexId_RegistersConfiguredMutexId()
+    {
+        var hostBuilder = Host.CreateDefaultBuilder();
+        var mutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+
+        _ = hostBuilder.ConfigureSingleInstance(mutexId);
+
+        using var host = hostBuilder.Build();
+        var mutexBuilder = host.Services.GetRequiredService<IMutexBuilder>();
+        await Assert.That(mutexBuilder.MutexId).IsEqualTo(mutexId);
+    }
+
     /// <summary>Verifies that ConfigureSingleInstance with IHostApplicationBuilder returns the same builder and registers the mutex builder.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -94,6 +109,21 @@ public class HostBuilderApplicationExtensionsTests
         });
         await Assert.That(result).IsNotNull();
         await Assert.That(result).IsEqualTo(hostBuilder);
+    }
+
+    /// <summary>Verifies that ConfigureSingleInstance accepts a null configure action for IHostBuilder.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureSingleInstance_IHostBuilder_WithNullConfigureAction_RegistersMutexBuilder()
+    {
+        Action<IMutexBuilder>? configureAction = null;
+        var hostBuilder = Host.CreateDefaultBuilder();
+
+        _ = hostBuilder.ConfigureSingleInstance(configureAction!);
+
+        using var host = hostBuilder.Build();
+        var mutexBuilder = host.Services.GetService<IMutexBuilder>();
+        await Assert.That(mutexBuilder).IsNotNull();
     }
 
     /// <summary>Verifies that ConfigureSingleInstance configure action is invoked.</summary>

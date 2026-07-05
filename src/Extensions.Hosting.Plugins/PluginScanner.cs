@@ -6,7 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Provides methods for discovering and instantiating plugin implementations from assemblies using naming conventions or type scanning.</summary>
 /// <remarks>The PluginScanner class is intended for use in scenarios where plugins implementing the IPlugin

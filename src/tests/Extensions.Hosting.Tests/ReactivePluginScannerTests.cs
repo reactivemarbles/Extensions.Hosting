@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.DependencyInjection;
-using ReactiveMarbles.Extensions.Hosting.Plugins;
+using ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
 
 namespace Extensions.Hosting.Tests;
 
-/// <summary>Contains unit tests for the PluginScanner class, verifying its behavior when scanning for plugin instances and handling invalid input.</summary>
-/// <remarks>These tests ensure that PluginScanner methods correctly handle null arguments and return expected
-/// results when no plugins are found. The class uses the TUnit testing framework.</remarks>
-public class PluginScannerTests
+/// <summary>Contains unit tests for the reactive shim PluginScanner class.</summary>
+public class ReactivePluginScannerTests
 {
     /// <summary>Verifies that ScanForPluginInstances throws an ArgumentNullException when passed a null argument.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -30,18 +28,18 @@ public class PluginScannerTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
-    /// <summary>Verifies that the plugin scanner returns an empty collection when no plugins are found by naming convention in the current assembly.</summary>
+    /// <summary>Verifies that naming convention scanning returns empty when no conventional plugin exists.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ByNamingConvention_FindsNoPlugin_ReturnsEmpty()
     {
-        var assembly = typeof(string).Assembly;
-        var plugins = PluginScanner.ByNamingConvention(assembly);
+        var plugins = PluginScanner.ByNamingConvention(typeof(string).Assembly);
+
         await Assert.That(plugins).IsNotNull();
         await Assert.That(plugins.Any()).IsFalse();
     }
 
-    /// <summary>Verifies that the plugin scanner discovers a plugin by naming convention.</summary>
+    /// <summary>Verifies that the reactive shim plugin scanner discovers a plugin by naming convention.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ByNamingConvention_FindsConventionalPlugin()
@@ -56,50 +54,59 @@ public class PluginScannerTests
     [Test]
     public async Task ScanForPluginInstances_WithValidAssembly_ReturnsNonNullCollection()
     {
-        var assembly = typeof(PluginScannerTests).Assembly;
-        var plugins = PluginScanner.ScanForPluginInstances(assembly);
+        var plugins = PluginScanner.ScanForPluginInstances(typeof(ReactivePluginScannerTests).Assembly);
+
         await Assert.That(plugins).IsNotNull();
     }
 
-    /// <summary>Verifies that ScanForPluginInstances discovers the TestPlugin class.</summary>
+    /// <summary>Verifies that ScanForPluginInstances discovers the reactive test plugin.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
-    public async Task ScanForPluginInstances_FindsTestPlugin()
+    public async Task ScanForPluginInstances_FindsReactiveTestPlugin()
     {
-        var assembly = typeof(TestPlugin).Assembly;
-        var plugins = PluginScanner.ScanForPluginInstances(assembly).ToList();
+        var plugins = PluginScanner.ScanForPluginInstances(typeof(ReactiveScannerTestPlugin).Assembly).ToList();
+
         await Assert.That(plugins.Count).IsGreaterThanOrEqualTo(1);
-        await Assert.That(plugins.Any(p => p is TestPlugin)).IsTrue();
+        await Assert.That(plugins.Any(plugin => plugin is ReactiveScannerTestPlugin)).IsTrue();
     }
 
-    /// <summary>Verifies that ScanForPluginInstances does not include abstract plugin classes.</summary>
+    /// <summary>Verifies that ScanForPluginInstances does not include abstract reactive plugin classes.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ScanForPluginInstances_DoesNotIncludeAbstractPlugins()
     {
-        var assembly = typeof(AbstractTestPlugin).Assembly;
-        var plugins = PluginScanner.ScanForPluginInstances(assembly).ToList();
-        await Assert.That(plugins.Any(p => p.GetType() == typeof(AbstractTestPlugin))).IsFalse();
+        var plugins = PluginScanner.ScanForPluginInstances(typeof(ReactiveAbstractTestPlugin).Assembly).ToList();
+
+        await Assert.That(plugins.Any(plugin => plugin.GetType() == typeof(ReactiveAbstractTestPlugin))).IsFalse();
     }
 
-    /// <summary>Verifies that the test plugin can be configured via ConfigureHost.</summary>
+    /// <summary>Verifies that the reactive test plugin can be configured via ConfigureHost.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
-    public async Task TestPlugin_ConfigureHost_DoesNotThrow()
+    public async Task ReactiveTestPlugin_ConfigureHost_SetsConfiguredFlag()
     {
-        var plugin = new TestPlugin();
-        var serviceCollection = new ServiceCollection();
+        var plugin = new ReactiveScannerTestPlugin();
+        var services = new ServiceCollection();
 
-        Exception? exception = null;
-        try
-        {
-            plugin.ConfigureHost(new object(), serviceCollection);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-        }
+        plugin.ConfigureHost(new object(), services);
 
-        await Assert.That(exception).IsNull();
+        await Assert.That(plugin.WasConfigured).IsTrue();
+    }
+
+    /// <summary>A reactive shim test plugin implementation for unit testing purposes.</summary>
+    public class ReactiveScannerTestPlugin : IPlugin
+    {
+        /// <summary>Gets a value indicating whether ConfigureHost was called.</summary>
+        public bool WasConfigured { get; private set; }
+
+        /// <inheritdoc />
+        public void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection) => WasConfigured = true;
+    }
+
+    /// <summary>An abstract reactive shim plugin used to test that abstract classes are not discovered.</summary>
+    public abstract class ReactiveAbstractTestPlugin : IPlugin
+    {
+        /// <inheritdoc />
+        public abstract void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection);
     }
 }

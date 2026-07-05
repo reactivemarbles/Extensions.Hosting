@@ -31,6 +31,7 @@
   <Project Path="Extensions.Hosting.MainUIThread/Extensions.Hosting.MainUIThread.csproj" />
   <Project Path="Extensions.Hosting.Maui/Extensions.Hosting.Maui.csproj" />
   <Project Path="Extensions.Hosting.Plugins/Extensions.Hosting.Plugins.csproj" />
+  <Project Path="Extensions.Hosting.Plugins.Reactive/Extensions.Hosting.Plugins.Reactive.csproj" />
   <Project Path="Extensions.Hosting.PluginService/Extensions.Hosting.PluginService.csproj" />
   <Project Path="Extensions.Hosting.ReactiveUI.Avalonia/Extensions.Hosting.ReactiveUI.Avalonia.csproj" Id="711b6a7d-e7b8-4903-9015-43116783fc45" />
   <Project Path="Extensions.Hosting.ReactiveUI.Maui/Extensions.Hosting.ReactiveUI.Maui.csproj" />

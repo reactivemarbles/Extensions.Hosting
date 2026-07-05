@@ -9,9 +9,17 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Hosting;
+#if REACTIVE_SHIM
+using ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.Internals;
+#else
 using ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
+#endif
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Provides extension methods for configuring and loading plugins in host builder pipelines.</summary>
 /// <remarks>These extension methods enable plugin discovery and configuration for applications using IHostBuilder
@@ -200,7 +208,7 @@ public static class HostBuilderPluginExtensions
                     continue;
                 }
 
-                var loadedAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(frameworkAssemblyPath);
+                var loadedAssembly = AssemblyLoadContext.LoadFromAssemblyPath(frameworkAssemblyPath);
                 _ = scannedAssemblies.Add(loadedAssembly);
             }
         }

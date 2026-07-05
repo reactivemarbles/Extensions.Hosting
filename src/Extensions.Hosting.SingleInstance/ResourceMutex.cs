@@ -70,6 +70,18 @@ public sealed class ResourceMutex : IDisposable
     /// <summary>Stores the resource name value.</summary>
     private readonly string _resourceName;
 
+    /// <summary>Stores the mutex factory value.</summary>
+    private readonly Func<string, (Mutex Mutex, bool CreatedNew)> _createMutex;
+
+    /// <summary>Stores the mutex release action value.</summary>
+    private readonly Action<Mutex> _releaseMutex;
+
+    /// <summary>Stores the optional before release action value.</summary>
+    private readonly Action? _beforeReleaseMutex;
+
+    /// <summary>Stores the owner thread join timeout value.</summary>
+    private readonly TimeSpan _ownerThreadJoinTimeout;
+
     /// <summary>Stores the lock acquired signal value.</summary>
     private readonly ManualResetEventSlim _lockAcquiredSignal = new(initialState: false);
 
@@ -82,15 +94,39 @@ public sealed class ResourceMutex : IDisposable
     /// <summary>Stores the owner thread value.</summary>
     private Thread? _ownerThread;
 
+    /// <summary>Initializes a new instance of the <see cref="ResourceMutex"/> class with testable mutex operations.</summary>
+    /// <param name="logger">The logger instance used to record diagnostic and operational messages for the mutex.</param>
+    /// <param name="mutexId">The unique identifier for the mutex. Used to distinguish this mutex from others.</param>
+    /// <param name="resourceName">The name of the resource associated with the mutex. If null, the mutex identifier is used as the resource name.</param>
+    /// <param name="createMutex">The operation used to create the underlying mutex.</param>
+    /// <param name="releaseMutex">The operation used to release the underlying mutex.</param>
+    /// <param name="ownerThreadJoinTimeout">The amount of time to wait for the owner thread to exit during disposal.</param>
+    /// <param name="beforeReleaseMutex">An optional operation to run on the owner thread before releasing the mutex.</param>
+    internal ResourceMutex(
+        ILogger logger,
+        string mutexId,
+        string? resourceName,
+        Func<string, (Mutex Mutex, bool CreatedNew)> createMutex,
+        Action<Mutex> releaseMutex,
+        TimeSpan ownerThreadJoinTimeout,
+        Action? beforeReleaseMutex = null)
+    {
+        _logger = logger;
+        _mutexId = mutexId;
+        _resourceName = resourceName ?? mutexId;
+        _createMutex = createMutex;
+        _releaseMutex = releaseMutex;
+        _ownerThreadJoinTimeout = ownerThreadJoinTimeout;
+        _beforeReleaseMutex = beforeReleaseMutex;
+    }
+
     /// <summary>Initializes a new instance of the <see cref="ResourceMutex"/> class with the specified logger, mutex identifier, and optional. resource name.</summary>
     /// <param name="logger">The logger instance used to record diagnostic and operational messages for the mutex.</param>
     /// <param name="mutexId">The unique identifier for the mutex. Used to distinguish this mutex from others.</param>
     /// <param name="resourceName">The name of the resource associated with the mutex. If null, the mutex identifier is used as the resource name.</param>
     private ResourceMutex(ILogger logger, string mutexId, string? resourceName = null)
+        : this(logger, mutexId, resourceName, CreateMutex, static mutex => mutex.ReleaseMutex(), TimeSpan.FromSeconds(5), null)
     {
-        _logger = logger;
-        _mutexId = mutexId;
-        _resourceName = resourceName ?? mutexId;
     }
 
     /// <summary>Gets a value indicating whether the object is locked.</summary>
@@ -159,13 +195,34 @@ public sealed class ResourceMutex : IDisposable
 
         // Signal the owning thread to release the mutex, then wait for it to finish.
         _releaseSignal.Set();
-        if (_ownerThread?.Join(TimeSpan.FromSeconds(5)) == false)
+        if (_ownerThread?.Join(_ownerThreadJoinTimeout) == false)
         {
             _mutexOwnerReleaseTimedOut(_logger, _mutexId, _resourceName, null);
         }
 
         _releaseSignal.Dispose();
         _lockAcquiredSignal.Dispose();
+    }
+
+    /// <summary>Creates the underlying named mutex.</summary>
+    /// <param name="mutexId">The fully qualified mutex identifier.</param>
+    /// <returns>The created mutex and a value indicating whether it was newly created.</returns>
+    private static (Mutex Mutex, bool CreatedNew) CreateMutex(string mutexId)
+    {
+#if NET462
+        // Added Mutex Security, hopefully this prevents the UnauthorizedAccessException more gracefully
+        var sid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+        var mutexSecurity = new MutexSecurity();
+        mutexSecurity.AddAccessRule(new(sid, MutexRights.FullControl, AccessControlType.Allow));
+        mutexSecurity.AddAccessRule(new(sid, MutexRights.ChangePermissions, AccessControlType.Deny));
+        mutexSecurity.AddAccessRule(new(sid, MutexRights.Delete, AccessControlType.Deny));
+
+        // 1) Create Mutex
+        return (new Mutex(true, mutexId, out var createdNew, mutexSecurity), createdNew);
+#else
+        // 1) Create Mutex
+        return (new Mutex(true, mutexId, out var createdNew), createdNew);
+#endif
     }
 
     /// <summary>
@@ -182,20 +239,9 @@ public sealed class ResourceMutex : IDisposable
         // check whether there's an local instance running already, but use local so this works in a multi-user environment
         try
         {
-#if NET462
-            // Added Mutex Security, hopefully this prevents the UnauthorizedAccessException more gracefully
-            var sid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            var mutexSecurity = new MutexSecurity();
-            mutexSecurity.AddAccessRule(new(sid, MutexRights.FullControl, AccessControlType.Allow));
-            mutexSecurity.AddAccessRule(new(sid, MutexRights.ChangePermissions, AccessControlType.Deny));
-            mutexSecurity.AddAccessRule(new(sid, MutexRights.Delete, AccessControlType.Deny));
-
-            // 1) Create Mutex
-            applicationMutex = new(true, _mutexId, out var createdNew, mutexSecurity);
-#else
-            // 1) Create Mutex
-            applicationMutex = new(true, _mutexId, out var createdNew);
-#endif
+            var mutex = _createMutex(_mutexId);
+            applicationMutex = mutex.Mutex;
+            var createdNew = mutex.CreatedNew;
 
             // 2) if the mutex wasn't created new get the right to it, this returns false if it's already locked
             if (!createdNew)
@@ -251,22 +297,25 @@ public sealed class ResourceMutex : IDisposable
 
         // Hold until Dispose() signals that we should release.
         _releaseSignal.Wait();
+        _beforeReleaseMutex?.Invoke();
 
         // Release on this thread - the same thread that acquired the mutex - to satisfy Mutex thread-affinity.
         try
         {
             if (IsLocked && applicationMutex is not null)
             {
-                applicationMutex.ReleaseMutex();
+                _releaseMutex(applicationMutex);
                 IsLocked = false;
                 _mutexReleased(_logger, _mutexId, _resourceName, null);
             }
-
-            applicationMutex?.Dispose();
         }
         catch (Exception ex)
         {
             _mutexReleaseFailed(_logger, _mutexId, _resourceName, ex);
+        }
+        finally
+        {
+            applicationMutex?.Dispose();
         }
     }
 }

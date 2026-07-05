@@ -4,7 +4,11 @@
 
 using System;
 
+#if REACTIVE_SHIM
+namespace ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
+#else
 namespace ReactiveMarbles.Extensions.Hosting.Plugins;
+#endif
 
 /// <summary>Specifies the initialization order for a plug-in class.</summary>
 /// <remarks>Apply this attribute to a plug-in class to control the sequence in which plug-ins are initialized.
