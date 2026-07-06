@@ -1,9 +1,9 @@
+using System;
 using Nuke.Common;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
-using Nuke.Common.Tools.NerdbankGitVersioning;
 using Nuke.Common.Tools.DotNet;
 using Serilog;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
@@ -32,7 +32,6 @@ sealed partial class Build : NukeBuild
 
     [GitRepository] readonly GitRepository Repository;
     readonly Solution Solution = SolutionFile.ReadSolution();
-    [NerdbankGitVersioning] readonly NerdbankGitVersioning NerdbankVersioning;
     [Parameter][Secret] readonly string NuGetApiKey;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -40,7 +39,7 @@ sealed partial class Build : NukeBuild
     AbsolutePath PackagesDirectory => RootDirectory / "output";
 
     Target Print => _ => _
-        .Executes(() => Log.Information("NerdbankVersioning = {Value}", NerdbankVersioning.NuGetPackageVersion));
+        .Executes(() => Log.Information("MinVerVersionOverride = {Value}", Environment.GetEnvironmentVariable("MinVerVersionOverride") ?? "<auto>"));
 
     Target Clean => _ => _
         .Before(Restore)
@@ -85,7 +84,6 @@ sealed partial class Build : NukeBuild
             DotNetPack(settings => settings
                 .SetConfiguration(Configuration)
                 .SetNoBuild(true)
-                .SetVersion(NerdbankVersioning.NuGetPackageVersion)
                 .SetOutputDirectory(PackagesDirectory)
                 .CombineWith(packableProjects, (packSettings, project) =>
                     packSettings.SetProject(project)));
