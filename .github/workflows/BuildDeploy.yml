@@ -59,22 +59,105 @@ jobs:
         shell: bash
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Compute version and tag
-        id: bump
-        uses: reactiveui/actions-common/.github/actions/compute-version-and-tag@main
-        with:
-          bump: ${{ inputs.bump }}
-          tag-prefix: v
-          pre-release-id: ${{ inputs.channel != 'none' && inputs.channel || '' }}
-          push-tag: 'false'
+      - name: Compute release version
+        id: release-version
+        shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
+          CHANNEL: ${{ inputs.channel }}
+          TAG_PREFIX: v
+          MINIMUM_MAJOR_MINOR: '3.2'
+        run: |
+          set -euo pipefail
+
+          case "$BUMP" in
+            major|minor|patch) ;;
+            *)
+              echo "::error::bump must be one of major|minor|patch (got '$BUMP')."
+              exit 1
+              ;;
+          esac
+
+          case "$CHANNEL" in
+            none) PRE_RELEASE_ID="" ;;
+            alpha|beta|rc) PRE_RELEASE_ID="$CHANNEL" ;;
+            *)
+              echo "::error::channel must be none|alpha|beta|rc (got '$CHANNEL')."
+              exit 1
+              ;;
+          esac
+
+          FLOOR="${MINIMUM_MAJOR_MINOR}.0"
+          LAST="$(
+            git tag --list "${TAG_PREFIX}[0-9]*.[0-9]*.[0-9]*" \
+              | grep -Ev -- '-' \
+              | sort -V \
+              | tail -1 \
+              | sed "s/^${TAG_PREFIX}//" || true
+          )"
+
+          BASELINE="$FLOOR"
+          if [ -n "$LAST" ]; then
+            BASELINE="$(printf '%s\n%s\n' "$FLOOR" "$LAST" | sort -V | tail -1)"
+          else
+            echo "No RTM tag (${TAG_PREFIX}X.Y.Z) found; using MinVer floor ${FLOOR} as the release baseline."
+          fi
+
+          IFS=. read -r MAJOR MINOR PATCH <<< "$BASELINE"
+          case "$BUMP" in
+            major) CORE="$((MAJOR + 1)).0.0" ;;
+            minor) CORE="${MAJOR}.$((MINOR + 1)).0" ;;
+            patch) CORE="${MAJOR}.${MINOR}.$((PATCH + 1))" ;;
+          esac
+
+          if [ -n "$PRE_RELEASE_ID" ]; then
+            MAXN=0
+            while IFS= read -r tag; do
+              [ -z "$tag" ] && continue
+
+              number="${tag##*.}"
+              case "$number" in
+                ''|*[!0-9]*) continue ;;
+              esac
+
+              if [ "$number" -gt "$MAXN" ]; then
+                MAXN="$number"
+              fi
+            done < <(git tag --list "${TAG_PREFIX}${CORE}-${PRE_RELEASE_ID}.[0-9]*")
+
+            VERSION="${CORE}-${PRE_RELEASE_ID}.$((MAXN + 1))"
+            PRERELEASE=true
+          else
+            VERSION="$CORE"
+            PRERELEASE=false
+          fi
+
+          TAG="${TAG_PREFIX}${VERSION}"
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::error::Tag ${TAG} already exists. Refusing to re-release an existing version."
+            exit 1
+          fi
+
+          echo "Release baseline: ${TAG_PREFIX}${BASELINE} -> next (${BUMP}${PRE_RELEASE_ID:+, ${PRE_RELEASE_ID}}): ${TAG}"
+
+          {
+            echo "version=${VERSION}"
+            echo "tag=${TAG}"
+            echo "prerelease=${PRERELEASE}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "MINVERVERSIONOVERRIDE=${VERSION}"
+            echo "MinVerVersionOverride=${VERSION}"
+          } >> "$GITHUB_ENV"
 
       - name: Resolve release tag
         id: tagname
         shell: bash
         run: |
           {
-            echo "tag=${{ steps.bump.outputs.tag }}"
-            echo "prerelease=${{ steps.bump.outputs.prerelease }}"
+            echo "tag=${{ steps.release-version.outputs.tag }}"
+            echo "prerelease=${{ steps.release-version.outputs.prerelease }}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Setup .NET
@@ -114,7 +197,7 @@ jobs:
           minimum-major-minor: '3.2'
           auto-increment: minor
           default-pre-release-identifiers: alpha.0
-          version-override: ${{ steps.bump.outputs.version }}
+          version-override: ${{ steps.release-version.outputs.version }}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v3
@@ -123,6 +206,9 @@ jobs:
 
       - name: Build
         uses: reactiveui/actions-common/.github/actions/dotnet-build@main
+        env:
+          MINVERVERSIONOVERRIDE: ${{ steps.minver.outputs.SemVer2 }}
+          MinVerVersionOverride: ${{ steps.minver.outputs.SemVer2 }}
         with:
           configuration: ${{ env.configuration }}
           src-folder: src
@@ -132,7 +218,10 @@ jobs:
       - name: Pack unsigned NuGet packages
         shell: bash
         working-directory: src
-        run: dotnet pack --no-restore --configuration "${{ env.configuration }}" Extensions.Hosting.slnx -o "${GITHUB_WORKSPACE}/packages"
+        env:
+          MINVERVERSIONOVERRIDE: ${{ steps.minver.outputs.SemVer2 }}
+          MinVerVersionOverride: ${{ steps.minver.outputs.SemVer2 }}
+        run: dotnet pack --no-restore --configuration "${{ env.configuration }}" Extensions.Hosting.slnx -o "${GITHUB_WORKSPACE}/packages" -p:MinVerVersionOverride="${{ steps.minver.outputs.SemVer2 }}"
 
       - name: Upload unsigned packages
         uses: actions/upload-artifact@v7
