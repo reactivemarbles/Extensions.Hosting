@@ -13,12 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="CP.Nuke.BuildTools" />
-    <PackageReference Include="Nerdbank.GitVersioning" />
     <PackageReference Include="Nuke.Common" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageDownload Include="nbgv" Version="[3.10.85]" />
   </ItemGroup>
 
 </Project>
