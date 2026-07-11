@@ -225,7 +225,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: unsigned-nuget
-          path: packages/*.nupkg
+          path: |
+            packages/*.nupkg
+            !packages/*.symbols.nupkg
           if-no-files-found: error
 
   sign:
@@ -382,7 +384,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: signed-nuget
-          path: signed/*.nupkg
+          path: |
+            signed/*.nupkg
+            !signed/*.symbols.nupkg
           if-no-files-found: error
 
   publish-nuget:
@@ -411,8 +415,17 @@ jobs:
       - name: Push to NuGet
         shell: bash
         run: |
-          for pkg in ./signed/*.nupkg; do
-            dotnet nuget push "$pkg" --source https://api.nuget.org/v3/index.json --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          set -euo pipefail
+          shopt -s nullglob
+
+          packages=(./signed/*.nupkg)
+          [ "${#packages[@]}" -gt 0 ] || { echo "::error::no publishable packages matched: ./signed/*.nupkg"; exit 1; }
+
+          for pkg in "${packages[@]}"; do
+            dotnet nuget push "$pkg" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
+              --skip-duplicate
           done
 
   create-release:
