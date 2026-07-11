@@ -411,8 +411,29 @@ jobs:
       - name: Push to NuGet
         shell: bash
         run: |
-          for pkg in ./signed/*.nupkg; do
-            dotnet nuget push "$pkg" --source https://api.nuget.org/v3/index.json --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          set -euo pipefail
+          shopt -s nullglob
+
+          packages=(./signed/*.nupkg)
+          push_packages=()
+          for pkg in "${packages[@]}"; do
+            case "$pkg" in
+              *.symbols.nupkg)
+                echo "Skipping legacy symbols package: $pkg"
+                ;;
+              *)
+                push_packages+=("$pkg")
+                ;;
+            esac
+          done
+
+          [ "${#push_packages[@]}" -gt 0 ] || { echo "::error::no publishable packages matched: ./signed/*.nupkg"; exit 1; }
+
+          for pkg in "${push_packages[@]}"; do
+            dotnet nuget push "$pkg" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
+              --skip-duplicate
           done
 
   create-release:
