@@ -19,7 +19,7 @@
     <PackageVersion Include="log4net" Version="3.3.2" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.7.1" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.7.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.9.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
