@@ -2,13 +2,13 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <Net8PackageVersion>8.0.28</Net8PackageVersion>
-    <Net9PackageVersion>9.0.17</Net9PackageVersion>
-    <Net10PackageVersion>10.0.9</Net10PackageVersion>
-    <Net11PreviewPackageVersion>11.0.0-preview.5.26302.115</Net11PreviewPackageVersion>
+    <Net8PackageVersion>8.0.29</Net8PackageVersion>
+    <Net9PackageVersion>9.0.18</Net9PackageVersion>
+    <Net10PackageVersion>10.0.10</Net10PackageVersion>
+    <Net11PreviewPackageVersion>11.0.0-preview.6.26359.118</Net11PreviewPackageVersion>
     <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
     <MauiNet10PackageVersion>10.0.80</MauiNet10PackageVersion>
-    <MauiNet11PackageVersion>11.0.0-preview.5.26304.4</MauiNet11PackageVersion>
+    <MauiNet11PackageVersion>11.0.0-preview.6.26360.8</MauiNet11PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,10 +17,10 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.0" />
     <PackageVersion Include="CP.Nuke.BuildTools" Version="3.0.2" />
     <PackageVersion Include="log4net" Version="3.3.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.7.1" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.7.1" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.8.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.8.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.301" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.9.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
