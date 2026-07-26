@@ -4,7 +4,7 @@
     <UseMaui>true</UseMaui>
     <WindowsPackageType>None</WindowsPackageType>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <CentralPackageVersionOverrideEnabled>true</CentralPackageVersionOverrideEnabled>
     <DefineConstants>$(DefineConstants);REACTIVE_SHIM</DefineConstants>
     <IsTestProject>true</IsTestProject>
