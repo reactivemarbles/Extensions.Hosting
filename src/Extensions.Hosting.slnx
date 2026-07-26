@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Benchmarks/">
+    <Project Path="benchmarks/Extensions.Hosting.Benchmarks/Extensions.Hosting.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/Examples/">
     <Project Path="examples/Extensions.Hosting.Avalonia.Example/Extensions.Hosting.Avalonia.Example.csproj" />
     <Project Path="examples/Extensions.Hosting.Console.Example/Extensions.Hosting.Console.Example.csproj" />
@@ -30,6 +33,29 @@
     <File Path="../README.md" />
     <File Path="Directory.Build.props" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Extensions.Hosting.Avalonia.Lifecycle.Tests/Extensions.Hosting.Avalonia.Lifecycle.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Avalonia.MultipleWindow.Tests/Extensions.Hosting.Avalonia.MultipleWindow.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Avalonia.OneWindow.Tests/Extensions.Hosting.Avalonia.OneWindow.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Avalonia.Reactive.Tests/Extensions.Hosting.Avalonia.Reactive.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Avalonia.Tests/Extensions.Hosting.Avalonia.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.DataLogging.Tests/Extensions.Hosting.DataLogging.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Platform.Tests/Maui/Extensions.Hosting.Maui.Platform.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Platform.Tests/Maui/Extensions.Hosting.ReactiveUI.Maui.Reactive.Platform.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Platform.Tests/PluginService/Extensions.Hosting.PluginService.Platform.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Platform.Tests/PluginService/Extensions.Hosting.PluginService.Reactive.Platform.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Platform.Tests/WinUI/Extensions.Hosting.ReactiveUI.WinUI.Reactive.Platform.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Platform.Tests/WinUI/Extensions.Hosting.WinUI.Platform.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.ReactiveUI.Wpf.Reactive.Tests/Extensions.Hosting.ReactiveUI.Wpf.Reactive.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.ReactiveUI.Wpf.Tests/Extensions.Hosting.ReactiveUI.Wpf.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Tests/Extensions.Hosting.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.WinForms.Tests/Extensions.Hosting.ReactiveUI.WinForms.Reactive.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.WinForms.Tests/Extensions.Hosting.WinForms.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Wpf.BuilderCoverage.Tests/Extensions.Hosting.Wpf.BuilderCoverage.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Wpf.MultipleShellCoverage.Tests/Extensions.Hosting.Wpf.MultipleShellCoverage.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Wpf.SingleShellCoverage.Tests/Extensions.Hosting.Wpf.SingleShellCoverage.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.Wpf.ZeroShellCoverage.Tests/Extensions.Hosting.Wpf.ZeroShellCoverage.Tests.csproj" />
+  </Folder>
   <Project Path="../build/_build.csproj">
     <Build Project="false" />
   </Project>
@@ -50,5 +76,4 @@
   <Project Path="Extensions.Hosting.WinUI/Extensions.Hosting.WinUI.csproj" />
   <Project Path="Extensions.Hosting.Wpf/Extensions.Hosting.Wpf.csproj" />
   <Project Path="Extensions.Logging.Log4Net/Extensions.Logging.Log4Net.csproj" />
-  <Project Path="tests/Extensions.Hosting.Tests/Extensions.Hosting.Tests.csproj" />
 </Solution>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <DefineConstants>$(DefineConstants);REACTIVE_SHIM</DefineConstants>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <OutputType>Exe</OutputType>
+    <SolutionDir>$(MSBuildThisFileDirectory)..\..\..\</SolutionDir>
+    <SolutionName>Extensions.Hosting</SolutionName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Extensions.Hosting.PluginService.Reactive\Extensions.Hosting.PluginService.Reactive.csproj" />
+    <ProjectReference Include="..\..\..\Extensions.Hosting.Plugins.Reactive\Extensions.Hosting.Plugins.Reactive.csproj" />
+    <None Include="..\..\..\Extensions.Hosting.PluginService\log4net.config" Link="log4net.config" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TUnit.Assertions" />
+    <Using Include="TUnit.Assertions.Extensions" />
+    <Using Include="TUnit.Core" />
+  </ItemGroup>
+</Project>

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -34,8 +34,8 @@ public class Log4NetLogger : ILogger
     }
 
     /// <summary>Gets the name.</summary>
-    public string Name
-        => _logger.Name;
+    public string Name =>
+        _logger.Name;
 
     /// <summary>Gets a get-only property for accessing the <see cref="Log4NetProviderOptions"/> within the instance.</summary>
     internal Log4NetProviderOptions Options { get; }
@@ -47,8 +47,8 @@ public class Log4NetLogger : ILogger
     /// An IDisposable that ends the logical operation scope on dispose.
     /// </returns>
     public IDisposable? BeginScope<TState>(TState state)
-        where TState : notnull
-        => _externalScopeProvider.Push(state);
+        where TState : notnull =>
+        _externalScopeProvider.Push(state);
 
     /// <summary>Determines whether the logging level is enabled.</summary>
     /// <param name="logLevel">The log level.</param>

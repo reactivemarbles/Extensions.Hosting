@@ -1,12 +1,14 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+#if NET5_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Hosting;
 #if REACTIVE_SHIM
@@ -30,6 +32,85 @@ public static class HostBuilderPluginExtensions
 {
     /// <summary>Stores the plugin builder key value.</summary>
     private const string PluginBuilderKey = nameof(PluginBuilder);
+
+    /// <summary>Scans the loaded assemblies and returns plugins in configured order.</summary>
+    /// <param name="pluginBuilder">The plugin builder that contains the assembly scanning delegate.</param>
+    /// <param name="scannedAssemblies">The assemblies to scan.</param>
+    /// <returns>The ordered plugins discovered from the loaded assemblies.</returns>
+    internal static List<IPlugin> GetOrderedPlugins(IPluginBuilder pluginBuilder, HashSet<Assembly> scannedAssemblies)
+    {
+        var plugins = new List<IPlugin>();
+
+        foreach (var assembly in scannedAssemblies)
+        {
+            var scannedPlugins = pluginBuilder.AssemblyScanFunc(assembly);
+            if (scannedPlugins is null)
+            {
+                continue;
+            }
+
+            foreach (var plugin in scannedPlugins)
+            {
+                if (plugin is null)
+                {
+                    continue;
+                }
+
+                plugins.Add(plugin);
+            }
+        }
+
+        if (plugins.Count < 2)
+        {
+            return plugins;
+        }
+
+        var pluginsByOrder = new Dictionary<int, List<IPlugin>>();
+        var ordersByPluginType = new Dictionary<Type, int>();
+        var orderKeys = new List<int>();
+        foreach (var plugin in plugins)
+        {
+            var pluginType = plugin.GetType();
+#if NET5_0_OR_GREATER
+            ref var order = ref CollectionsMarshal.GetValueRefOrAddDefault(ordersByPluginType, pluginType, out var orderExists);
+            if (!orderExists)
+            {
+                order = GetOrder(plugin);
+            }
+
+            ref var orderedPlugins = ref CollectionsMarshal.GetValueRefOrAddDefault(pluginsByOrder, order, out var orderGroupExists);
+            if (!orderGroupExists)
+            {
+                orderedPlugins = [];
+                orderKeys.Add(order);
+            }
+#else
+            if (!ordersByPluginType.TryGetValue(pluginType, out var order))
+            {
+                order = GetOrder(plugin);
+                ordersByPluginType.Add(pluginType, order);
+            }
+
+            if (!pluginsByOrder.TryGetValue(order, out var orderedPlugins))
+            {
+                orderedPlugins = [];
+                pluginsByOrder.Add(order, orderedPlugins);
+                orderKeys.Add(order);
+            }
+#endif
+
+            orderedPlugins!.Add(plugin);
+        }
+
+        orderKeys.Sort();
+        plugins.Clear();
+        foreach (var order in orderKeys)
+        {
+            plugins.AddRange(pluginsByOrder[order]);
+        }
+
+        return plugins;
+    }
 
     /// <summary>Attempts to retrieve an existing <see cref="IPluginBuilder"/> instance from the specified properties dictionary, or creates and adds a new instance if one does not exist.</summary>
     /// <remarks>This method ensures that the properties dictionary always contains a valid <see
@@ -61,7 +142,7 @@ public static class HostBuilderPluginExtensions
 
     /// <summary>Provides extension members for this receiver.</summary>
     /// <param name="hostBuilder">The receiver instance.</param>
-    extension(IHostApplicationBuilder? hostBuilder)
+    extension(IHostApplicationBuilder hostBuilder)
     {
         /// <summary>Configures plugins for the application by invoking the specified configuration action on the plugin builder.</summary>
         /// <remarks>This method ensures that plugin scanning and loading are configured only once per host
@@ -73,10 +154,7 @@ public static class HostBuilderPluginExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         public IHostApplicationBuilder ConfigurePlugins(Action<IPluginBuilder?> configurePlugin)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             var alreadyConfigured = TryRetrievePluginBuilder(hostBuilder.Properties, out var pluginBuilder);
             configurePlugin?.Invoke(pluginBuilder);
@@ -92,7 +170,7 @@ public static class HostBuilderPluginExtensions
 
     /// <summary>Provides extension members for this receiver.</summary>
     /// <param name="hostBuilder">The receiver instance.</param>
-    extension(IHostBuilder? hostBuilder)
+    extension(IHostBuilder hostBuilder)
     {
         /// <summary>Configures plugin support for the specified host builder by invoking the provided configuration action.</summary>
         /// <remarks>This method ensures that plugin support is configured only once for the host builder.
@@ -104,10 +182,7 @@ public static class HostBuilderPluginExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         public IHostBuilder ConfigurePlugins(Action<IPluginBuilder?> configurePlugin)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             var alreadyConfigured = TryRetrievePluginBuilder(hostBuilder.Properties, out var pluginBuilder);
             configurePlugin?.Invoke(pluginBuilder);
@@ -231,18 +306,6 @@ public static class HostBuilderPluginExtensions
             }
         }
     }
-
-    /// <summary>Scans the loaded assemblies and returns plugins in configured order.</summary>
-    /// <param name="pluginBuilder">The plugin builder that contains the assembly scanning delegate.</param>
-    /// <param name="scannedAssemblies">The assemblies to scan.</param>
-    /// <returns>The ordered plugins discovered from the loaded assemblies.</returns>
-    private static List<IPlugin> GetOrderedPlugins(IPluginBuilder pluginBuilder, HashSet<Assembly> scannedAssemblies) =>
-        scannedAssemblies
-            .SelectMany(assembly => pluginBuilder.AssemblyScanFunc(assembly) ?? Enumerable.Empty<IPlugin?>())
-            .Where(plugin => plugin is not null)
-            .Cast<IPlugin>()
-            .OrderBy(GetOrder)
-            .ToList();
 
     /// <summary>Loads a plugin assembly from the specified location using the provided plugin builder.</summary>
     /// <remarks>The method performs validation on the plugin assembly before attempting to load it. If the

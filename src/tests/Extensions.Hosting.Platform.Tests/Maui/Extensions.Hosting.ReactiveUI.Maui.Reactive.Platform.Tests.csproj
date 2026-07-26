@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseMaui>true</UseMaui>
+    <WindowsPackageType>None</WindowsPackageType>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <CentralPackageVersionOverrideEnabled>true</CentralPackageVersionOverrideEnabled>
+    <DefineConstants>$(DefineConstants);REACTIVE_SHIM</DefineConstants>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <OutputType>Exe</OutputType>
+    <SolutionDir>$(MSBuildThisFileDirectory)..\..\..\</SolutionDir>
+    <SolutionName>Extensions.Hosting</SolutionName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Extensions.Hosting.ReactiveUI.Maui.Reactive\Extensions.Hosting.ReactiveUI.Maui.Reactive.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" VersionOverride="10.0.90" />
+    <PackageReference Include="Microsoft.Maui.Core" VersionOverride="10.0.90" />
+    <PackageReference Include="Microsoft.Maui.Essentials" VersionOverride="10.0.90" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="MauiHostedServiceTests.cs" />
+    <Compile Remove="MauiHostingRegistrationTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TUnit.Assertions" />
+    <Using Include="TUnit.Assertions.Extensions" />
+    <Using Include="TUnit.Core" />
+  </ItemGroup>
+</Project>

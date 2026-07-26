@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -27,7 +27,7 @@ public class AssemblyLoadingTests
             await File.WriteAllTextAsync(dependencyPath, string.Empty);
             var resolver = new PluginAssemblyDependencyResolver(pluginPath);
 
-            var resolvedPath = resolver.ResolveAssemblyToPath(new AssemblyName("Dependency"));
+            var resolvedPath = resolver.ResolveAssemblyToPath(new("Dependency"));
 
             await Assert.That(resolvedPath).IsEqualTo(dependencyPath);
         }
@@ -49,7 +49,7 @@ public class AssemblyLoadingTests
             await File.WriteAllTextAsync(pluginPath, string.Empty);
             var resolver = new PluginAssemblyDependencyResolver(pluginPath);
 
-            var resolvedPath = resolver.ResolveAssemblyToPath(new AssemblyName("Missing.Dependency"));
+            var resolvedPath = resolver.ResolveAssemblyToPath(new("Missing.Dependency"));
 
             await Assert.That(resolvedPath).IsNull();
         }
@@ -140,7 +140,7 @@ public class AssemblyLoadingTests
         var context = PluginAssemblyLoadContext.Default;
 
         await Assert.That(context.Name).IsEqualTo("default");
-        await Assert.That(PluginAssemblyLoadContext.Assemblies.Any()).IsTrue();
+        await Assert.That(TestEnumerable.ContainsAny(PluginAssemblyLoadContext.Assemblies)).IsTrue();
     }
 
     /// <summary>Verifies that loading from a null assembly name throws.</summary>
@@ -163,7 +163,7 @@ public class AssemblyLoadingTests
     {
         var context = new PluginAssemblyLoadContext("test");
 
-        Assembly? assembly = context.LoadFromAssemblyName(new AssemblyName("Missing.Assembly"));
+        Assembly? assembly = context.LoadFromAssemblyName(new("Missing.Assembly"));
 
         await Assert.That(assembly).IsNull();
     }
@@ -224,7 +224,7 @@ public class AssemblyLoadingTests
     {
         var context = PluginAssemblyLoadContext.Default;
 
-        var result = context.TryGetAssembly(new AssemblyName("Missing.Plugin.Assembly"), out var assembly);
+        var result = context.TryGetAssembly(new("Missing.Plugin.Assembly"), out var assembly);
 
         await Assert.That(result).IsFalse();
         await Assert.That(assembly).IsNull();
@@ -244,7 +244,7 @@ public class AssemblyLoadingTests
             await File.WriteAllTextAsync(dependencyPath, string.Empty);
             var context = new PluginLoadContext(pluginPath, nameof(Plugin));
 
-            var resolvedPath = context.ResolveAssemblyPath(new AssemblyName("Dependency"));
+            var resolvedPath = context.ResolveAssemblyPath(new("Dependency"));
 
             await Assert.That(resolvedPath).IsEqualTo(dependencyPath);
         }
@@ -288,7 +288,7 @@ public class AssemblyLoadingTests
     {
         var context = new PluginLoadContext(typeof(AssemblyLoadingTests).Assembly.Location, nameof(Plugin));
 
-        Assembly? assembly = context.LoadFromAssemblyName(new AssemblyName("Missing.Plugin.Assembly"));
+        Assembly? assembly = context.LoadFromAssemblyName(new("Missing.Plugin.Assembly"));
 
         await Assert.That(assembly).IsNull();
     }
@@ -299,9 +299,8 @@ public class AssemblyLoadingTests
     public async Task PluginLoadContext_LoadUnmanagedDll_WithMissingLibrary_ReturnsZero()
     {
         var context = new PluginLoadContext(typeof(AssemblyLoadingTests).Assembly.Location, nameof(Plugin));
-        var method = typeof(PluginLoadContext).GetMethod("LoadUnmanagedDll", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        var result = (IntPtr)method!.Invoke(context, ["missing"])!;
+        var result = context.LoadUnmanagedLibrary("missing");
 
         await Assert.That(result).IsEqualTo(IntPtr.Zero);
     }
@@ -320,16 +319,21 @@ public class AssemblyLoadingTests
     private static string GetUnloadedAssemblyPath()
     {
         var assemblyDirectory = Path.GetDirectoryName(typeof(AssemblyLoadingTests).Assembly.Location)!;
-        var loadedAssemblyNames = AppDomain.CurrentDomain.GetAssemblies()
-            .Select(assembly => assembly.GetName().Name)
-            .Where(name => name is not null)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var loadedAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var loadedAssembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var loadedAssemblyName = loadedAssembly.GetName().Name;
+            if (loadedAssemblyName is not null)
+            {
+                _ = loadedAssemblyNames.Add(loadedAssemblyName);
+            }
+        }
 
         foreach (var assemblyPath in Directory.EnumerateFiles(assemblyDirectory, "*.dll"))
         {
             var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
-            if (!loadedAssemblyNames.Contains(assemblyName) &&
-                !assemblyName.StartsWith("Extensions.Hosting", StringComparison.OrdinalIgnoreCase))
+            if (!loadedAssemblyNames.Contains(assemblyName)
+                && !assemblyName.StartsWith("Extensions.Hosting", StringComparison.OrdinalIgnoreCase))
             {
                 return assemblyPath;
             }

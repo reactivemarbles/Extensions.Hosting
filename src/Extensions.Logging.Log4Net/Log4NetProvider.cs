@@ -1,12 +1,11 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
@@ -82,14 +81,14 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
 
     /// <summary>Creates the logger.</summary>
     /// <returns>An instance of the <see cref="ILogger"/>.</returns>
-    public ILogger CreateLogger()
-        => CreateLogger(_options?.Name ?? string.Empty);
+    public ILogger CreateLogger() =>
+        CreateLogger(_options?.Name ?? string.Empty);
 
     /// <summary>Creates the logger.</summary>
     /// <param name="categoryName">The category name.</param>
     /// <returns>An instance of the <see cref="ILogger"/>.</returns>
-    public ILogger CreateLogger(string categoryName)
-        => _loggers.GetOrAdd(categoryName, CreateLoggerImplementation);
+    public ILogger CreateLogger(string categoryName) =>
+        _loggers.GetOrAdd(categoryName, CreateLoggerImplementation);
 
     /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
     public void Dispose()
@@ -129,11 +128,6 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     /// <returns>An <see cref="XmlDocument"/> within the overriding values replaced.</returns>
     private static XmlDocument UpdateNodesWithOverridingValues(XmlDocument configXmlDocument, IEnumerable<NodeInfo> overridingNodes)
     {
-        if (overridingNodes is null)
-        {
-            return configXmlDocument;
-        }
-
         var configDocument = configXmlDocument.ToXDocument();
         foreach (var nodeInfo in overridingNodes)
         {
@@ -159,15 +153,20 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     /// <param name="nodeInfo">The node information.</param>
     private static void AddOrUpdateAttributes(XElement node, NodeInfo nodeInfo)
     {
-        if (nodeInfo.Attributes is null)
-        {
-            return;
-        }
-
         foreach (var attribute in nodeInfo.Attributes)
         {
-            var nodeAttribute = node.Attributes()
-                .FirstOrDefault(a => a.Name.LocalName.Equals(attribute.Key, StringComparison.OrdinalIgnoreCase));
+            XAttribute? nodeAttribute = null;
+            foreach (var candidateAttribute in node.Attributes())
+            {
+                if (!candidateAttribute.Name.LocalName.Equals(attribute.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                nodeAttribute = candidateAttribute;
+                break;
+            }
+
             if (nodeAttribute is not null)
             {
                 nodeAttribute.Value = attribute.Value;
@@ -184,16 +183,9 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     private static XmlDocument ParseLog4NetConfigFile(string filename)
     {
         using var stream = File.OpenRead(filename);
-        var settings = new XmlReaderSettings
-        {
-            DtdProcessing = DtdProcessing.Prohibit,
-            XmlResolver = null,
-        };
+        var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, };
 
-        var log4netConfig = new XmlDocument
-        {
-            XmlResolver = null,
-        };
+        var log4netConfig = new XmlDocument { XmlResolver = null, };
         using var reader = XmlReader.Create(stream, settings);
         log4netConfig.Load(reader);
         return log4netConfig;
@@ -213,12 +205,12 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
             LogLevelTranslator = _options?.LogLevelTranslator ?? new Log4NetLogLevelTranslator(),
         };
 
-        return new Log4NetLogger(loggerOptions, ExternalScopeProvider);
+        return new(loggerOptions, ExternalScopeProvider);
     }
 
     /// <summary>Gets the current executing assembly considering the target framework.</summary>
     /// <returns>The assembly to be used as the reference logging assembly.</returns>
-    private Assembly GetLoggingReferenceAssembly() => _options?.ConfigurationAssembly ?? Assembly.GetExecutingAssembly();
+    private Assembly GetLoggingReferenceAssembly() => _options?.ConfigurationAssembly ?? typeof(Log4NetProvider).Assembly;
 
     /// <summary>Ensures that provided options combinations are valid, and sets the class field if everything is ok.</summary>
     /// <param name="options">The options to validate.</param>
@@ -230,10 +222,7 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     /// </exception>
     private void SetOptionsIfValid(Log4NetProviderOptions options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        _ = options ?? throw new ArgumentNullException(nameof(options));
 
         if (options.Watch
             && options.PropertyOverrides.Count > 0)
@@ -261,7 +250,7 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
         var fileNamePath = CreateLog4NetFilePath();
         if (_options.Watch)
         {
-            _ = XmlConfigurator.ConfigureAndWatch(_loggerRepository!, new FileInfo(fileNamePath));
+            _ = XmlConfigurator.ConfigureAndWatch(_loggerRepository!, new(fileNamePath));
             return;
         }
 

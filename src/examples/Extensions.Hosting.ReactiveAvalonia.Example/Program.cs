@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -22,11 +22,11 @@ public static class Program
 {
     /// <summary>Logs that another instance is already running.</summary>
     private static readonly Action<ILogger, string, Exception?> ApplicationAlreadyRunning =
-        LoggerMessage.Define<string>(LogLevel.Warning, new EventId(1, nameof(ApplicationAlreadyRunning)), "Application {ApplicationName} already running.");
+        LoggerMessage.Define<string>(LogLevel.Warning, new(1, nameof(ApplicationAlreadyRunning)), "Application {ApplicationName} already running.");
 
     /// <summary>Logs that the application is running.</summary>
     private static readonly Action<ILogger, Exception?> ApplicationRunning =
-        LoggerMessage.Define(LogLevel.Information, new EventId(2, nameof(ApplicationRunning)), "Application running.");
+        LoggerMessage.Define(LogLevel.Information, new(2, nameof(ApplicationRunning)), "Application running.");
 
     /// <summary>Initializes and runs the Avalonia application with configured logging, application settings, and main window.</summary>
     /// <remarks>This method sets up the application host with logging, configuration, and Avalonia-specific
@@ -41,14 +41,14 @@ public static class Program
             .ConfigureSplatForMicrosoftDependencyResolver()
             .ConfigureLogging()
             .ConfigureConfiguration(args)
-            .ConfigureSingleInstance(builder =>
+            .ConfigureSingleInstance(static builder =>
             {
                 builder.MutexId = "{691A4D6D-2CE0-4D47-B7F4-D99D8C02161E}";
-                builder.WhenNotFirstInstance = (hostingEnvironment, logger) =>
+                builder.WhenNotFirstInstance = static (hostingEnvironment, logger) =>
                     ApplicationAlreadyRunning(logger, hostingEnvironment.ApplicationName, null);
             })
-            .ConfigureServices(services => services.AddTransient<IViewFor<NugetDetailsViewModel>, NugetDetailsView>())
-            .ConfigureAvalonia(avaloniaBuilder =>
+            .ConfigureServices(static services => services.AddTransient<IViewFor<NugetDetailsViewModel>, NugetDetailsView>())
+            .ConfigureAvalonia(static avaloniaBuilder =>
             {
                 _ = avaloniaBuilder.UseApplication<App>();
                 _ = avaloniaBuilder.UseWindow<MainWindow>();

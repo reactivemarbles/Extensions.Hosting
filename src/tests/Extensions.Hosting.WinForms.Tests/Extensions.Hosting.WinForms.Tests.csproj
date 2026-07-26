@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <RootNamespace>Extensions.Hosting.WinForms.Tests</RootNamespace>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Extensions.Hosting.WinForms\Extensions.Hosting.WinForms.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.ReactiveUI.WinForms\Extensions.Hosting.ReactiveUI.WinForms.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TUnit.Assertions" />
+    <Using Include="TUnit.Assertions.Extensions" />
+    <Using Include="TUnit.Core" />
+  </ItemGroup>
+</Project>

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
@@ -25,11 +25,8 @@ public class NugetDetailsViewModel : ReactiveObject
         _metadata = metadata;
         _defaultUrl = new("https://git.io/fAlfh");
 
-        var startInfo = new ProcessStartInfo(ProjectUrl?.ToString() ?? _defaultUrl.ToString())
-        {
-            UseShellExecute = true
-        };
-        OpenPage = ReactiveCommand.Create(() => OpenPackagePage(startInfo));
+        var projectUrl = ProjectUrl ?? _defaultUrl;
+        OpenPage = ReactiveCommand.Create(() => OpenPackagePage(projectUrl));
     }
 
     /// <summary>Gets the icon URL.</summary>
@@ -63,6 +60,16 @@ public class NugetDetailsViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenPage { get; }
 
     /// <summary>Opens the package page in the default system browser.</summary>
-    /// <param name="startInfo">The process start information.</param>
-    private static void OpenPackagePage(ProcessStartInfo startInfo) => _ = Process.Start(startInfo);
+    /// <param name="projectUrl">The package project URL.</param>
+    private static void OpenPackagePage(Uri projectUrl)
+    {
+        if (!string.Equals(projectUrl.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(projectUrl.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var startInfo = new ProcessStartInfo("explorer.exe") { Arguments = projectUrl.AbsoluteUri, UseShellExecute = false };
+        _ = Process.Start(startInfo);
+    }
 }

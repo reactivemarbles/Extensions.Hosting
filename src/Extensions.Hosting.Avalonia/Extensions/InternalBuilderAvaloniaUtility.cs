@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -31,17 +31,6 @@ internal static class InternalBuilderAvaloniaUtility
     internal static IHostBuilder UseAvaloniaLifetime(IHostBuilder hostBuilder, ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose) =>
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => InnerUseAvaloniaLifetime(hostBuilder.Properties, shutdownMode));
 
-    /// <summary>Configures the Avalonia application by adding Avalonia services to the host builder and applying an optional configuration delegate.</summary>
-    /// <remarks>This method integrates Avalonia into the application's dependency injection system, enabling
-    /// Avalonia UI functionality within a generic host environment. Use the configuration delegate to customize
-    /// Avalonia-specific options as needed.</remarks>
-    /// <param name="hostBuilder">The host builder used to configure application services and properties. Cannot be null.</param>
-    /// <param name="configureDelegate">An optional delegate that allows further customization of the Avalonia builder during configuration. If
-    /// provided, it will be invoked to modify Avalonia-specific settings.</param>
-    /// <returns>An instance of IHostBuilder that has been configured to support Avalonia features and services.</returns>
-    internal static IHostBuilder ConfigureAvalonia(IHostBuilder hostBuilder, Action<IAvaloniaBuilder>? configureDelegate = null) =>
-        hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => InnerConfigureAvalonia(hostBuilder.Properties, serviceCollection, configureDelegate));
-
     /// <summary>Configures Avalonia lifetime management for the application host, enabling proper shutdown behavior according to the specified shutdown mode.</summary>
     /// <remarks>This method integrates Avalonia's lifetime management into the application's host, ensuring
     /// that the application shuts down correctly based on the defined shutdown mode.</remarks>
@@ -55,6 +44,17 @@ internal static class InternalBuilderAvaloniaUtility
 
         return hostApplicationBuilder;
     }
+
+    /// <summary>Configures the Avalonia application by adding Avalonia services to the host builder and applying an optional configuration delegate.</summary>
+    /// <remarks>This method integrates Avalonia into the application's dependency injection system, enabling
+    /// Avalonia UI functionality within a generic host environment. Use the configuration delegate to customize
+    /// Avalonia-specific options as needed.</remarks>
+    /// <param name="hostBuilder">The host builder used to configure application services and properties. Cannot be null.</param>
+    /// <param name="configureDelegate">An optional delegate that allows further customization of the Avalonia builder during configuration. If
+    /// provided, it will be invoked to modify Avalonia-specific settings.</param>
+    /// <returns>An instance of IHostBuilder that has been configured to support Avalonia features and services.</returns>
+    internal static IHostBuilder ConfigureAvalonia(IHostBuilder hostBuilder, Action<IAvaloniaBuilder>? configureDelegate = null) =>
+        hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => InnerConfigureAvalonia(hostBuilder.Properties, serviceCollection, configureDelegate));
 
     /// <summary>Configures the Avalonia application within the specified host application builder, optionally allowing further customization through a delegate.</summary>
     /// <remarks>This method sets up Avalonia integration for the host application builder and applies any

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -13,23 +13,25 @@ namespace ReactiveMarbles.Plugin.Example;
 /// <summary>Example for a IHostedService which tracks live-time events.</summary>
 /// <param name="logger">The logger used to record lifetime events.</param>
 /// <param name="hostApplicationLifetime">The host lifetime used to receive application lifecycle notifications.</param>
-public class LifetimeEventsHostedService(ILogger<LifetimeEventsHostedService> logger, IHostApplicationLifetime hostApplicationLifetime) : HostedServiceBase<LifetimeEventsHostedService>(logger, hostApplicationLifetime)
+public class LifetimeEventsHostedService(
+    ILogger<LifetimeEventsHostedService> logger,
+    IHostApplicationLifetime hostApplicationLifetime) : HostedServiceBase<LifetimeEventsHostedService>(logger, hostApplicationLifetime)
 {
     /// <summary>Logs that the hosted service started callback has run.</summary>
     private static readonly Action<ILogger, Exception?> OnStartedCalled =
-        LoggerMessage.Define(LogLevel.Information, new EventId(1, nameof(OnStarted)), "OnStarted has been called.");
+        LoggerMessage.Define(LogLevel.Information, new(1, nameof(OnStarted)), "OnStarted has been called.");
 
     /// <summary>Logs that the hosted service stopping callback has run.</summary>
     private static readonly Action<ILogger, Exception?> OnStoppingCalled =
-        LoggerMessage.Define(LogLevel.Information, new EventId(2, nameof(OnStopping)), "OnStopping has been called.");
+        LoggerMessage.Define(LogLevel.Information, new(2, nameof(OnStopping)), "OnStopping has been called.");
 
     /// <summary>Logs that the hosted service stopped callback has run.</summary>
     private static readonly Action<ILogger, Exception?> OnStoppedCalled =
-        LoggerMessage.Define(LogLevel.Information, new EventId(3, nameof(OnStopped)), "OnStopped has been called.");
+        LoggerMessage.Define(LogLevel.Information, new(3, nameof(OnStopped)), "OnStopped has been called.");
 
     /// <summary>Logs that the hosted service dispose callback has run.</summary>
     private static readonly Action<ILogger, Exception?> DisposeCalled =
-        LoggerMessage.Define(LogLevel.Information, new EventId(4, nameof(Dispose)), "Dispose has been called.");
+        LoggerMessage.Define(LogLevel.Information, new(4, nameof(Dispose)), "Dispose has been called.");
 
     /// <summary>Called when [started].</summary>
     /// <returns>

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Hosting;
@@ -11,17 +11,23 @@ namespace Extensions.Hosting.Tests;
 /// <summary>Contains unit tests for the hosted service base lifecycle implementation.</summary>
 public class HostedServiceBaseTests
 {
+    /// <summary>The lifecycle callback timeout, in seconds.</summary>
+    private const int LifecycleTimeoutSeconds = 5;
+
+    /// <summary>The delay used to allow shutdown callbacks to propagate, in milliseconds.</summary>
+    private const int ShutdownPropagationDelayMilliseconds = 50;
+
     /// <summary>Verifies that lifetime callbacks invoke the overridable lifecycle methods.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task LifetimeCallbacks_InvokeLifecycleMethods()
     {
         using var lifetime = new TestHostApplicationLifetime();
-        var service = new TestHostedService(lifetime);
+        using var service = new TestHostedService(lifetime);
 
         await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
         lifetime.TriggerStarted();
-        await service.Started.Task.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+        await service.Started.Task.WaitAsync(TimeSpan.FromSeconds(LifecycleTimeoutSeconds)).ConfigureAwait(false);
 
         await Assert.That(service.StartedCount).IsEqualTo(1);
         await Assert.That(service.CleanupDisposable).IsNotNull();
@@ -46,7 +52,7 @@ public class HostedServiceBaseTests
 
         await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
         lifetime.TriggerStarted();
-        await service.Started.Task.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+        await service.Started.Task.WaitAsync(TimeSpan.FromSeconds(LifecycleTimeoutSeconds)).ConfigureAwait(false);
 
         service.Dispose();
         service.Dispose();
@@ -62,7 +68,7 @@ public class HostedServiceBaseTests
     public async Task StopAsync_ReturnsCompletedTask()
     {
         using var lifetime = new TestHostApplicationLifetime();
-        var service = new DefaultHostedService(lifetime);
+        using var service = new DefaultHostedService(lifetime);
 
         var stopTask = service.StopAsync(CancellationToken.None);
 
@@ -88,20 +94,19 @@ public class HostedServiceBaseTests
     public async Task LifetimeStarted_WhenOnStartedThrows_DoesNotThrowFromCallback()
     {
         using var lifetime = new TestHostApplicationLifetime();
-        var service = new ThrowingStartedHostedService(lifetime);
+        using var service = new ThrowingStartedHostedService(lifetime);
 
         await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
         lifetime.TriggerStarted();
-        await service.Started.Task.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-        await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false);
+        await service.Started.Task.WaitAsync(TimeSpan.FromSeconds(LifecycleTimeoutSeconds)).ConfigureAwait(false);
+        await Task.Delay(TimeSpan.FromMilliseconds(ShutdownPropagationDelayMilliseconds)).ConfigureAwait(false);
 
         await Assert.That(service.StartedCount).IsEqualTo(1);
     }
 
     /// <summary>Test hosted service used to observe lifecycle callback execution.</summary>
     /// <param name="lifetime">The test lifetime source.</param>
-    private sealed class TestHostedService(IHostApplicationLifetime lifetime)
-        : HostedServiceBase<TestHostedService>(NullLogger<TestHostedService>.Instance, lifetime)
+    private sealed class TestHostedService(IHostApplicationLifetime lifetime) : HostedServiceBase<TestHostedService>(NullLogger<TestHostedService>.Instance, lifetime)
     {
         /// <summary>Gets the started signal.</summary>
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -145,13 +150,11 @@ public class HostedServiceBaseTests
 
     /// <summary>Hosted service that uses the base lifecycle implementations.</summary>
     /// <param name="lifetime">The test lifetime source.</param>
-    private sealed class DefaultHostedService(IHostApplicationLifetime lifetime)
-        : HostedServiceBase<DefaultHostedService>(NullLogger<DefaultHostedService>.Instance, lifetime);
+    private sealed class DefaultHostedService(IHostApplicationLifetime lifetime) : HostedServiceBase<DefaultHostedService>(NullLogger<DefaultHostedService>.Instance, lifetime);
 
     /// <summary>Hosted service that throws from OnStarted.</summary>
     /// <param name="lifetime">The test lifetime source.</param>
-    private sealed class ThrowingStartedHostedService(IHostApplicationLifetime lifetime)
-        : HostedServiceBase<ThrowingStartedHostedService>(NullLogger<ThrowingStartedHostedService>.Instance, lifetime)
+    private sealed class ThrowingStartedHostedService(IHostApplicationLifetime lifetime) : HostedServiceBase<ThrowingStartedHostedService>(NullLogger<ThrowingStartedHostedService>.Instance, lifetime)
     {
         /// <summary>Gets the started signal.</summary>
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

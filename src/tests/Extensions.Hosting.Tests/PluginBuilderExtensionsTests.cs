@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -10,6 +10,9 @@ namespace Extensions.Hosting.Tests;
 /// <summary>Contains unit tests for the PluginBuilderExtensions class.</summary>
 public class PluginBuilderExtensionsTests
 {
+    /// <summary>The expected number of registered directories.</summary>
+    private const int ExpectedDirectoryCount = 2;
+
     /// <summary>Verifies that AddScanDirectories throws when directories is null.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -174,10 +177,7 @@ public class PluginBuilderExtensionsTests
     [Test]
     public async Task RequirePlugins_WithFalse_SetsFailIfNoPluginsFalse()
     {
-        var builder = new TestPluginBuilder
-        {
-            FailIfNoPlugins = true
-        };
+        var builder = new TestPluginBuilder { FailIfNoPlugins = true };
 
         builder.RequirePlugins(false);
         await Assert.That(builder.FailIfNoPlugins).IsFalse();
@@ -194,7 +194,7 @@ public class PluginBuilderExtensionsTests
 
         builder.AddScanDirectories(dir1, dir2);
 
-        await Assert.That(builder.PluginDirectories.Count).IsEqualTo(2);
-        await Assert.That(builder.FrameworkDirectories.Count).IsEqualTo(2);
+        await Assert.That(builder.PluginDirectories.Count).IsEqualTo(ExpectedDirectoryCount);
+        await Assert.That(builder.FrameworkDirectories.Count).IsEqualTo(ExpectedDirectoryCount);
     }
 }

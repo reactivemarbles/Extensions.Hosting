@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.ServiceProcess;
@@ -14,28 +14,46 @@ namespace ReactiveMarbles.Extensions.Hosting.PluginService;
 /// <summary>Provides an <see cref="IHostLifetime"/> implementation backed by <see cref="ServiceBase"/>.</summary>
 /// <seealso cref="ServiceBase" />
 /// <seealso cref="IHostLifetime" />
-/// <remarks>
-/// Initializes a new instance of the <see cref="ServiceBaseLifetime"/> class.
-/// </remarks>
-/// <param name="applicationLifetime">The application lifetime.</param>
-/// <exception cref="ArgumentNullException">applicationLifetime.</exception>
-public class ServiceBaseLifetime(IHostApplicationLifetime applicationLifetime) : ServiceBase, IHostLifetime
+public class ServiceBaseLifetime : ServiceBase, IHostLifetime
 {
     /// <summary>Stores the delay start value.</summary>
-    private readonly TaskCompletionSource<object> _delayStart = new();
+    private readonly TaskCompletionSource<object> _delayStart = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    /// <summary>Stores the operating-system service runtime.</summary>
+    private readonly IServiceHostRuntime _runtime;
+
+    /// <summary>Initializes a new instance of the <see cref="ServiceBaseLifetime"/> class.</summary>
+    /// <param name="applicationLifetime">The application lifetime.</param>
+    public ServiceBaseLifetime(IHostApplicationLifetime applicationLifetime)
+        : this(applicationLifetime, ServiceHost.Runtime)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="ServiceBaseLifetime"/> class with a service runtime.</summary>
+    /// <param name="applicationLifetime">The application lifetime.</param>
+    /// <param name="runtime">The operating-system service runtime.</param>
+    internal ServiceBaseLifetime(IHostApplicationLifetime applicationLifetime, IServiceHostRuntime runtime)
+    {
+        ApplicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
+        _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+    }
 
     /// <summary>Gets the host application lifetime used to stop the application from service callbacks.</summary>
-    private IHostApplicationLifetime ApplicationLifetime { get; } = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
+    private IHostApplicationLifetime ApplicationLifetime { get; }
 
-    /// <summary>Called at the start of <see cref="IHost.StartAsync(CancellationToken)" /> which will wait until it's complete before continuing. This can be used to delay startup until signaled by an external event.</summary>
+    /// <summary>Called at the start of <see cref="IHost.StartAsync(CancellationToken)" /> and waits until startup is signaled by an external event.</summary>
     /// <param name="cancellationToken">Used to indicate when stop should no longer be graceful.</param>
     /// <returns>
     /// A <see cref="Task" />.
     /// </returns>
     public Task WaitForStartAsync(CancellationToken cancellationToken)
     {
-        _ = cancellationToken.Register(() => _delayStart.TrySetCanceled());
-        _ = ApplicationLifetime.ApplicationStopping.Register(Stop);
+        _ = cancellationToken.Register(
+            static state => _ = ((TaskCompletionSource<object>)state!).TrySetCanceled(),
+            _delayStart);
+        _ = ApplicationLifetime.ApplicationStopping.Register(
+            static state => ((ServiceBaseLifetime)state!).StopService(),
+            this);
 
         new Thread(Run).Start(); // Otherwise this would block and prevent IHost.StartAsync from finishing.
         return _delayStart.Task;
@@ -48,12 +66,13 @@ public class ServiceBaseLifetime(IHostApplicationLifetime applicationLifetime) :
     /// </returns>
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        Stop();
+        StopService();
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// When implemented in a derived class, executes when a Start command is sent to the service by the Service Control Manager (SCM) or when the operating system starts (for a service that starts automatically). Specifies actions to take when the service starts.
+    /// When implemented in a derived class, executes when a Start command is sent to the service by the Service Control
+    /// Manager or when the operating system starts. Specifies actions to take when the service starts.
     /// </summary>
     /// <param name="args">Data passed by the start command.</param>
     protected override void OnStart(string[] args)
@@ -74,7 +93,7 @@ public class ServiceBaseLifetime(IHostApplicationLifetime applicationLifetime) :
     {
         try
         {
-            Run(this); // This blocks until the service is stopped.
+            _runtime.RunService(this); // This blocks until the service is stopped.
             _ = _delayStart.TrySetException(new InvalidOperationException("Stopped without starting"));
         }
         catch (Exception ex)
@@ -82,4 +101,7 @@ public class ServiceBaseLifetime(IHostApplicationLifetime applicationLifetime) :
             _ = _delayStart.TrySetException(ex);
         }
     }
+
+    /// <summary>Requests that the configured runtime stops this service.</summary>
+    private void StopService() => _runtime.StopService(this);
 }

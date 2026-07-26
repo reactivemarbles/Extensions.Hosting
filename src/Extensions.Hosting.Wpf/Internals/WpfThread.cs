@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -29,10 +29,7 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
 
         // Create the new WPF application
-        var wpfApplication = ServiceProvider.GetService<Application>() ?? new()
-        {
-            ShutdownMode = UiContext!.ShutdownMode
-        };
+        var wpfApplication = ServiceProvider.GetService<Application>() ?? new() { ShutdownMode = UiContext!.ShutdownMode };
 
         // Register to the WPF application exit to stop the host application
         _ = wpfApplication.Dispatcher.InvokeAsync(() => wpfApplication.Exit += (s, e) => HandleApplicationExit());
@@ -42,30 +39,46 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
     }
 
     /// <inheritdoc />
-    protected override void UiThreadStart() =>
-        UiContext?.WpfApplication?.Dispatcher.Invoke(() =>
+    protected override void UiThreadStart()
+    {
+        var wpfApplication = UiContext?.WpfApplication;
+        if (wpfApplication is null)
         {
-            // Mark the application as running
-            UiContext.IsRunning = true;
+            return;
+        }
 
-            // Use the provided IWpfService
-            foreach (var wpfService in ServiceProvider.GetServices<IWpfService>())
-            {
-                wpfService.Initialize(UiContext.WpfApplication);
-            }
+        var currentThreadOwnsApplicationDispatcher = wpfApplication.Dispatcher.Thread == Thread.CurrentThread;
 
-            // Run the WPF application in this thread which was specifically created for it, with the specified shell
-            var shellWindows = ServiceProvider.GetServices<IWpfShell>().Cast<Window>().ToList();
+        wpfApplication.Dispatcher.Invoke(
+            () => RunApplicationOnDispatcher(wpfApplication, currentThreadOwnsApplicationDispatcher));
+    }
 
-            switch (shellWindows.Count)
-            {
-                case 1:
+    /// <summary>Runs the configured WPF application from its dispatcher.</summary>
+    /// <param name="wpfApplication">The WPF application to run.</param>
+    /// <param name="currentThreadOwnsApplicationDispatcher">Whether the startup thread owns the application dispatcher.</param>
+    private void RunApplicationOnDispatcher(Application wpfApplication, bool currentThreadOwnsApplicationDispatcher)
+    {
+        // Mark the application as running
+        UiContext!.IsRunning = true;
+
+        // Use the provided IWpfService
+        foreach (var wpfService in ServiceProvider.GetServices<IWpfService>())
+        {
+            wpfService.Initialize(wpfApplication);
+        }
+
+        // Run the WPF application in this thread which was specifically created for it, with the specified shell
+        var shellWindows = GetShellWindows();
+
+        switch (shellWindows.Count)
+        {
+            case 1:
                 {
-                    if (UiContext.WpfApplication.Dispatcher.Thread.ThreadState != ThreadState.Running)
+                    if (currentThreadOwnsApplicationDispatcher)
                     {
-                        _ = UiContext.WpfApplication.Run(shellWindows[0]);
+                        _ = wpfApplication.Run(shellWindows[0]);
                     }
-                    else if (UiContext.WpfApplication.StartupUri is not null)
+                    else if (wpfApplication.StartupUri is not null)
                     {
                         _ = MessageBox.Show("Please remove the StartupUri configuration in App.xaml");
                     }
@@ -77,16 +90,15 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
                     break;
                 }
 
-                case 0:
+            case 0:
                 {
-                    if (UiContext.WpfApplication.Dispatcher.Thread.ThreadState != ThreadState.Running)
+                    if (currentThreadOwnsApplicationDispatcher)
                     {
-                        _ = UiContext.WpfApplication.Run();
+                        _ = wpfApplication.Run();
                     }
-                    else if (UiContext.WpfApplication.MainWindow is not null)
+                    else if (wpfApplication.MainWindow is not null)
                     {
-                        // show window if possible
-                        UiContext.WpfApplication.MainWindow.Show();
+                        wpfApplication.MainWindow.Show();
                     }
                     else
                     {
@@ -96,9 +108,9 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
                     break;
                 }
 
-                default:
+            default:
                 {
-                    UiContext.WpfApplication.Startup += (sender, args) =>
+                    wpfApplication.Startup += (sender, args) =>
                     {
                         foreach (var window in shellWindows)
                         {
@@ -106,13 +118,29 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
                         }
                     };
 
-                    if (UiContext.WpfApplication.Dispatcher.Thread.ThreadState != ThreadState.Running)
+                    if (currentThreadOwnsApplicationDispatcher)
                     {
-                        _ = UiContext.WpfApplication.Run();
+                        _ = wpfApplication.Run();
                     }
 
                     break;
                 }
+        }
+    }
+
+    /// <summary>Resolves the registered WPF shell windows.</summary>
+    /// <returns>The registered shell windows.</returns>
+    private List<Window> GetShellWindows()
+    {
+        var shellWindows = new List<Window>();
+        foreach (var shell in ServiceProvider.GetServices<IWpfShell>())
+        {
+            if (shell is Window window)
+            {
+                shellWindows.Add(window);
             }
-        });
+        }
+
+        return shellWindows;
+    }
 }

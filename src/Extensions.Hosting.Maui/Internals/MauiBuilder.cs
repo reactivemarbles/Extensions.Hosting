@@ -1,10 +1,11 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui.Internals;
@@ -12,6 +13,19 @@ namespace ReactiveMarbles.Extensions.Hosting.Maui.Internals;
 /// <inheritdoc/>
 internal sealed class MauiBuilder : IMauiBuilder
 {
+    /// <summary>Stores the action that applies MAUI application defaults to the underlying builder.</summary>
+    private readonly Action<MauiAppBuilder>? _configureMauiApplication;
+
+    /// <summary>Initializes a new instance of the <see cref="MauiBuilder"/> class.</summary>
+    internal MauiBuilder()
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="MauiBuilder"/> class with a composed MAUI application configurator.</summary>
+    /// <param name="configureMauiApplication">The action that applies MAUI application defaults to the underlying builder.</param>
+    internal MauiBuilder(Action<MauiAppBuilder>? configureMauiApplication) =>
+        _configureMauiApplication = configureMauiApplication;
+
     /// <inheritdoc/>
     public Type? ApplicationType { get; set; }
 
@@ -29,4 +43,19 @@ internal sealed class MauiBuilder : IMauiBuilder
     /// The maui application builder.
     /// </value>
     public MauiAppBuilder MauiAppBuilder { get; } = MauiApp.CreateBuilder();
+
+    /// <summary>Applies MAUI application defaults for the specified application type.</summary>
+    /// <typeparam name="TApplication">The application type to configure.</typeparam>
+    /// <returns>The underlying MAUI application builder.</returns>
+    internal MauiAppBuilder UseMauiApp<TApplication>()
+        where TApplication : Application
+    {
+        if (_configureMauiApplication is not null)
+        {
+            _configureMauiApplication(MauiAppBuilder);
+            return MauiAppBuilder;
+        }
+
+        return MauiAppBuilder.UseMauiApp<TApplication>();
+    }
 }

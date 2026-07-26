@@ -1,11 +1,12 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
+using ReactiveMarbles.Extensions.Hosting.Maui.Internals;
 
 namespace ReactiveMarbles.Extensions.Hosting.Maui;
 
@@ -34,16 +35,30 @@ public static class MauiBuilderExtensions
 
         /// <summary>Configures the Maui application to use the specified application type and applies optional additional configuration to the Maui app builder.</summary>
         /// <typeparam name="TApplication">The type of the application to use. Must derive from <see cref="Application"/>.</typeparam>
-        /// <param name="configureMauiApp">An optional delegate to further configure the <see cref="MauiAppBuilder"/> before building the application. If
-        /// null, no additional configuration is applied.</param>
         /// <returns>The same <see cref="IMauiBuilder"/> instance, configured to use the specified application type.</returns>
-        public IMauiBuilder UseMauiApp<TApplication>(Action<MauiAppBuilder>? configureMauiApp = null)
+        public IMauiBuilder UseMauiApp<TApplication>()
+            where TApplication : Application =>
+            mauiBuilder.UseMauiApp<TApplication>((Action<MauiAppBuilder>?)null);
+
+        /// <summary>Configures the MAUI application type and applies additional builder configuration.</summary>
+        /// <typeparam name="TApplication">The type of the application to use. Must derive from <see cref="Application"/>.</typeparam>
+        /// <param name="configureMauiApp">A delegate to further configure the <see cref="MauiAppBuilder"/>.</param>
+        /// <returns>The same <see cref="IMauiBuilder"/> instance, configured to use the specified application type.</returns>
+        public IMauiBuilder UseMauiApp<TApplication>(Action<MauiAppBuilder>? configureMauiApp)
             where TApplication : Application
         {
-            ArgumentNullException.ThrowIfNull(mauiBuilder);
+            _ = mauiBuilder ?? throw new ArgumentNullException(nameof(mauiBuilder));
 
             mauiBuilder.ApplicationType = typeof(TApplication);
-            _ = mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+            if (mauiBuilder is MauiBuilder builder)
+            {
+                _ = builder.UseMauiApp<TApplication>();
+            }
+            else
+            {
+                _ = mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+            }
+
             configureMauiApp?.Invoke(mauiBuilder.MauiAppBuilder);
             return mauiBuilder;
         }
@@ -51,16 +66,34 @@ public static class MauiBuilderExtensions
         /// <summary>Configures the Maui application to use the specified application instance and applies optional additional configuration to the Maui app builder.</summary>
         /// <typeparam name="TApplication">The type of the application to use. Must derive from Application.</typeparam>
         /// <param name="currentApplication">The application instance to use as the root of the Maui app. Cannot be null.</param>
-        /// <param name="configureMauiApp">An optional delegate to further configure the Maui app builder before building the application. May be null.</param>
         /// <returns>The same IMauiBuilder instance for chaining further configuration.</returns>
-        public IMauiBuilder UseMauiApp<TApplication>(TApplication currentApplication, Action<MauiAppBuilder>? configureMauiApp = null)
+        public IMauiBuilder UseMauiApp<TApplication>(TApplication currentApplication)
+            where TApplication : Application =>
+            mauiBuilder.UseMauiApp(currentApplication, null);
+
+        /// <summary>Configures the MAUI application instance and applies additional builder configuration.</summary>
+        /// <typeparam name="TApplication">The type of the application to use. Must derive from Application.</typeparam>
+        /// <param name="currentApplication">The application instance to use as the root of the MAUI app. Cannot be null.</param>
+        /// <param name="configureMauiApp">A delegate to further configure the Maui app builder.</param>
+        /// <returns>The same IMauiBuilder instance for chaining further configuration.</returns>
+        public IMauiBuilder UseMauiApp<TApplication>(
+            TApplication currentApplication,
+            Action<MauiAppBuilder>? configureMauiApp)
             where TApplication : Application
         {
-            ArgumentNullException.ThrowIfNull(mauiBuilder);
+            _ = mauiBuilder ?? throw new ArgumentNullException(nameof(mauiBuilder));
 
             mauiBuilder.ApplicationType = typeof(TApplication);
             mauiBuilder.Application = currentApplication;
-            _ = mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+            if (mauiBuilder is MauiBuilder builder)
+            {
+                _ = builder.UseMauiApp<TApplication>();
+            }
+            else
+            {
+                _ = mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+            }
+
             configureMauiApp?.Invoke(mauiBuilder.MauiAppBuilder);
             return mauiBuilder;
         }
@@ -74,7 +107,7 @@ public static class MauiBuilderExtensions
         /// <returns>The <see cref="IMauiBuilder"/> instance for chaining further configuration.</returns>
         public IMauiBuilder ConfigureContext(Action<IMauiContext> configureAction)
         {
-            ArgumentNullException.ThrowIfNull(mauiBuilder);
+            _ = mauiBuilder ?? throw new ArgumentNullException(nameof(mauiBuilder));
 
             mauiBuilder.ConfigureContextAction = configureAction;
             return mauiBuilder;

@@ -1,14 +1,11 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
 using ReactiveMarbles.Extensions.Hosting.UiThread;
-using WinRT;
 
 namespace ReactiveMarbles.Extensions.Hosting.WinUI.Internals;
 
@@ -17,23 +14,45 @@ namespace ReactiveMarbles.Extensions.Hosting.WinUI.Internals;
 /// application. It ensures that the necessary WinUI services and synchronization context are initialized on the correct
 /// thread. The WinUI application and its main window are created and activated as part of the thread startup
 /// process.</remarks>
-/// <param name="serviceProvider">The service provider used to resolve WinUI application services and dependencies. Cannot be null.</param>
-public class WinUIThread(IServiceProvider serviceProvider) : BaseUiThread<IWinUIContext>(serviceProvider)
+public class WinUIThread : BaseUiThread<IWinUIContext>
 {
+    /// <summary>Stores the default platform application-loop runtime.</summary>
+    private static readonly IWinUIThreadRuntime DefaultRuntime = new WinUIThreadRuntime();
+
+    /// <summary>Stores the platform application-loop runtime.</summary>
+    private readonly IWinUIThreadRuntime? _runtime;
+
+    /// <summary>Initializes a new instance of the <see cref="WinUIThread"/> class.</summary>
+    /// <param name="serviceProvider">The service provider used to resolve WinUI application services and dependencies.</param>
+    public WinUIThread(IServiceProvider serviceProvider)
+        : base(serviceProvider)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="WinUIThread"/> class for controlled platform-runtime execution.</summary>
+    /// <param name="serviceProvider">The service provider used to resolve WinUI application services and dependencies.</param>
+    /// <param name="runtime">The platform application-loop runtime.</param>
+    /// <param name="useDedicatedUiThread">Whether to start work on a dedicated UI thread.</param>
+    internal WinUIThread(IServiceProvider serviceProvider, IWinUIThreadRuntime runtime, bool useDedicatedUiThread)
+        : base(serviceProvider, useDedicatedUiThread)
+    {
+        _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+    }
+
     /// <inheritdoc />
     protected override void PreUiThreadStart() =>
-        ComWrappersSupport.InitializeComWrappers();
+        (_runtime ?? DefaultRuntime).InitializeComWrappers();
 
     /// <inheritdoc />
     protected override void UiThreadStart()
     {
-        Application.Start(_ =>
+        (_runtime ?? DefaultRuntime).Start((dispatcher, synchronizationContext) =>
         {
-            UiContext!.Dispatcher = DispatcherQueue.GetForCurrentThread();
-            var context = new DispatcherQueueSynchronizationContext(UiContext.Dispatcher);
-            SynchronizationContext.SetSynchronizationContext(context);
+            UiContext!.Dispatcher = dispatcher;
+            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
 
-            UiContext.WinUIApplication = ServiceProvider.GetRequiredService<Application>();
+            var application = (_runtime ?? DefaultRuntime).GetApplication(ServiceProvider);
+            UiContext.WinUIApplication = application;
 
             // Use the provided IWinUIService
             var winUIServices = ServiceProvider.GetServices<IWinUIService>();
@@ -41,12 +60,13 @@ public class WinUIThread(IServiceProvider serviceProvider) : BaseUiThread<IWinUI
             {
                 foreach (var winUIService in winUIServices)
                 {
-                    winUIService.Initialize(UiContext.WinUIApplication);
+                    winUIService.Initialize(application);
                 }
             }
 
-            UiContext.AppWindow = (Window)ActivatorUtilities.CreateInstance(ServiceProvider, UiContext.AppWindowType!);
-            UiContext.AppWindow.Activate();
+            var appWindow = (_runtime ?? DefaultRuntime).CreateWindow(ServiceProvider, UiContext.AppWindowType!);
+            UiContext.AppWindow = appWindow;
+            (_runtime ?? DefaultRuntime).ActivateWindow(appWindow);
         });
         HandleApplicationExit();
     }

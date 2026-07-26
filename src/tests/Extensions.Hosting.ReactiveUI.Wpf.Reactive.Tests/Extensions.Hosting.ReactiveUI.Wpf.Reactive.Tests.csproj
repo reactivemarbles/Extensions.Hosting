@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-windows10.0.19041;net11.0-windows10.0.19041</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <RootNamespace>Extensions.Hosting.ReactiveUI.Wpf.Tests</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <DefineConstants>$(DefineConstants);REACTIVE_SHIM</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Extensions.Hosting.ReactiveUI.Wpf.Tests\ReactiveWpfSchedulerTests.cs" Link="ReactiveWpfSchedulerTests.cs" />
+    <Compile Include="..\Extensions.Hosting.ReactiveUI.Wpf.Tests\TestApplication.cs" Link="TestApplication.cs" />
+    <Compile Include="..\Extensions.Hosting.ReactiveUI.Wpf.Tests\WpfHostingCoverageTests.cs" Link="WpfHostingCoverageTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Extensions.Hosting.ReactiveUI.Wpf.Reactive\Extensions.Hosting.ReactiveUI.Wpf.Reactive.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TUnit.Assertions" />
+    <Using Include="TUnit.Assertions.Extensions" />
+    <Using Include="TUnit.Core" />
+  </ItemGroup>
+</Project>

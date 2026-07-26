@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -17,16 +17,13 @@ internal static class DocumentExtensions
     {
         /// <summary>Converts a XDocument object into XmlDocument.</summary>
         /// <returns>The XDocument converted to XmlDocument.</returns>
-        public XmlDocument ToXmlDocument()
+        internal XmlDocument ToXmlDocument()
         {
             using var memoryStream = new MemoryStream();
             document.Save(memoryStream);
             _ = memoryStream.Seek(0, SeekOrigin.Begin);
 
-            var xmlDocument = new XmlDocument
-            {
-                XmlResolver = null,
-            };
+            var xmlDocument = new XmlDocument { XmlResolver = null, };
             using var reader = XmlReader.Create(memoryStream, CreateSecureXmlReaderSettings());
             xmlDocument.Load(reader);
             return xmlDocument;
@@ -39,7 +36,7 @@ internal static class DocumentExtensions
     {
         /// <summary>Converts a XmlDocument object into xDocument.</summary>
         /// <returns>The XmlDocument converted to XDocument.</returns>
-        public XDocument ToXDocument()
+        internal XDocument ToXDocument()
         {
             using var memoryStream = new MemoryStream();
             xmlDocument.Save(memoryStream);
@@ -53,9 +50,5 @@ internal static class DocumentExtensions
     /// <summary>Creates XML reader settings that prevent DTD processing.</summary>
     /// <returns>The secure XML reader settings.</returns>
     private static XmlReaderSettings CreateSecureXmlReaderSettings() =>
-        new()
-        {
-            DtdProcessing = DtdProcessing.Prohibit,
-            XmlResolver = null,
-        };
+        new() { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, };
 }

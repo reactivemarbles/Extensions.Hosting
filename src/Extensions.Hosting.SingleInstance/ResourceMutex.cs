@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -21,45 +21,54 @@ namespace ReactiveMarbles.Extensions.Hosting.AppServices;
 /// ResourceMutex instance.</remarks>
 public sealed class ResourceMutex : IDisposable
 {
+    /// <summary>Stores the default owner-thread join timeout in seconds.</summary>
+    private const int DefaultOwnerThreadJoinTimeoutSeconds = 5;
+
+    /// <summary>Stores the mutex acquisition timeout in milliseconds.</summary>
+    private const int MutexWaitTimeoutMilliseconds = 2000;
+
     /// <summary>Logs a mutex acquisition attempt.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _tryingToGetMutex =
-        LoggerMessage.Define<string, string>(LogLevel.Debug, new EventId(1, nameof(_tryingToGetMutex)), "{ResourceName} is trying to get Mutex {MutexId}");
+        LoggerMessage.Define<string, string>(LogLevel.Debug, new(1, nameof(_tryingToGetMutex)), "{ResourceName} is trying to get Mutex {MutexId}");
 
     /// <summary>Logs a mutex owner release timeout.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexOwnerReleaseTimedOut =
-        LoggerMessage.Define<string, string>(LogLevel.Warning, new EventId(2, nameof(_mutexOwnerReleaseTimedOut)), "Timed out waiting for mutex owner thread to release Mutex {MutexId} for {ResourceName}");
+        LoggerMessage.Define<string, string>(LogLevel.Warning, new(2, nameof(_mutexOwnerReleaseTimedOut)), "Timed out waiting for mutex owner thread to release Mutex {MutexId} for {ResourceName}");
 
     /// <summary>Logs that a mutex is already in use.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexAlreadyInUse =
-        LoggerMessage.Define<string, string>(LogLevel.Warning, new EventId(3, nameof(_mutexAlreadyInUse)), "Mutex {MutexId} is already in use and couldn't be locked for the caller {ResourceName}");
+        LoggerMessage.Define<string, string>(LogLevel.Warning, new(3, nameof(_mutexAlreadyInUse)), "Mutex {MutexId} is already in use and couldn't be locked for the caller {ResourceName}");
 
     /// <summary>Logs that an existing mutex was claimed.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexClaimed =
-        LoggerMessage.Define<string, string>(LogLevel.Information, new EventId(4, nameof(_mutexClaimed)), "{ResourceName} has claimed the mutex {MutexId}");
+        LoggerMessage.Define<string, string>(LogLevel.Information, new(4, nameof(_mutexClaimed)), "{ResourceName} has claimed the mutex {MutexId}");
 
     /// <summary>Logs that a new mutex was created and claimed.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexCreatedAndClaimed =
-        LoggerMessage.Define<string, string>(LogLevel.Information, new EventId(5, nameof(_mutexCreatedAndClaimed)), "{ResourceName} has created & claimed the mutex {MutexId}");
+        LoggerMessage.Define<string, string>(LogLevel.Information, new(5, nameof(_mutexCreatedAndClaimed)), "{ResourceName} has created & claimed the mutex {MutexId}");
 
     /// <summary>Logs that an abandoned mutex was recovered.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _abandonedMutexRecovered =
-        LoggerMessage.Define<string, string>(LogLevel.Warning, new EventId(6, nameof(_abandonedMutexRecovered)), "{ResourceName} didn't cleanup correctly, but we got the mutex {MutexId}.");
+        LoggerMessage.Define<string, string>(LogLevel.Warning, new(6, nameof(_abandonedMutexRecovered)), "{ResourceName} didn't cleanup correctly, but we got the mutex {MutexId}.");
 
     /// <summary>Logs that mutex access was unauthorized.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexUnauthorized =
-        LoggerMessage.Define<string, string>(LogLevel.Error, new EventId(7, nameof(_mutexUnauthorized)), "{ResourceName} is most likely already running for a different user in the same session, can't create/get mutex {MutexId} due to error.");
+        LoggerMessage.Define<string, string>(
+            LogLevel.Error,
+            new(7, nameof(_mutexUnauthorized)),
+            "{ResourceName} is most likely already running for a different user in the same session, can't create/get mutex {MutexId} due to error.");
 
     /// <summary>Logs that mutex acquisition failed.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexAcquisitionFailed =
-        LoggerMessage.Define<string, string>(LogLevel.Error, new EventId(8, nameof(_mutexAcquisitionFailed)), "Problem obtaining the Mutex {MutexId} for {ResourceName}, assuming it was already taken!");
+        LoggerMessage.Define<string, string>(LogLevel.Error, new(8, nameof(_mutexAcquisitionFailed)), "Problem obtaining the Mutex {MutexId} for {ResourceName}, assuming it was already taken!");
 
     /// <summary>Logs that a mutex was released.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexReleased =
-        LoggerMessage.Define<string, string>(LogLevel.Information, new EventId(9, nameof(_mutexReleased)), "Released Mutex {MutexId} for {ResourceName}");
+        LoggerMessage.Define<string, string>(LogLevel.Information, new(9, nameof(_mutexReleased)), "Released Mutex {MutexId} for {ResourceName}");
 
     /// <summary>Logs that mutex release failed.</summary>
     private static readonly Action<ILogger, string, string, Exception?> _mutexReleaseFailed =
-        LoggerMessage.Define<string, string>(LogLevel.Error, new EventId(10, nameof(_mutexReleaseFailed)), "Error releasing Mutex {MutexId} for {ResourceName}");
+        LoggerMessage.Define<string, string>(LogLevel.Error, new(10, nameof(_mutexReleaseFailed)), "Error releasing Mutex {MutexId} for {ResourceName}");
 
     /// <summary>Stores the logger value.</summary>
     private readonly ILogger _logger;
@@ -125,12 +134,41 @@ public sealed class ResourceMutex : IDisposable
     /// <param name="mutexId">The unique identifier for the mutex. Used to distinguish this mutex from others.</param>
     /// <param name="resourceName">The name of the resource associated with the mutex. If null, the mutex identifier is used as the resource name.</param>
     private ResourceMutex(ILogger logger, string mutexId, string? resourceName = null)
-        : this(logger, mutexId, resourceName, CreateMutex, static mutex => mutex.ReleaseMutex(), TimeSpan.FromSeconds(5), null)
+        : this(
+            logger,
+            mutexId,
+            resourceName,
+            CreateMutex,
+            static mutex => mutex.ReleaseMutex(),
+            TimeSpan.FromSeconds(DefaultOwnerThreadJoinTimeoutSeconds))
     {
     }
 
     /// <summary>Gets a value indicating whether the object is locked.</summary>
     public bool IsLocked { get; private set; }
+
+    /// <summary>Creates and acquires a local resource mutex.</summary>
+    /// <param name="logger">The logger to use for diagnostic messages. If null, a default logger is created.</param>
+    /// <param name="mutexId">The unique identifier for the mutex.</param>
+    /// <returns>An acquired resource mutex.</returns>
+    public static ResourceMutex Create(ILogger? logger, string? mutexId) =>
+        Create(logger, mutexId, resourceName: null, global: false);
+
+    /// <summary>Creates and acquires a local resource mutex with a display name.</summary>
+    /// <param name="logger">The logger to use for diagnostic messages. If null, a default logger is created.</param>
+    /// <param name="mutexId">The unique identifier for the mutex.</param>
+    /// <param name="resourceName">The name of the protected resource.</param>
+    /// <returns>An acquired resource mutex.</returns>
+    public static ResourceMutex Create(ILogger? logger, string? mutexId, string? resourceName) =>
+        Create(logger, mutexId, resourceName, global: false);
+
+    /// <summary>Creates and acquires a local or global resource mutex.</summary>
+    /// <param name="logger">The logger to use for diagnostic messages. If null, a default logger is created.</param>
+    /// <param name="mutexId">The unique identifier for the mutex.</param>
+    /// <param name="global">true to create a global mutex; false to create a local mutex.</param>
+    /// <returns>An acquired resource mutex.</returns>
+    public static ResourceMutex Create(ILogger? logger, string? mutexId, bool global) =>
+        Create(logger, mutexId, resourceName: null, global);
 
     /// <summary>Creates and acquires a new resource mutex for synchronizing access to a named resource across processes.</summary>
     /// <remarks>The returned ResourceMutex is locked upon creation. Callers are responsible for releasing the
@@ -143,7 +181,7 @@ public sealed class ResourceMutex : IDisposable
     /// <returns>A ResourceMutex instance that is already acquired and can be used to synchronize access to the specified
     /// resource.</returns>
     /// <exception cref="ArgumentException">Thrown if mutexId is null, empty, or consists only of white-space characters.</exception>
-    public static ResourceMutex Create(ILogger? logger, string? mutexId, string? resourceName = null, bool global = false)
+    public static ResourceMutex Create(ILogger? logger, string? mutexId, string? resourceName, bool global)
     {
         var resourceMutexId = !string.IsNullOrWhiteSpace(mutexId)
             ? mutexId
@@ -167,11 +205,7 @@ public sealed class ResourceMutex : IDisposable
     {
         _tryingToGetMutex(_logger, _resourceName, _mutexId, null);
 
-        _ownerThread = new(AcquireAndHoldMutex)
-        {
-            IsBackground = true,
-            Name = $"ResourceMutex-{_resourceName}",
-        };
+        _ownerThread = new(AcquireAndHoldMutex) { IsBackground = true, Name = $"ResourceMutex-{_resourceName}", };
         _ownerThread.Start();
 
         // Wait until the dedicated thread has finished the acquire attempt.
@@ -246,7 +280,7 @@ public sealed class ResourceMutex : IDisposable
             // 2) if the mutex wasn't created new get the right to it, this returns false if it's already locked
             if (!createdNew)
             {
-                IsLocked = applicationMutex.WaitOne(2000, false);
+                IsLocked = applicationMutex.WaitOne(MutexWaitTimeoutMilliseconds);
                 if (!IsLocked)
                 {
                     _mutexAlreadyInUse(_logger, _mutexId, _resourceName, null);
@@ -295,6 +329,13 @@ public sealed class ResourceMutex : IDisposable
             return;
         }
 
+        HoldAndReleaseMutex(applicationMutex);
+    }
+
+    /// <summary>Waits for the release signal and releases the acquired mutex on its owning thread.</summary>
+    /// <param name="applicationMutex">The acquired application mutex.</param>
+    private void HoldAndReleaseMutex(Mutex? applicationMutex)
+    {
         // Hold until Dispose() signals that we should release.
         _releaseSignal.Wait();
         _beforeReleaseMutex?.Invoke();

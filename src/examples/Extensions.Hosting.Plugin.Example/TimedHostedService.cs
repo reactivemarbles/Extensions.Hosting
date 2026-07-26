@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -16,21 +16,24 @@ namespace ReactiveMarbles.Plugin.Example;
 /// <param name="hostApplicationLifetime">The host lifetime used to receive application lifecycle notifications.</param>
 public class TimedHostedService(ILogger<TimedHostedService> logger, IHostApplicationLifetime hostApplicationLifetime) : HostedServiceBase<TimedHostedService>(logger, hostApplicationLifetime)
 {
+    /// <summary>The interval between timer callbacks, in seconds.</summary>
+    private const int TimerIntervalSeconds = 5;
+
     /// <summary>Logs that the timed service is starting.</summary>
     private static readonly Action<ILogger, Exception?> ServiceStarting =
-        LoggerMessage.Define(LogLevel.Information, new EventId(1, nameof(OnStarted)), "Timed Background Service is starting.");
+        LoggerMessage.Define(LogLevel.Information, new(1, nameof(OnStarted)), "Timed Background Service is starting.");
 
     /// <summary>Logs that the timed service is stopping.</summary>
     private static readonly Action<ILogger, Exception?> ServiceStopping =
-        LoggerMessage.Define(LogLevel.Information, new EventId(2, nameof(OnStopping)), "Timed Background Service is stopping.");
+        LoggerMessage.Define(LogLevel.Information, new(2, nameof(OnStopping)), "Timed Background Service is stopping.");
 
     /// <summary>Logs that the timed service has stopped.</summary>
     private static readonly Action<ILogger, Exception?> ServiceStopped =
-        LoggerMessage.Define(LogLevel.Information, new EventId(3, nameof(OnStopping)), "Plugin Service Stopped");
+        LoggerMessage.Define(LogLevel.Information, new(3, nameof(OnStopping)), "Plugin Service Stopped");
 
     /// <summary>Logs that the timed service is processing work.</summary>
     private static readonly Action<ILogger, Exception?> ServiceWorking =
-        LoggerMessage.Define(LogLevel.Information, new EventId(4, nameof(ServiceWorking)), "Timed Background Service is working.");
+        LoggerMessage.Define(LogLevel.Information, new(4, nameof(ServiceWorking)), "Timed Background Service is working.");
 
     /// <summary>Stores the timer value.</summary>
     private Timer? _timer;
@@ -43,7 +46,11 @@ public class TimedHostedService(ILogger<TimedHostedService> logger, IHostApplica
     {
         ServiceStarting(Logger, null);
 
-        _timer = new(_ => ServiceWorking(Logger, null), null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        _timer = new(
+            _ => ServiceWorking(Logger, null),
+            null,
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(TimerIntervalSeconds));
 
         return Task.CompletedTask;
     }

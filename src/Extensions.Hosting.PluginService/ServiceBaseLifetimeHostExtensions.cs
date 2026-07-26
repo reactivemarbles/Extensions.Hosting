@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +22,10 @@ public static class ServiceBaseLifetimeHostExtensions
     /// <param name="hostBuilder">The receiver instance.</param>
     extension(HostApplicationBuilder hostBuilder)
     {
+        /// <summary>Runs the application as a Windows service without cancellation.</summary>
+        /// <returns>A task that represents the service lifetime.</returns>
+        public Task RunAsServiceAsync() => hostBuilder.RunAsServiceAsync(CancellationToken.None);
+
         /// <summary>Runs the application as a Windows service using the specified host builder.</summary>
         /// <remarks>This method configures the application to use Windows service lifetime management. It should
         /// be called when running the application as a Windows service. If called in a non-Windows environment, the
@@ -29,10 +33,10 @@ public static class ServiceBaseLifetimeHostExtensions
         /// <param name="cancellationToken">A cancellation token that can be used to request cancellation of the service run operation. The default value is
         /// <see cref="CancellationToken.None"/>.</param>
         /// <returns>A task that represents the lifetime of the running service. The task completes when the service stops.</returns>
-        public Task RunAsServiceAsync(CancellationToken cancellationToken = default)
+        public Task RunAsServiceAsync(CancellationToken cancellationToken)
         {
             _ = UseServiceBaseLifetime((IHostApplicationBuilder)hostBuilder);
-            return hostBuilder.Build().RunAsync(cancellationToken);
+            return ServiceHost.RunAsync(hostBuilder.Build(), cancellationToken);
         }
     }
 
@@ -48,10 +52,7 @@ public static class ServiceBaseLifetimeHostExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         public IHostApplicationBuilder UseServiceBaseLifetime()
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             _ = hostBuilder.Services.AddSingleton<IHostLifetime, ServiceBaseLifetime>();
             return hostBuilder;
@@ -65,10 +66,7 @@ public static class ServiceBaseLifetimeHostExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         public IHostApplicationBuilder UseConsoleLifetime()
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             _ = hostBuilder.Services.AddSingleton<IHostLifetime, ConsoleLifetime>();
             return hostBuilder;
@@ -86,15 +84,16 @@ public static class ServiceBaseLifetimeHostExtensions
         /// <returns>The same instance of <see cref="IHostBuilder"/> for chaining, or <see langword="null"/> if <paramref
         /// name="hostBuilder"/> is null.</returns>
         public IHostBuilder? UseServiceBaseLifetime() =>
-            hostBuilder?.ConfigureServices(services => _ = services.AddSingleton<IHostLifetime, ServiceBaseLifetime>());
+            hostBuilder?.ConfigureServices(static services => _ = services.AddSingleton<IHostLifetime, ServiceBaseLifetime>());
 
-        /// <summary>Runs the host as a Windows service or systemd service, enabling integration with the operating system's service management.</summary>
-        /// <remarks>This method configures the host to run as a background service using the appropriate service
-        /// infrastructure for the current platform (Windows service or systemd on Linux). It should be called instead of
-        /// RunAsync when deploying as a service.</remarks>
-        /// <param name="cancellationToken">A cancellation token that can be used to request cancellation of the service run operation.</param>
-        /// <returns>A task that represents the lifetime of the service. The task completes when the service stops.</returns>
-        public Task RunAsServiceAsync(CancellationToken cancellationToken = default) =>
-            hostBuilder.UseServiceBaseLifetime()!.Build().RunAsync(cancellationToken);
+        /// <summary>Runs the host as a Windows service without cancellation.</summary>
+        /// <returns>A task that represents the service lifetime.</returns>
+        public Task RunAsServiceAsync() => hostBuilder.RunAsServiceAsync(CancellationToken.None);
+
+        /// <summary>Runs the host as a Windows service using the specified cancellation token.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the service lifetime.</returns>
+        public Task RunAsServiceAsync(CancellationToken cancellationToken) =>
+            ServiceHost.RunAsync(hostBuilder.UseServiceBaseLifetime()!.Build(), cancellationToken);
     }
 }

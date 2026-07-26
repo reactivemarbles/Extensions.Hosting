@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -26,19 +26,19 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
 {
     /// <summary>Logs that the hosted service started.</summary>
     private static readonly Action<ILogger, string, Exception?> _serviceStarted =
-        LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(_serviceStarted)), "{ServiceName} Service OnStarted has been called.");
+        LoggerMessage.Define<string>(LogLevel.Information, new(1, nameof(_serviceStarted)), "{ServiceName} Service OnStarted has been called.");
 
     /// <summary>Logs that the hosted service is stopping.</summary>
     private static readonly Action<ILogger, string, Exception?> _serviceStopping =
-        LoggerMessage.Define<string>(LogLevel.Information, new EventId(2, nameof(_serviceStopping)), "{ServiceName} Service OnStopping has been called.");
+        LoggerMessage.Define<string>(LogLevel.Information, new(2, nameof(_serviceStopping)), "{ServiceName} Service OnStopping has been called.");
 
     /// <summary>Logs that the hosted service stopped.</summary>
     private static readonly Action<ILogger, string, Exception?> _serviceStopped =
-        LoggerMessage.Define<string>(LogLevel.Information, new EventId(3, nameof(_serviceStopped)), "{ServiceName} Service OnStopped has been called.");
+        LoggerMessage.Define<string>(LogLevel.Information, new(3, nameof(_serviceStopped)), "{ServiceName} Service OnStopped has been called.");
 
     /// <summary>Logs that the hosted service start callback failed.</summary>
     private static readonly Action<ILogger, string, Exception?> _serviceStartFailed =
-        LoggerMessage.Define<string>(LogLevel.Error, new EventId(4, nameof(_serviceStartFailed)), "{ServiceName} Service OnStarted failed.");
+        LoggerMessage.Define<string>(LogLevel.Error, new(4, nameof(_serviceStartFailed)), "{ServiceName} Service OnStarted failed.");
 
     /// <summary>Stores the disposed value.</summary>
     private bool _disposedValue;
@@ -58,12 +58,9 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _ = hostApplicationLifetime.ApplicationStarted.Register(() =>
-        {
-            _serviceStarted(Logger, nameof(T), null);
-            CleanUp = [];
-            _ = RunOnStartedAsync();
-        });
+        _ = hostApplicationLifetime.ApplicationStarted.Register(
+            static state => ((HostedServiceBase<T>)state!).OnApplicationStarted(),
+            this);
         _ = hostApplicationLifetime.ApplicationStopping.Register(OnStopping);
         _ = hostApplicationLifetime.ApplicationStopped.Register(OnStopped);
 
@@ -132,5 +129,13 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
         {
             _serviceStartFailed(Logger, nameof(T), ex);
         }
+    }
+
+    /// <summary>Handles the application-started lifetime notification.</summary>
+    private void OnApplicationStarted()
+    {
+        _serviceStarted(Logger, nameof(T), null);
+        CleanUp = [];
+        _ = RunOnStartedAsync();
     }
 }

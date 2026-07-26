@@ -31,6 +31,15 @@
     <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Extensions.Hosting.PluginService.Reactive.Platform.Tests'
+                         Or '$(MSBuildProjectName)' == 'Extensions.Hosting.ReactiveUI.Maui.Reactive.Platform.Tests'
+                         Or '$(MSBuildProjectName)' == 'Extensions.Hosting.ReactiveUI.WinForms.Reactive.Tests'
+                         Or '$(MSBuildProjectName)' == 'Extensions.Hosting.ReactiveUI.WinUI.Reactive.Platform.Tests'">
+    <BaseIntermediateOutputPath>obj\Reactive\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\Reactive\</BaseOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\bin\**;$(MSBuildProjectDirectory)\obj\**</DefaultItemExcludes>
+  </PropertyGroup>
+
   <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
     <Features>$(Features);runtime-async=on</Features>
   </PropertyGroup>
@@ -80,9 +89,21 @@
     <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Extensions.Hosting.MainUIThread'
+                     Or '$(MSBuildProjectName)' == 'Extensions.Hosting.SingleInstance'
+                     Or '$(MSBuildProjectName)' == 'Extensions.Hosting.Plugins'
+                     Or '$(MSBuildProjectName)' == 'Extensions.Hosting.Plugins.Reactive'
+                     Or '$(MSBuildProjectName)' == 'Extensions.Hosting.PluginService'
+                     Or '$(MSBuildProjectName)' == 'Extensions.Hosting.PluginService.Reactive'">
+    <None Include="$(MSBuildThisFileDirectory)..\Skill.md" Pack="true" PackagePath="Skill.md" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Skill.md" Pack="true" PackagePath=".agents\skills\extensions-hosting\SKILL.md" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="MinVer" PrivateAssets="all" />
     <PackageReference Include="StyleSharp.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="PerformanceSharp.Analyzers" PrivateAssets="all"/>
+    <PackageReference Include="SecuritySharp.Analyzers" PrivateAssets="all"/>
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="All" />
   </ItemGroup>
 </Project>

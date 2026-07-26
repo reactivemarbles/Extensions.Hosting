@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.Reflection;
@@ -24,13 +24,13 @@ public class TestPluginBuilder : IPluginBuilder
     public bool FailIfNoPlugins { get; set; }
 
     /// <inheritdoc />
-    public Matcher FrameworkMatcher { get; } = new Matcher();
+    public Matcher FrameworkMatcher { get; } = new();
 
     /// <inheritdoc />
-    public Matcher PluginMatcher { get; } = new Matcher();
+    public Matcher PluginMatcher { get; } = new();
 
     /// <inheritdoc />
-    public Func<string, bool> ValidatePlugin { get; set; } = _ => true;
+    public Func<string, bool> ValidatePlugin { get; set; } = static _ => true;
 
     /// <inheritdoc />
     public Func<Assembly, IEnumerable<IPlugin?>?> AssemblyScanFunc { get; set; } = PluginScanner.ScanForPluginInstances;

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -17,31 +17,28 @@ public static class Log4NetExtensions
     {
         /// <summary>Adds the log4net.</summary>
         /// <returns>The <see cref="ILoggerFactory"/> with added Log4Net provider.</returns>
-        public ILoggerFactory AddLog4Net()
-            => factory.AddLog4Net(new Log4NetProviderOptions());
+        public ILoggerFactory AddLog4Net() =>
+            factory.AddLog4Net(new Log4NetProviderOptions());
 
         /// <summary>Adds the log4net.</summary>
         /// <param name="log4NetConfigFile">The log4net Config File.</param>
         /// <returns>The <see cref="ILoggerFactory"/> after adding the log4net provider.</returns>
-        public ILoggerFactory AddLog4Net(string log4NetConfigFile)
-            => factory.AddLog4Net(log4NetConfigFile, false);
+        public ILoggerFactory AddLog4Net(string log4NetConfigFile) =>
+            factory.AddLog4Net(log4NetConfigFile, false);
 
         /// <summary>Adds the log4net logging provider.</summary>
         /// <param name="log4NetConfigFile">The log4 net configuration file.</param>
         /// <param name="watch">if set to <c>true</c> [watch].</param>
         /// <returns>The <see cref="ILoggerFactory"/> after adding the log4net provider.</returns>
-        public ILoggerFactory AddLog4Net(string log4NetConfigFile, bool watch)
-            => factory.AddLog4Net(new Log4NetProviderOptions(log4NetConfigFile, watch));
+        public ILoggerFactory AddLog4Net(string log4NetConfigFile, bool watch) =>
+            factory.AddLog4Net(new Log4NetProviderOptions(log4NetConfigFile, watch));
 
         /// <summary>Adds the log4net logging provider.</summary>
         /// <param name="options">The options for log4net provider.</param>
         /// <returns>The <see cref="ILoggerFactory"/> after adding the log4net provider.</returns>
         public ILoggerFactory AddLog4Net(Log4NetProviderOptions options)
         {
-            if (factory is null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
+            _ = factory ?? throw new ArgumentNullException(nameof(factory));
 
             factory.AddProvider(new Log4NetProvider(options));
             return factory;
@@ -88,10 +85,7 @@ public static class Log4NetExtensions
         /// <returns>The same instance of <see cref="ILoggingBuilder"/> for chaining.</returns>
         public ILoggingBuilder AddLog4Net(Log4NetProviderOptions options)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
 
             _ = builder.Services.AddSingleton<ILoggerProvider>(new Log4NetProvider(options));
             return builder;

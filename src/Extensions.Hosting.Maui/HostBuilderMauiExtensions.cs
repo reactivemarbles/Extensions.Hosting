@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -42,25 +42,13 @@ public static class HostBuilderMauiExtensions
         return false;
     }
 
-    /// <summary>Uses the currently running MAUI application instance when it matches the configured application type.</summary>
-    /// <param name="mauiBuilder">The builder that contains application configuration.</param>
-    private static void CaptureCurrentMauiApplication(MauiBuilder mauiBuilder)
-    {
-        if (mauiBuilder.ApplicationType is null || mauiBuilder.Application is not null || Application.Current?.GetType() != mauiBuilder.ApplicationType)
-        {
-            return;
-        }
-
-        mauiBuilder.Application = Application.Current;
-    }
-
     /// <summary>Registers the core MAUI hosting services.</summary>
     /// <param name="services">The service collection to register services into.</param>
     /// <param name="mauiContext">The MAUI context instance to register.</param>
     private static void RegisterMauiHostingServices(IServiceCollection services, IMauiContext mauiContext) =>
         _ = services
             .AddSingleton(mauiContext)
-            .AddSingleton(serviceProvider => new MauiThread(serviceProvider))
+            .AddSingleton(static serviceProvider => new MauiThread(serviceProvider))
             .AddHostedService<MauiHostedService>();
 
     /// <summary>Registers a configured MAUI application type or instance.</summary>
@@ -128,7 +116,7 @@ public static class HostBuilderMauiExtensions
         /// <returns>The same instance of <see cref="IHostApplicationBuilder"/> for chaining further configuration.</returns>
         public IHostApplicationBuilder UseMauiLifetime()
         {
-            ArgumentNullException.ThrowIfNull(hostBuilder);
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             _ = TryRetrieveMauiContext(hostBuilder.Properties, out var mauiContext);
             mauiContext.IsLifetimeLinked = true;
@@ -140,18 +128,22 @@ public static class HostBuilderMauiExtensions
         /// services and application types are registered with the dependency injection container. If an existing
         /// Application instance is available, it will be registered; otherwise, the Application type will be registered for
         /// instantiation by the container.</remarks>
-        /// <param name="configureDelegate">An optional delegate to further configure the MAUI builder before services are registered. If null, default
-        /// configuration is applied.</param>
+        /// <returns>The same host builder instance, configured with .NET MAUI services and application types.</returns>
+        public IHostApplicationBuilder ConfigureMaui() =>
+            hostBuilder.ConfigureMaui(null);
+
+        /// <summary>Configures .NET MAUI services and applies the supplied customization.</summary>
+        /// <param name="configureDelegate">A delegate to further configure the MAUI builder before services are registered.</param>
         /// <returns>The same host builder instance, configured with .NET MAUI services and application types.</returns>
         /// <exception cref="ArgumentException">Thrown if the registered Application type does not inherit from Microsoft.Maui.Controls.Application.</exception>
-        public IHostApplicationBuilder ConfigureMaui(Action<IMauiBuilder>? configureDelegate = null)
+        public IHostApplicationBuilder ConfigureMaui(Action<IMauiBuilder>? configureDelegate)
         {
-            ArgumentNullException.ThrowIfNull(hostBuilder);
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             var mauiBuilder = new MauiBuilder();
             configureDelegate?.Invoke(mauiBuilder);
 
-            CaptureCurrentMauiApplication(mauiBuilder);
+            MauiApplicationCapture.Capture(mauiBuilder, Application.Current);
 
             if (!TryRetrieveMauiContext(hostBuilder.Properties, out var mauiContext))
             {
@@ -161,9 +153,6 @@ public static class HostBuilderMauiExtensions
             mauiBuilder.ConfigureContextAction?.Invoke(mauiContext);
             RegisterMauiApplication(hostBuilder.Services, mauiBuilder, nameof(configureDelegate));
             RegisterMauiPages(hostBuilder.Services, mauiBuilder);
-
-            var app = mauiBuilder.MauiAppBuilder.Build();
-            _ = hostBuilder.Services.AddSingleton(app);
 
             return hostBuilder;
         }
@@ -176,8 +165,8 @@ public static class HostBuilderMauiExtensions
         /// interface and derive from Page.</typeparam>
         /// <returns>The same IHostApplicationBuilder instance, enabling further configuration.</returns>
         public IHostApplicationBuilder ConfigureMauiShell<TShell>()
-            where TShell : Page, IMauiShell
-            => hostBuilder.ConfigureMaui(maui => maui.AddSingletonPage<TShell>());
+            where TShell : Page, IMauiShell =>
+            hostBuilder.ConfigureMaui(static maui => maui.AddSingletonPage<TShell>());
     }
 
     /// <summary>Provides extension members for this receiver.</summary>
@@ -202,20 +191,24 @@ public static class HostBuilderMauiExtensions
         /// injection and service registration for MAUI applications. This method should be called before building the host.
         /// If an application type is registered, it must inherit from <see
         /// cref="Microsoft.Maui.Controls.Application"/>.</remarks>
-        /// <param name="configureDelegate">An optional delegate to further configure the MAUI application, pages, and services before they are registered
-        /// with the host builder. May be null.</param>
+        /// <returns>The same instance of <see cref="IHostBuilder"/> with .NET MAUI services and configuration applied.</returns>
+        public IHostBuilder ConfigureMaui() =>
+            hostBuilder.ConfigureMaui(null);
+
+        /// <summary>Configures .NET MAUI and applies the supplied customization.</summary>
+        /// <param name="configureDelegate">A delegate to configure the MAUI application, pages, and services.</param>
         /// <returns>The same instance of <see cref="IHostBuilder"/> with .NET MAUI services and configuration applied. This enables
         /// further chaining of host builder configuration methods.</returns>
         /// <exception cref="ArgumentException">Thrown if the application type registered via <paramref name="configureDelegate"/> does not inherit from <see
         /// cref="Microsoft.Maui.Controls.Application"/>.</exception>
-        public IHostBuilder ConfigureMaui(Action<IMauiBuilder>? configureDelegate = null)
+        public IHostBuilder ConfigureMaui(Action<IMauiBuilder>? configureDelegate)
         {
-            ArgumentNullException.ThrowIfNull(hostBuilder);
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             var mauiBuilder = new MauiBuilder();
             configureDelegate?.Invoke(mauiBuilder);
 
-            CaptureCurrentMauiApplication(mauiBuilder);
+            MauiApplicationCapture.Capture(mauiBuilder, Application.Current);
 
             _ = hostBuilder.ConfigureServices((context, serviceCollection) =>
             {
@@ -248,7 +241,7 @@ public static class HostBuilderMauiExtensions
         /// derive from Page.</typeparam>
         /// <returns>The configured host builder instance, or null if the input host builder is null.</returns>
         public IHostBuilder? ConfigureMauiShell<TShell>()
-            where TShell : Page, IMauiShell
-            => hostBuilder?.ConfigureMaui(maui => maui.AddSingletonPage<TShell>());
+            where TShell : Page, IMauiShell =>
+            hostBuilder?.ConfigureMaui(static maui => maui.AddSingletonPage<TShell>());
     }
 }

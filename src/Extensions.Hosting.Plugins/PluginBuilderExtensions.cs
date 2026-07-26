@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -30,10 +30,7 @@ public static class PluginBuilderExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="directories"/> is null.</exception>
         public void AddScanDirectories(params string[] directories)
         {
-            if (directories is null)
-            {
-                throw new ArgumentNullException(nameof(directories));
-            }
+            _ = directories ?? throw new ArgumentNullException(nameof(directories));
 
             foreach (var directory in directories)
             {
@@ -49,10 +46,7 @@ public static class PluginBuilderExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="frameworkGlobs"/> is <see langword="null"/>.</exception>
         public void ExcludeFrameworks(params string[] frameworkGlobs)
         {
-            if (frameworkGlobs is null)
-            {
-                throw new ArgumentNullException(nameof(frameworkGlobs));
-            }
+            _ = frameworkGlobs ?? throw new ArgumentNullException(nameof(frameworkGlobs));
 
             foreach (var glob in frameworkGlobs)
             {
@@ -69,10 +63,7 @@ public static class PluginBuilderExtensions
         /// <exception cref="ArgumentNullException">Thrown if pluginGlobs is null.</exception>
         public void ExcludePlugins(params string[] pluginGlobs)
         {
-            if (pluginGlobs is null)
-            {
-                throw new ArgumentNullException(nameof(pluginGlobs));
-            }
+            _ = pluginGlobs ?? throw new ArgumentNullException(nameof(pluginGlobs));
 
             foreach (var glob in pluginGlobs)
             {
@@ -89,10 +80,7 @@ public static class PluginBuilderExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="frameworkGlobs"/> is <see langword="null"/>.</exception>
         public void IncludeFrameworks(params string[] frameworkGlobs)
         {
-            if (frameworkGlobs is null)
-            {
-                throw new ArgumentNullException(nameof(frameworkGlobs));
-            }
+            _ = frameworkGlobs ?? throw new ArgumentNullException(nameof(frameworkGlobs));
 
             foreach (var glob in frameworkGlobs)
             {
@@ -107,10 +95,7 @@ public static class PluginBuilderExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="pluginGlobs"/> is null.</exception>
         public void IncludePlugins(params string[] pluginGlobs)
         {
-            if (pluginGlobs is null)
-            {
-                throw new ArgumentNullException(nameof(pluginGlobs));
-            }
+            _ = pluginGlobs ?? throw new ArgumentNullException(nameof(pluginGlobs));
 
             foreach (var glob in pluginGlobs)
             {
@@ -118,15 +103,16 @@ public static class PluginBuilderExtensions
             }
         }
 
-        /// <summary>Configures the plugin builder to require at least one plugin, optionally failing if no plugins are registered.</summary>
-        /// <param name="failIfNone">true to throw an exception if no plugins are registered; otherwise, false. The default is true.</param>
+        /// <summary>Configures the plugin builder to require at least one plugin.</summary>
         /// <exception cref="ArgumentNullException">Thrown if pluginBuilder is null.</exception>
-        public void RequirePlugins(bool failIfNone = true)
+        public void RequirePlugins() => pluginBuilder.RequirePlugins(failIfNone: true);
+
+        /// <summary>Configures whether the plugin builder requires at least one plugin.</summary>
+        /// <param name="failIfNone">true to throw an exception if no plugins are registered; otherwise, false.</param>
+        /// <exception cref="ArgumentNullException">Thrown if pluginBuilder is null.</exception>
+        public void RequirePlugins(bool failIfNone)
         {
-            if (pluginBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(pluginBuilder));
-            }
+            _ = pluginBuilder ?? throw new ArgumentNullException(nameof(pluginBuilder));
 
             pluginBuilder.FailIfNoPlugins = failIfNone;
         }
