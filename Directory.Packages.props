@@ -41,7 +41,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Reactive" Version="24.0.0-beta.3" />
     <!--Reactive UI with System.Reactive support-->
-    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="7.1.0" />
     <PackageVersion Include="ReactiveUI.Avalonia.Reactive" Version="12.1.0-beta.1" />
     <PackageVersion Include="ReactiveUI.Drawing.Reactive" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Maui.Reactive" Version="24.0.0-beta.3" />
