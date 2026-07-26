@@ -27,7 +27,7 @@
     <PackageVersion Include="NuGet.Protocol" Version="7.6.0" />
     <PackageVersion Include="Nuke.Common" Version="10.1.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
-    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="6.0.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="7.1.0" />
     <!--Reactive UI with ReactiveUI.Primitives support-->
     <PackageVersion Include="ReactiveUI.Primitives" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI" Version="24.0.0-beta.3" />
