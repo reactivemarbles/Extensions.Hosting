@@ -32,7 +32,7 @@
     <PackageVersion Include="ReactiveUI.Primitives" Version="6.0.0" />
     <PackageVersion Include="ReactiveUI" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.0-beta.1" />
-    <PackageVersion Include="ReactiveUI.Core" Version="24.0.0-beta.3" />
+    <PackageVersion Include="ReactiveUI.Core" Version="24.0.0" />
     <PackageVersion Include="ReactiveUI.Disposables" Version="7.1.0" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="24.0.0-beta.3" />
     <PackageVersion Include="ReactiveUI.Maui" Version="24.0.0-beta.3" />
