@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <RootNamespace>Extensions.Hosting.Avalonia.Lifecycle.Tests</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Extensions.Hosting.Avalonia\Extensions.Hosting.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Extensions.Hosting.Avalonia.Tests\AvaloniaHostedServiceTests.cs" Link="AvaloniaHostedServiceTests.cs" />
+    <Compile Include="..\Extensions.Hosting.Avalonia.Tests\LifecycleSignals.cs" Link="LifecycleSignals.cs" />
+    <Compile Include="..\Extensions.Hosting.Avalonia.Tests\RecordingAvaloniaService.cs" Link="RecordingAvaloniaService.cs" />
+    <Compile Include="..\Extensions.Hosting.Avalonia.Tests\TestApplication.cs" Link="TestApplication.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TUnit.Assertions" />
+    <Using Include="TUnit.Assertions.Extensions" />
+    <Using Include="TUnit.Core" />
+  </ItemGroup>
+</Project>

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.DependencyInjection;
@@ -19,9 +19,9 @@ public class ReactivePluginBaseTests
         var services = new ServiceCollection();
         var plugin = new PluginBase<FirstReactiveHostedService>();
 
-        plugin.ConfigureHost(new object(), services);
+        plugin.ConfigureHost(new(), services);
 
-        await Assert.That(services.Any(IsFirstHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsFirstHostedServiceRegistration)).IsTrue();
     }
 
     /// <summary>Verifies that PluginBase with two hosted services registers both services.</summary>
@@ -32,10 +32,10 @@ public class ReactivePluginBaseTests
         var services = new ServiceCollection();
         var plugin = new PluginBase<FirstReactiveHostedService, SecondReactiveHostedService>();
 
-        plugin.ConfigureHost(new object(), services);
+        plugin.ConfigureHost(new(), services);
 
-        await Assert.That(services.Any(IsFirstHostedServiceRegistration)).IsTrue();
-        await Assert.That(services.Any(IsSecondHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsFirstHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsSecondHostedServiceRegistration)).IsTrue();
     }
 
     /// <summary>Verifies that PluginBase with three hosted services registers all services.</summary>
@@ -46,11 +46,11 @@ public class ReactivePluginBaseTests
         var services = new ServiceCollection();
         var plugin = new PluginBase<FirstReactiveHostedService, SecondReactiveHostedService, ThirdReactiveHostedService>();
 
-        plugin.ConfigureHost(new object(), services);
+        plugin.ConfigureHost(new(), services);
 
-        await Assert.That(services.Any(IsFirstHostedServiceRegistration)).IsTrue();
-        await Assert.That(services.Any(IsSecondHostedServiceRegistration)).IsTrue();
-        await Assert.That(services.Any(IsThirdHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsFirstHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsSecondHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsThirdHostedServiceRegistration)).IsTrue();
     }
 
     /// <summary>Returns a value indicating whether the descriptor registers the first hosted service.</summary>
@@ -77,8 +77,8 @@ public class ReactivePluginBaseTests
     /// <returns>True when the descriptor registers the requested hosted service type.</returns>
     private static bool IsHostedServiceRegistration<T>(ServiceDescriptor serviceDescriptor)
         where T : class, IHostedService =>
-        serviceDescriptor.ServiceType == typeof(IHostedService) &&
-        serviceDescriptor.ImplementationType == typeof(T);
+        serviceDescriptor.ServiceType == typeof(IHostedService)
+        && serviceDescriptor.ImplementationType == typeof(T);
 
     /// <summary>First hosted service used for reactive registration tests.</summary>
     public sealed class FirstReactiveHostedService : ReactiveHostedService;
@@ -90,7 +90,7 @@ public class ReactivePluginBaseTests
     public sealed class ThirdReactiveHostedService : ReactiveHostedService;
 
     /// <summary>Base hosted service used for reactive registration tests.</summary>
-    public abstract class ReactiveHostedService : IHostedService
+    public class ReactiveHostedService : IHostedService
     {
         /// <inheritdoc />
         public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;

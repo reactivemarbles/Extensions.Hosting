@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Hosting;
@@ -54,11 +54,11 @@ public static class HostBuilderReactiveUiExtensions
         /// <returns>The same <see cref="IHostApplicationBuilder"/> instance, enabling method chaining.</returns>
         public IHostApplicationBuilder ConfigureSplatForMicrosoftDependencyResolver()
         {
-            ArgumentNullException.ThrowIfNull(hostBuilder);
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             hostBuilder.Services.UseMicrosoftDependencyResolver();
             var reactiveUiBuilder = AppLocator.CurrentMutable.CreateReactiveUIBuilder()
-                .WithRegistration(r => r.InitializeSplat())
+                .WithRegistration(static r => r.InitializeSplat())
                 .WithWinUI();
             _ = reactiveUiBuilder.BuildApp();
             return hostBuilder;
@@ -76,11 +76,11 @@ public static class HostBuilderReactiveUiExtensions
         /// <returns>The same <see cref="IHostBuilder"/> instance, configured to use Microsoft.Extensions.DependencyInjection for
         /// Splat and ReactiveUI dependency resolution.</returns>
         public IHostBuilder ConfigureSplatForMicrosoftDependencyResolver() =>
-            hostBuilder.ConfigureServices((serviceCollection) =>
+            hostBuilder.ConfigureServices(static (serviceCollection) =>
             {
                 serviceCollection.UseMicrosoftDependencyResolver();
                 var reactiveUiBuilder = AppLocator.CurrentMutable.CreateReactiveUIBuilder()
-                    .WithRegistration(r => r.InitializeSplat())
+                    .WithRegistration(static r => r.InitializeSplat())
                     .WithWinUI();
                 _ = reactiveUiBuilder.BuildApp();
             });

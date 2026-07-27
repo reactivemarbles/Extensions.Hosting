@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -47,22 +47,17 @@ public static class HostBuilderWinUIExtensions
     private static void RegisterWinUIHostingServices(IServiceCollection services, IWinUIContext winUIContext) =>
         _ = services
             .AddSingleton(winUIContext)
-            .AddSingleton(serviceProvider => new WinUIThread(serviceProvider))
+            .AddSingleton<WinUIThread>()
             .AddHostedService<WinUIHostedService>();
 
     /// <summary>Registers the WinUI application type.</summary>
     /// <typeparam name="TApp">The WinUI application type to register.</typeparam>
     /// <param name="services">The service collection to register services into.</param>
-    /// <exception cref="ArgumentException">Thrown if the application type does not derive from <see cref="Application"/>.</exception>
     private static void RegisterWinUIApplication<TApp>(IServiceCollection services)
         where TApp : Application
     {
         var appType = typeof(TApp);
         var baseApplicationType = typeof(Application);
-        if (!baseApplicationType.IsAssignableFrom(appType))
-        {
-            throw new ArgumentException("The registered Application type inherit System.Windows.Application", nameof(TApp));
-        }
 
         _ = services.AddSingleton<TApp>();
         if (appType == baseApplicationType)
@@ -70,7 +65,7 @@ public static class HostBuilderWinUIExtensions
             return;
         }
 
-        _ = services.AddSingleton<Application>(services => services.GetRequiredService<TApp>());
+        _ = services.AddSingleton<Application>(static services => services.GetRequiredService<TApp>());
     }
 
     /// <summary>Provides extension members for this receiver.</summary>
@@ -90,12 +85,9 @@ public static class HostBuilderWinUIExtensions
             where TApp : Application
             where TAppWindow : Window
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
-            var appType = typeof(TApp);
+            _ = typeof(TApp);
 
             if (!TryRetrieveWinUIContext(hostBuilder.Properties, out var winUIContext))
             {
@@ -144,7 +136,7 @@ public static class HostBuilderWinUIExtensions
                 winUIContext.IsLifetimeLinked = true;
             });
 
-            _ = hostBuilder.ConfigureServices((context, serviceCollection) => RegisterWinUIApplication<TApp>(serviceCollection));
+            _ = hostBuilder.ConfigureServices(static (context, serviceCollection) => RegisterWinUIApplication<TApp>(serviceCollection));
 
             return hostBuilder;
         }

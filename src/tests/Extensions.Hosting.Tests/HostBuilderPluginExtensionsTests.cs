@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -12,13 +12,16 @@ namespace Extensions.Hosting.Tests;
 /// <summary>Contains tests for host builder plugin configuration extensions.</summary>
 public class HostBuilderPluginExtensionsTests
 {
+    /// <summary>The expected number of configured plugins.</summary>
+    private const int ExpectedPluginCount = 2;
+
     /// <summary>Verifies that ConfigurePlugins with a null IHostBuilder throws.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ConfigurePlugins_IHostBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
     {
         IHostBuilder? hostBuilder = null;
-        var act = () => hostBuilder!.ConfigurePlugins(_ => { });
+        var act = () => hostBuilder!.ConfigurePlugins(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
     }
 
@@ -28,7 +31,7 @@ public class HostBuilderPluginExtensionsTests
     public async Task ConfigurePlugins_IHostApplicationBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
     {
         IHostApplicationBuilder? hostBuilder = null;
-        var act = () => hostBuilder!.ConfigurePlugins(_ => { });
+        var act = () => hostBuilder!.ConfigurePlugins(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
     }
 
@@ -42,7 +45,7 @@ public class HostBuilderPluginExtensionsTests
 
         _ = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             AddCurrentAssemblyAsFramework(builder);
             builder.AssemblyScanFunc = _ =>
             [
@@ -54,7 +57,7 @@ public class HostBuilderPluginExtensionsTests
 
         using var host = hostBuilder.Build();
 
-        await Assert.That(configuredPlugins.Count).IsEqualTo(2);
+        await Assert.That(configuredPlugins.Count).IsEqualTo(ExpectedPluginCount);
         await Assert.That(configuredPlugins[0]).IsEqualTo(EarlierRecordingPlugin.Name);
         await Assert.That(configuredPlugins[1]).IsEqualTo(LaterRecordingPlugin.Name);
     }
@@ -69,7 +72,7 @@ public class HostBuilderPluginExtensionsTests
 
         var result = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             AddCurrentAssemblyAsFramework(builder);
             builder.AssemblyScanFunc = _ => [new EarlierRecordingPlugin(configuredPlugins)];
         });
@@ -108,7 +111,7 @@ public class HostBuilderPluginExtensionsTests
 
         _ = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             builder.UseContentRoot = true;
             _ = builder.FrameworkMatcher.AddInclude(Path.GetFileName(assemblyPath));
             builder.AssemblyScanFunc = _ => [new EarlierRecordingPlugin(configuredPlugins)];
@@ -134,10 +137,10 @@ public class HostBuilderPluginExtensionsTests
 
             _ = hostBuilder.ConfigurePlugins(builder =>
             {
-                ArgumentNullException.ThrowIfNull(builder);
+                _ = builder ?? throw new ArgumentNullException(nameof(builder));
                 builder.PluginDirectories.Add(tempDirectory);
                 _ = builder.PluginMatcher.AddInclude(Path.GetFileName(pluginPath));
-                builder.ValidatePlugin = _ => false;
+                builder.ValidatePlugin = static _ => false;
             });
 
             using var host = hostBuilder.Build();
@@ -159,7 +162,7 @@ public class HostBuilderPluginExtensionsTests
 
         _ = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             builder.PluginDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
             _ = builder.PluginMatcher.AddInclude(Path.GetFileName(assemblyPath));
         });
@@ -182,7 +185,7 @@ public class HostBuilderPluginExtensionsTests
 
             _ = hostBuilder.ConfigurePlugins(builder =>
             {
-                ArgumentNullException.ThrowIfNull(builder);
+                _ = builder ?? throw new ArgumentNullException(nameof(builder));
                 builder.FrameworkDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
                 _ = builder.FrameworkMatcher.AddInclude(Path.GetFileName(assemblyPath));
                 builder.AssemblyScanFunc = _ => [new EarlierRecordingPlugin(configuredPlugins)];
@@ -213,7 +216,7 @@ public class HostBuilderPluginExtensionsTests
 
             _ = hostBuilder.ConfigurePlugins(builder =>
             {
-                ArgumentNullException.ThrowIfNull(builder);
+                _ = builder ?? throw new ArgumentNullException(nameof(builder));
                 builder.PluginDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
                 _ = builder.PluginMatcher.AddInclude(Path.GetFileName(assemblyPath));
                 builder.AssemblyScanFunc = _ => [new EarlierRecordingPlugin(configuredPlugins)];
@@ -236,7 +239,9 @@ public class HostBuilderPluginExtensionsTests
     public async Task ConfigurePlugins_IHostBuilder_WithRequiredPluginsAndNoPlugins_ThrowsInvalidOperationException()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        _ = hostBuilder.ConfigurePlugins(builder => builder.RequirePlugins());
+        _ = hostBuilder.ConfigurePlugins(
+            static builder => (builder ?? throw new InvalidOperationException("Plugin builder was not created."))
+                .RequirePlugins());
 
         var act = () => hostBuilder.Build();
         await Assert.That(act).Throws<InvalidOperationException>();

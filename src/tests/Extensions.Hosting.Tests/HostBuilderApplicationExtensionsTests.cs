@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +18,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_IHostBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
     {
         IHostBuilder? hostBuilder = null;
-        var act = () => hostBuilder!.ConfigureSingleInstance(_ => { });
+        var act = () => hostBuilder!.ConfigureSingleInstance(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
     }
 
@@ -28,7 +28,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_IHostApplicationBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
     {
         IHostApplicationBuilder? hostBuilder = null;
-        var act = () => hostBuilder!.ConfigureSingleInstance(_ => { });
+        var act = () => hostBuilder!.ConfigureSingleInstance(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
     }
 
@@ -38,7 +38,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_WithMutexId_ReturnsHostBuilder()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        var result = hostBuilder.ConfigureSingleInstance("test-mutex-" + Guid.NewGuid().ToString("N"));
+        var result = hostBuilder.ConfigureSingleInstance($"test-mutex-{Guid.NewGuid():N}");
         await Assert.That(result).IsNotNull();
         await Assert.That(result).IsEqualTo(hostBuilder);
     }
@@ -49,7 +49,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_WithMutexId_RegistersConfiguredMutexId()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        var mutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+        var mutexId = $"test-mutex-{Guid.NewGuid():N}";
 
         _ = hostBuilder.ConfigureSingleInstance(mutexId);
 
@@ -64,7 +64,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_IHostApplicationBuilder_WithMutexId_ReturnsBuilderAndRegistersMutexBuilder()
     {
         var hostBuilder = Host.CreateApplicationBuilder();
-        var mutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+        var mutexId = $"test-mutex-{Guid.NewGuid():N}";
 
         var result = hostBuilder.ConfigureSingleInstance(mutexId);
 
@@ -86,7 +86,7 @@ public class HostBuilderApplicationExtensionsTests
         _ = hostBuilder.ConfigureSingleInstance(builder =>
         {
             firstBuilder = builder;
-            builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+            builder.MutexId = $"test-mutex-{Guid.NewGuid():N}";
         });
 
         _ = hostBuilder.ConfigureSingleInstance(builder => secondBuilder = builder);
@@ -102,9 +102,9 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_WithConfigureAction_ReturnsHostBuilder()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        var result = hostBuilder.ConfigureSingleInstance(builder =>
+        var result = hostBuilder.ConfigureSingleInstance(static builder =>
         {
-            builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+            builder.MutexId = $"test-mutex-{Guid.NewGuid():N}";
             builder.IsGlobal = false;
         });
         await Assert.That(result).IsNotNull();
@@ -136,7 +136,7 @@ public class HostBuilderApplicationExtensionsTests
         _ = hostBuilder.ConfigureSingleInstance(builder =>
         {
             wasInvoked = true;
-            builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+            builder.MutexId = $"test-mutex-{Guid.NewGuid():N}";
         });
 
         // Build to trigger the service configuration
@@ -150,7 +150,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_RegistersMutexBuilder()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        _ = hostBuilder.ConfigureSingleInstance(builder => builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N"));
+        _ = hostBuilder.ConfigureSingleInstance(static builder => builder.MutexId = $"test-mutex-{Guid.NewGuid():N}");
 
         using var host = hostBuilder.Build();
         var mutexBuilder = host.Services.GetService<IMutexBuilder>();
@@ -169,7 +169,7 @@ public class HostBuilderApplicationExtensionsTests
         _ = hostBuilder.ConfigureSingleInstance(builder =>
         {
             firstBuilder = builder;
-            builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+            builder.MutexId = $"test-mutex-{Guid.NewGuid():N}";
         });
 
         _ = hostBuilder.ConfigureSingleInstance(builder => secondBuilder = builder);
@@ -186,9 +186,9 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_CanSetIsGlobal()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        _ = hostBuilder.ConfigureSingleInstance(builder =>
+        _ = hostBuilder.ConfigureSingleInstance(static builder =>
         {
-            builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+            builder.MutexId = $"test-mutex-{Guid.NewGuid():N}";
             builder.IsGlobal = true;
         });
 
@@ -206,7 +206,7 @@ public class HostBuilderApplicationExtensionsTests
         var hostBuilder = Host.CreateDefaultBuilder();
         _ = hostBuilder.ConfigureSingleInstance(builder =>
         {
-            builder.MutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+            builder.MutexId = $"test-mutex-{Guid.NewGuid():N}";
             builder.WhenNotFirstInstance = (_, _) => callbackSet = true;
         });
 
@@ -224,7 +224,7 @@ public class HostBuilderApplicationExtensionsTests
     [Test]
     public async Task ConfigureSingleInstance_StartAndStop_ReleasesMutex()
     {
-        var mutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+        var mutexId = $"test-mutex-{Guid.NewGuid():N}";
         using var host = Host.CreateDefaultBuilder()
             .ConfigureSingleInstance(builder =>
             {
@@ -246,7 +246,7 @@ public class HostBuilderApplicationExtensionsTests
     public async Task ConfigureSingleInstance_StartAsync_WhenMutexAlreadyLocked_InvokesCallback()
     {
         var callbackSet = false;
-        var mutexId = "test-mutex-" + Guid.NewGuid().ToString("N");
+        var mutexId = $"test-mutex-{Guid.NewGuid():N}";
         using var primaryMutex = ResourceMutex.Create(NullLogger<ResourceMutex>.Instance, mutexId, "primary", false);
         using var host = Host.CreateDefaultBuilder()
             .ConfigureSingleInstance(builder =>

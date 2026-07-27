@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -18,15 +18,19 @@ namespace ReactiveMarbles.Extensions.Hosting.AppServices.Internal;
 /// <param name="hostEnvironment">The host environment information for the current application instance.</param>
 /// <param name="hostApplicationLifetime">The application lifetime control used to manage startup and shutdown events.</param>
 /// <param name="mutexBuilder">The mutex builder that provides configuration for creating and identifying the application mutex.</param>
-internal sealed class MutexLifetimeService(ILogger<MutexLifetimeService> logger, IHostEnvironment hostEnvironment, IHostApplicationLifetime hostApplicationLifetime, IMutexBuilder mutexBuilder) : IHostedService
+internal sealed class MutexLifetimeService(
+    ILogger<MutexLifetimeService> logger,
+    IHostEnvironment hostEnvironment,
+    IHostApplicationLifetime hostApplicationLifetime,
+    IMutexBuilder mutexBuilder) : IHostedService
 {
     /// <summary>Logs that another application instance is already running.</summary>
     private static readonly Action<ILogger, string, Exception?> _applicationAlreadyRunning =
-        LoggerMessage.Define<string>(LogLevel.Debug, new EventId(1, nameof(_applicationAlreadyRunning)), "Application {ApplicationName} already running, stopping application.");
+        LoggerMessage.Define<string>(LogLevel.Debug, new(1, nameof(_applicationAlreadyRunning)), "Application {ApplicationName} already running, stopping application.");
 
     /// <summary>Logs that the mutex is closing during application stopping.</summary>
     private static readonly Action<ILogger, Exception?> _closingMutex =
-        LoggerMessage.Define(LogLevel.Information, new EventId(2, nameof(_closingMutex)), "OnStopping has been called, closing mutex.");
+        LoggerMessage.Define(LogLevel.Information, new(2, nameof(_closingMutex)), "OnStopping has been called, closing mutex.");
 
     /// <summary>Stores the logger value.</summary>
     private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));

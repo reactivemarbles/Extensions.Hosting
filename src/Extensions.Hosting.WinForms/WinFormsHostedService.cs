@@ -1,9 +1,8 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,11 +24,11 @@ public class WinFormsHostedService(ILogger<WinFormsHostedService> logger, WinFor
 {
     /// <summary>Logs when the WinForms application is stopping.</summary>
     private static readonly Action<ILogger, Exception?> LogStoppingWinForms =
-        LoggerMessage.Define(LogLevel.Debug, new EventId(1, nameof(LogStoppingWinForms)), "Stopping WinForms application.");
+        LoggerMessage.Define(LogLevel.Debug, new(1, nameof(LogStoppingWinForms)), "Stopping WinForms application.");
 
     /// <summary>Logs when a form cannot be cleaned up.</summary>
     private static readonly Action<ILogger, Exception?> LogFormCleanupFailed =
-        LoggerMessage.Define(LogLevel.Warning, new EventId(2, nameof(LogFormCleanupFailed)), "Couldn't cleanup a Form");
+        LoggerMessage.Define(LogLevel.Warning, new(2, nameof(LogFormCleanupFailed)), "Couldn't cleanup a Form");
 
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
@@ -55,7 +54,14 @@ public class WinFormsHostedService(ILogger<WinFormsHostedService> logger, WinFor
         await winFormsContext.Dispatcher!.InvokeAsync(() =>
         {
             // Graceful close, otherwise finalizes try to dispose forms.
-            foreach (var form in Application.OpenForms.Cast<Form>().ToList())
+            var openForms = Application.OpenForms;
+            var forms = new Form[openForms.Count];
+            for (var index = 0; index < forms.Length; index++)
+            {
+                forms[index] = openForms[index]!;
+            }
+
+            foreach (Form form in forms)
             {
                 try
                 {

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -48,7 +48,7 @@ public static class HostBuilderWpfExtensions
     private static void RegisterWpfHostingServices(IServiceCollection services, IWpfContext wpfContext) =>
         _ = services
             .AddSingleton(wpfContext)
-            .AddSingleton(serviceProvider => new WpfThread(serviceProvider))
+            .AddSingleton(static serviceProvider => new WpfThread(serviceProvider))
             .AddHostedService<WpfHostedService>();
 
     /// <summary>Registers a configured WPF application type or instance.</summary>
@@ -109,6 +109,11 @@ public static class HostBuilderWpfExtensions
     /// <param name="hostBuilder">The receiver instance.</param>
     extension(IHostApplicationBuilder hostBuilder)
     {
+        /// <summary>Enables WPF lifetime management using <see cref="ShutdownMode.OnLastWindowClose"/>.</summary>
+        /// <returns>The same host application builder.</returns>
+        public IHostApplicationBuilder UseWpfLifetime() =>
+            hostBuilder.UseWpfLifetime(ShutdownMode.OnLastWindowClose);
+
         /// <summary>Enables WPF-specific application lifetime management for the host, configuring how the application shuts down based on the specified shutdown mode.</summary>
         /// <remarks>This method links the application's lifetime to the WPF application's lifetime, allowing the
         /// host to shut down according to the specified shutdown mode. Call this method after configuring WPF services and
@@ -117,12 +122,9 @@ public static class HostBuilderWpfExtensions
         /// <returns>The same instance of the host application builder, configured to use WPF lifetime management.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the hostBuilder parameter is null.</exception>
         /// <exception cref="NotSupportedException">Thrown if WPF has not been configured on the host builder before calling this method.</exception>
-        public IHostApplicationBuilder UseWpfLifetime(ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose)
+        public IHostApplicationBuilder UseWpfLifetime(ShutdownMode shutdownMode)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             if (!TryRetrieveWpfContext(hostBuilder.Properties, out var wpfContext))
             {
@@ -134,23 +136,16 @@ public static class HostBuilderWpfExtensions
             return hostBuilder;
         }
 
-        /// <summary>Configures WPF support for the application and registers required WPF services with the host builder.</summary>
-        /// <remarks>This method adds the necessary services to enable WPF integration in a generic host
-        /// application. It should be called during application startup before building the host. If an Application type or
-        /// main window is specified via the configureDelegate, they are registered as singletons in the service
-        /// container.</remarks>
-        /// <param name="configureDelegate">An optional delegate to further configure WPF-specific options using an IWpfBuilder instance. If null, default
-        /// configuration is applied.</param>
-        /// <returns>The same IHostApplicationBuilder instance for chaining further configuration.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if hostBuilder is null.</exception>
-        /// <exception cref="ArgumentException">Thrown if the Application type registered via configureDelegate does not inherit from
-        /// System.Windows.Application.</exception>
-        public IHostApplicationBuilder ConfigureWpf(Action<IWpfBuilder>? configureDelegate = null)
+        /// <summary>Configures WPF support using the default builder settings.</summary>
+        /// <returns>The same host application builder.</returns>
+        public IHostApplicationBuilder ConfigureWpf() => hostBuilder.ConfigureWpf(null);
+
+        /// <summary>Configures WPF support and applies the supplied builder configuration.</summary>
+        /// <param name="configureDelegate">The optional WPF builder configuration.</param>
+        /// <returns>The same host application builder.</returns>
+        public IHostApplicationBuilder ConfigureWpf(Action<IWpfBuilder>? configureDelegate)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             var wpfBuilder = new WpfBuilder();
             configureDelegate?.Invoke(wpfBuilder);
@@ -172,6 +167,11 @@ public static class HostBuilderWpfExtensions
     /// <param name="hostBuilder">The receiver instance.</param>
     extension(IHostBuilder hostBuilder)
     {
+        /// <summary>Enables WPF lifetime management using <see cref="ShutdownMode.OnLastWindowClose"/>.</summary>
+        /// <returns>The same host builder.</returns>
+        public IHostBuilder UseWpfLifetime() =>
+            hostBuilder.UseWpfLifetime(ShutdownMode.OnLastWindowClose);
+
         /// <summary>Enables WPF application lifetime integration for the host, configuring shutdown behavior according to the specified mode.</summary>
         /// <remarks>This method should be called after configuring WPF on the host builder. It links the host's
         /// lifetime to the WPF application's lifetime, ensuring that the host shuts down according to the specified
@@ -181,12 +181,9 @@ public static class HostBuilderWpfExtensions
         /// <returns>The same instance of <see cref="IHostBuilder"/> for chaining further configuration.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         /// <exception cref="NotSupportedException">Thrown if WPF has not been configured on the host builder before calling this method.</exception>
-        public IHostBuilder UseWpfLifetime(ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose)
+        public IHostBuilder UseWpfLifetime(ShutdownMode shutdownMode)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             return hostBuilder.ConfigureServices((context, services) =>
             {
@@ -200,23 +197,16 @@ public static class HostBuilderWpfExtensions
             });
         }
 
-        /// <summary>Configures WPF support for the specified host builder, enabling integration of WPF application and window types into the hosting environment.</summary>
-        /// <remarks>This method registers WPF services and allows customization of the WPF application and main
-        /// window types through the <paramref name="configureDelegate"/>. It should be called before building the host to
-        /// ensure WPF integration is properly configured. Only one WPF context is registered per host builder
-        /// instance.</remarks>
-        /// <param name="configureDelegate">An optional delegate to further configure WPF-specific services and application or window types. If null,
-        /// default WPF configuration is applied.</param>
-        /// <returns>The same instance of <see cref="IHostBuilder"/> for chaining further configuration.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown if the application type registered via <paramref name="configureDelegate"/> does not inherit from <see
-        /// cref="System.Windows.Application"/>.</exception>
-        public IHostBuilder ConfigureWpf(Action<IWpfBuilder>? configureDelegate = null)
+        /// <summary>Configures WPF support using the default builder settings.</summary>
+        /// <returns>The same host builder.</returns>
+        public IHostBuilder ConfigureWpf() => hostBuilder.ConfigureWpf(null);
+
+        /// <summary>Configures WPF support and applies the supplied builder configuration.</summary>
+        /// <param name="configureDelegate">The optional WPF builder configuration.</param>
+        /// <returns>The same host builder.</returns>
+        public IHostBuilder ConfigureWpf(Action<IWpfBuilder>? configureDelegate)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             var wpfBuilder = new WpfBuilder();
             configureDelegate?.Invoke(wpfBuilder);

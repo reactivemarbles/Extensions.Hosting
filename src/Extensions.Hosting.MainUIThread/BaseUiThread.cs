@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.UiThread;
 
-/// <summary>Provides a base class for managing a UI thread and its associated context using dependency injection. Intended for use with UI frameworks that require operations to run on a dedicated thread.</summary>
+/// <summary>Provides a base class for managing a UI thread and its associated context using dependency injection.</summary>
 /// <remarks>This class is designed to be inherited by platform-specific UI thread implementations. It manages the
 /// lifecycle of a UI thread, including initialization, startup synchronization, and graceful shutdown. The class uses
 /// dependency injection to provide services and context to the UI thread. Derived classes must implement the <see
@@ -31,19 +31,26 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <summary>Stores the disposed value.</summary>
     private bool _disposedValue;
 
-    /// <summary>Initializes a new instance of the <see cref="BaseUiThread{T}"/> class and starts a dedicated UI thread using the specified. service provider.</summary>
+    /// <summary>Initializes a new instance of the <see cref="BaseUiThread{T}"/> class using a dedicated UI thread.</summary>
+    /// <param name="serviceProvider">The service provider used to resolve required services for the UI thread. Cannot be null.</param>
+    protected BaseUiThread(IServiceProvider serviceProvider)
+        : this(serviceProvider, useDedicatedUiThread: true)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="BaseUiThread{T}"/> class.</summary>
     /// <remarks>The constructor creates and starts a new background thread to run the UI. On Windows
     /// platforms, the thread is set to single-threaded apartment (STA) state to support UI frameworks that require it.
     /// The provided service provider is used to resolve dependencies needed by the UI thread and is stored for later
     /// use.</remarks>
     /// <param name="serviceProvider">The service provider used to resolve required services for the UI thread. Cannot be null.</param>
-    /// <param name="useDedicatedUiThread">If set to <c>true</c>, a dedicated UI thread is created and started immediately; otherwise, UI initialization and startup run on the caller thread when <see cref="Start"/> is invoked.</param>
-    protected BaseUiThread(IServiceProvider serviceProvider, bool useDedicatedUiThread = true)
+    /// <param name="useDedicatedUiThread">
+    /// If set to <c>true</c>, a dedicated UI thread is created immediately; otherwise, UI startup runs on the caller
+    /// thread when <see cref="Start"/> is invoked.
+    /// </param>
+    protected BaseUiThread(IServiceProvider serviceProvider, bool useDedicatedUiThread)
     {
-        if (serviceProvider is null)
-        {
-            throw new ArgumentNullException(nameof(serviceProvider));
-        }
+        _ = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
         UiContext = serviceProvider.GetRequiredService<T>();
         _hostApplicationLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
@@ -56,10 +63,7 @@ public abstract class BaseUiThread<T> : IDisposable
         }
 
         // Create a thread which runs the UI
-        var newUiThread = new Thread(InternalUiThreadStart)
-        {
-            IsBackground = true
-        };
+        var newUiThread = new Thread(InternalUiThreadStart) { IsBackground = true };
 
 #if NET5_0_OR_GREATER
         if (OperatingSystem.IsWindows())

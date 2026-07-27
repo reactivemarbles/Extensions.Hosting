@@ -4,24 +4,25 @@
             "parallel": false
         }
     },
-    "extensions": [
-        {
-            "extensionId": "Microsoft.Testing.Extensions.CodeCoverage",
-            "settings": {
-                "format": "cobertura",
-                "skipAutoProperties": true,
-                "modulePaths": {
-                    "include": [
-                        "^Extensions\\.Hosting\\..*$"
-                    ],
-                    "exclude": [
-                        ".*Tests.*",
-                        ".*TestRunner.*",
-                        "^Extensions\\.Hosting\\..*\\.Example$",
-                        "^Extensions\\.Logging\\..*"
+    "codeCoverage": {
+        "Configuration": {
+            "Format": "cobertura",
+            "IncludeTestAssembly": false,
+            "CodeCoverage": {
+                "ModulePaths": {
+                    "Exclude": [
+                        "(^|.*[/\\\\])[^/\\\\]*Tests[^/\\\\]*\\.(dll|exe)$",
+                        "(^|.*[/\\\\])[^/\\\\]*TestRunner[^/\\\\]*\\.(dll|exe)$",
+                        "(^|.*[/\\\\])[^/\\\\]*Benchmarks[^/\\\\]*\\.(dll|exe)$",
+                        "(^|.*[/\\\\])[^/\\\\]*\\.Example[^/\\\\]*\\.(dll|exe)$"
+                    ]
+                },
+                "Sources": {
+                    "Exclude": [
+                        ".*[/\\\\]obj[/\\\\].*"
                     ]
                 }
             }
         }
-    ]
+    }
 }

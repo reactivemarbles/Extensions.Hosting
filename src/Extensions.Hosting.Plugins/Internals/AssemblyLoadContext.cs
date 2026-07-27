@@ -1,9 +1,10 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 #if REACTIVE_SHIM
@@ -26,7 +27,7 @@ public class AssemblyLoadContext(string name)
     /// <remarks>The default context is used to load assemblies that are part of the application or shared
     /// framework. Assemblies loaded into the default context are visible to all code in the application domain. Use
     /// this property to access the standard assembly loading behavior provided by .NET.</remarks>
-    public static AssemblyLoadContext Default { get; } = new AssemblyLoadContext("default");
+    public static AssemblyLoadContext Default { get; } = new("default");
 
     /// <summary>Gets the assemblies that are loaded into the current application domain.</summary>
     public static IEnumerable<Assembly> Assemblies => AppDomain.CurrentDomain.GetAssemblies();
@@ -35,12 +36,18 @@ public class AssemblyLoadContext(string name)
     public string Name { get; } = name;
 
     /// <summary>Loads an assembly from the specified file path.</summary>
-    /// <remarks>The assembly is loaded into the load-from context. If the assembly has already been loaded,
-    /// this method may return a reference to the existing assembly. This method does not resolve dependencies
-    /// automatically; dependent assemblies must be available to the loader.</remarks>
+    /// <remarks>The path is used to read the assembly's full identity before the runtime resolves that identity
+    /// through its normal trusted assembly-loading process.</remarks>
     /// <param name="assemblyPath">The path to the assembly file to load. The path must be a valid file system path to a managed assembly file.</param>
     /// <returns>The loaded assembly represented by the specified file path.</returns>
-    public static Assembly LoadFromAssemblyPath(string assemblyPath) => Assembly.LoadFrom(assemblyPath);
+    public static Assembly LoadFromAssemblyPath(string assemblyPath)
+    {
+        var validAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath)
+            ? assemblyPath
+            : throw new ArgumentException("The assembly path cannot be null or whitespace.", nameof(assemblyPath));
+        var fullPath = Path.GetFullPath(validAssemblyPath);
+        return Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
+    }
 
     /// <summary>Loads an assembly given its display name.</summary>
     /// <remarks>This method loads the assembly into the current load context. If the assembly has already
@@ -50,10 +57,7 @@ public class AssemblyLoadContext(string name)
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="assemblyName"/> is null.</exception>
     public Assembly LoadFromAssemblyName(AssemblyName assemblyName)
     {
-        if (assemblyName is null)
-        {
-            throw new ArgumentNullException(nameof(assemblyName));
-        }
+        _ = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
 
         // Attempt to load the assembly, using the same ordering as static load, in the current load context.
         return Load(assemblyName);

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -40,12 +40,9 @@ public static class HostBuilderApplicationExtensions
     /// <summary>Adds the mutex services to the service collection.</summary>
     /// <param name="services">The service collection to update.</param>
     /// <param name="mutexBuilder">The configured mutex builder.</param>
-    private static void AddMutexServices(IServiceCollection services, IMutexBuilder mutexBuilder)
-    {
-        _ = services
+    private static void AddMutexServices(IServiceCollection services, IMutexBuilder mutexBuilder) => _ = services
             .AddSingleton(mutexBuilder)
             .AddHostedService<MutexLifetimeService>();
-    }
 
     /// <summary>Provides extension members for this receiver.</summary>
     /// <param name="hostBuilder">The receiver instance.</param>
@@ -62,10 +59,7 @@ public static class HostBuilderApplicationExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         public IHostApplicationBuilder ConfigureSingleInstance(Action<IMutexBuilder> configureAction)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             if (!TryRetrieveMutexBuilder(hostBuilder.Properties, out var mutexBuilder))
             {
@@ -99,10 +93,7 @@ public static class HostBuilderApplicationExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is null.</exception>
         public IHostBuilder ConfigureSingleInstance(Action<IMutexBuilder> configureAction)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             return hostBuilder.ConfigureServices((_, serviceCollection) =>
             {

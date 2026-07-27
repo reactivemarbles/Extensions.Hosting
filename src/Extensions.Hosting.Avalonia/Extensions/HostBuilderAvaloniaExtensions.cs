@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -21,15 +21,16 @@ public static class HostBuilderAvaloniaExtensions
         /// <remarks>This method integrates Avalonia's lifetime management with the host builder, ensuring that
         /// the application shuts down according to the selected shutdown mode. Use this extension when hosting Avalonia
         /// applications to control shutdown behavior.</remarks>
-        /// <param name="shutdownMode">Specifies the shutdown mode for the Avalonia application. The default is <see
-        /// cref="ShutdownMode.OnLastWindowClose"/>, which shuts down the application when the last window is closed.</param>
         /// <returns>The updated <see cref="IHostBuilder"/> instance, allowing for further configuration.</returns>
-        public IHostBuilder UseAvaloniaLifetime(ShutdownMode shutdownMode = ShutdownMode.OnLastWindowClose)
+        public IHostBuilder UseAvaloniaLifetime() =>
+            hostBuilder.UseAvaloniaLifetime(ShutdownMode.OnLastWindowClose);
+
+        /// <summary>Configures the host builder to use Avalonia lifetime management with a shutdown mode.</summary>
+        /// <param name="shutdownMode">Specifies the shutdown mode for the Avalonia application.</param>
+        /// <returns>The updated <see cref="IHostBuilder"/> instance, allowing for further configuration.</returns>
+        public IHostBuilder UseAvaloniaLifetime(ShutdownMode shutdownMode)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             return InternalBuilderAvaloniaUtility.UseAvaloniaLifetime(hostBuilder, shutdownMode);
         }
@@ -37,15 +38,16 @@ public static class HostBuilderAvaloniaExtensions
         /// <summary>Configures the Avalonia framework for the specified host builder, enabling integration and customization of Avalonia application settings before startup.</summary>
         /// <remarks>Use this method to set up Avalonia-specific configurations and options prior to application
         /// startup. This enables customization of the Avalonia environment within a generic host.</remarks>
-        /// <param name="configureDelegate">An optional delegate that allows further customization of the Avalonia builder. If provided, it is invoked to
-        /// configure Avalonia-specific options.</param>
         /// <returns>An instance of IHostBuilder that has been configured for Avalonia support.</returns>
-        public IHostBuilder ConfigureAvalonia(Action<IAvaloniaBuilder>? configureDelegate = null)
+        public IHostBuilder ConfigureAvalonia() =>
+            hostBuilder.ConfigureAvalonia(null);
+
+        /// <summary>Configures Avalonia and applies the supplied customization.</summary>
+        /// <param name="configureDelegate">A delegate that allows further customization of the Avalonia builder.</param>
+        /// <returns>An instance of IHostBuilder that has been configured for Avalonia support.</returns>
+        public IHostBuilder ConfigureAvalonia(Action<IAvaloniaBuilder>? configureDelegate)
         {
-            if (hostBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(hostBuilder));
-            }
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             return InternalBuilderAvaloniaUtility.ConfigureAvalonia(hostBuilder, configureDelegate);
         }

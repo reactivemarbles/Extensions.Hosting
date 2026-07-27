@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -26,8 +26,8 @@ public class NugetDetailsViewModel : ReactiveObject
     /// <summary>Stores the default url value.</summary>
     private readonly Uri _defaultUrl;
 
-    /// <summary>Stores the icon value.</summary>
-    private readonly ObservableAsPropertyHelper<Bitmap?> _icon;
+    /// <summary>Stores whether icon loading has started.</summary>
+    private int _iconLoadStarted;
 
     /// <summary>Initializes a new instance of the <see cref="NugetDetailsViewModel"/> class.</summary>
     /// <param name="metadata">The NuGet package metadata.</param>
@@ -36,21 +36,21 @@ public class NugetDetailsViewModel : ReactiveObject
         _metadata = metadata;
         _defaultUrl = new("https://git.io/fAlfh");
 
-        var startInfo = new ProcessStartInfo(ProjectUrl?.ToString() ?? _defaultUrl.ToString())
-        {
-            UseShellExecute = true
-        };
-
-        OpenPage = ReactiveCommand.Create(() => OpenPackagePage(startInfo));
-
-        _icon = Signal
-            .FromAsync(cancellationToken => LoadIconAsync(IconUrl, cancellationToken))
-            .ObserveOn(RxSchedulers.MainThreadScheduler)
-            .ToProperty(this, x => x.Icon);
+        var projectUrl = ProjectUrl ?? _defaultUrl;
+        OpenPage = ReactiveCommand.Create(() => OpenPackagePage(projectUrl));
     }
 
     /// <summary>Gets the package icon.</summary>
-    public Bitmap? Icon => _icon.Value;
+    public Bitmap? Icon
+    {
+        get
+        {
+            BeginIconLoad();
+            return field;
+        }
+
+        private set => _ = this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     /// <summary>Gets the icon URI.</summary>
     public Uri IconUrl => _metadata.IconUrl ?? _defaultUrl;
@@ -79,7 +79,7 @@ public class NugetDetailsViewModel : ReactiveObject
             await using var iconMemoryStream = new MemoryStream();
             await iconStream.CopyToAsync(iconMemoryStream, cancellationToken).ConfigureAwait(false);
             iconMemoryStream.Position = 0;
-            return new Bitmap(iconMemoryStream);
+            return new(iconMemoryStream);
         }
         catch (HttpRequestException)
         {
@@ -108,6 +108,48 @@ public class NugetDetailsViewModel : ReactiveObject
     }
 
     /// <summary>Opens the package page in the default system browser.</summary>
-    /// <param name="startInfo">The process start information.</param>
-    private static void OpenPackagePage(ProcessStartInfo startInfo) => _ = Process.Start(startInfo);
+    /// <param name="projectUrl">The package project URL.</param>
+    private static void OpenPackagePage(Uri projectUrl)
+    {
+        if (!string.Equals(projectUrl.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(projectUrl.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            var windowsStartInfo = new ProcessStartInfo("explorer.exe") { UseShellExecute = false };
+            windowsStartInfo.ArgumentList.Add(projectUrl.AbsoluteUri);
+            _ = Process.Start(windowsStartInfo);
+            return;
+        }
+
+        if (OperatingSystem.IsMacOS())
+        {
+            var macOsStartInfo = new ProcessStartInfo("/usr/bin/open") { UseShellExecute = false };
+            macOsStartInfo.ArgumentList.Add(projectUrl.AbsoluteUri);
+            _ = Process.Start(macOsStartInfo);
+            return;
+        }
+
+        var linuxStartInfo = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
+        linuxStartInfo.ArgumentList.Add(projectUrl.AbsoluteUri);
+        _ = Process.Start(linuxStartInfo);
+    }
+
+    /// <summary>Starts loading the package icon the first time it is requested.</summary>
+    private void BeginIconLoad()
+    {
+        if (Interlocked.Exchange(ref _iconLoadStarted, 1) != 0)
+        {
+            return;
+        }
+
+        _ = LoadAndPublishIconAsync();
+    }
+
+    /// <summary>Loads the package icon and publishes it to the binding.</summary>
+    /// <returns>A task that represents the asynchronous load.</returns>
+    private async Task LoadAndPublishIconAsync() => Icon = await LoadIconAsync(IconUrl, CancellationToken.None);
 }

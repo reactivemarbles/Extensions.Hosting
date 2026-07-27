@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 namespace Extensions.Hosting.Tests;
@@ -21,10 +21,7 @@ public class MutexBuilderTests
     [Test]
     public async Task MutexBuilder_MutexId_CanBeSetAndRetrieved()
     {
-        var builder = new TestMutexBuilder
-        {
-            MutexId = "test-mutex-id"
-        };
+        var builder = new TestMutexBuilder { MutexId = "test-mutex-id" };
 
         await Assert.That(builder.MutexId).IsEqualTo("test-mutex-id");
     }
@@ -43,10 +40,7 @@ public class MutexBuilderTests
     [Test]
     public async Task MutexBuilder_IsGlobal_CanBeSetAndRetrieved()
     {
-        var builder = new TestMutexBuilder
-        {
-            IsGlobal = true
-        };
+        var builder = new TestMutexBuilder { IsGlobal = true };
 
         await Assert.That(builder.IsGlobal).IsTrue();
     }
@@ -79,12 +73,7 @@ public class MutexBuilderTests
     [Test]
     public async Task MutexBuilder_AllProperties_CanBeConfiguredTogether()
     {
-        var builder = new TestMutexBuilder
-        {
-            MutexId = "my-app-mutex",
-            IsGlobal = true,
-            WhenNotFirstInstance = (env, logger) => { }
-        };
+        var builder = new TestMutexBuilder { MutexId = "my-app-mutex", IsGlobal = true, WhenNotFirstInstance = static (env, logger) => { } };
 
         await Assert.That(builder.MutexId).IsEqualTo("my-app-mutex");
         await Assert.That(builder.IsGlobal).IsTrue();

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -27,8 +27,14 @@ internal sealed class PluginLoadContext(string pluginPath, string name) : Assemb
     /// <summary>Resolves the file system path to the assembly specified by the given assembly name.</summary>
     /// <param name="assemblyName">The assembly name to resolve. Cannot be null.</param>
     /// <returns>The full path to the resolved assembly file, or null if the assembly cannot be found.</returns>
-    public string? ResolveAssemblyPath(AssemblyName assemblyName) =>
+    internal string? ResolveAssemblyPath(AssemblyName assemblyName) =>
         _resolver.ResolveAssemblyToPath(assemblyName);
+
+    /// <summary>Loads an unmanaged library by name through the plugin resolver.</summary>
+    /// <param name="unmanagedDllName">The unmanaged library name.</param>
+    /// <returns>The loaded library handle, or zero when it cannot be resolved.</returns>
+    internal IntPtr LoadUnmanagedLibrary(string unmanagedDllName) =>
+        LoadUnmanagedDll(unmanagedDllName);
 
     /// <inheritdoc />
     protected override Assembly Load(AssemblyName assemblyName) =>

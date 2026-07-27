@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -12,6 +12,9 @@ namespace Extensions.Hosting.Tests;
 /// <summary>Contains tests for the reactive plugin shim surface.</summary>
 public class ReactivePluginShimTests
 {
+    /// <summary>The expected number of configured plugins.</summary>
+    private const int ExpectedPluginCount = 2;
+
     /// <summary>Verifies that the reactive shim PluginBase registers hosted services.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -20,9 +23,9 @@ public class ReactivePluginShimTests
         var services = new ServiceCollection();
         var plugin = new PluginBase<ReactiveHostedService>();
 
-        plugin.ConfigureHost(new object(), services);
+        plugin.ConfigureHost(new(), services);
 
-        await Assert.That(services.Any(IsReactiveHostedServiceRegistration)).IsTrue();
+        await Assert.That(TestEnumerable.Contains(services, IsReactiveHostedServiceRegistration)).IsTrue();
     }
 
     /// <summary>Verifies that the reactive shim plugin scanner discovers reactive plugin implementations.</summary>
@@ -30,9 +33,10 @@ public class ReactivePluginShimTests
     [Test]
     public async Task PluginScanner_WithReactiveNamespace_FindsReactivePlugin()
     {
-        var plugins = PluginScanner.ScanForPluginInstances(typeof(ReactiveDiscoveredPlugin).Assembly).ToList();
+        var plugins = TestEnumerable.Materialize(
+            PluginScanner.ScanForPluginInstances(typeof(ReactiveDiscoveredPlugin).Assembly));
 
-        await Assert.That(plugins.Any(plugin => plugin is ReactiveDiscoveredPlugin)).IsTrue();
+        await Assert.That(plugins.Exists(static plugin => plugin is ReactiveDiscoveredPlugin)).IsTrue();
     }
 
     /// <summary>Verifies that the reactive shim host builder extension configures discovered plugins in order.</summary>
@@ -45,7 +49,7 @@ public class ReactivePluginShimTests
 
         _ = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             AddCurrentAssemblyAsFramework(builder);
             builder.AssemblyScanFunc = _ =>
             [
@@ -57,7 +61,7 @@ public class ReactivePluginShimTests
 
         using var host = hostBuilder.Build();
 
-        await Assert.That(configuredPlugins.Count).IsEqualTo(2);
+        await Assert.That(configuredPlugins.Count).IsEqualTo(ExpectedPluginCount);
         await Assert.That(configuredPlugins[0]).IsEqualTo(EarlierReactiveRecordingPlugin.Name);
         await Assert.That(configuredPlugins[1]).IsEqualTo(LaterReactiveRecordingPlugin.Name);
     }
@@ -68,7 +72,7 @@ public class ReactivePluginShimTests
     public async Task ConfigurePlugins_IHostBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
     {
         IHostBuilder? hostBuilder = null;
-        var act = () => hostBuilder!.ConfigurePlugins(_ => { });
+        var act = () => hostBuilder!.ConfigurePlugins(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
     }
 
@@ -78,7 +82,7 @@ public class ReactivePluginShimTests
     public async Task ConfigurePlugins_IHostApplicationBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
     {
         IHostApplicationBuilder? hostBuilder = null;
-        var act = () => hostBuilder!.ConfigurePlugins(_ => { });
+        var act = () => hostBuilder!.ConfigurePlugins(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
     }
 
@@ -92,7 +96,7 @@ public class ReactivePluginShimTests
 
         var result = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             AddCurrentAssemblyAsFramework(builder);
             builder.AssemblyScanFunc = _ => [new EarlierReactiveRecordingPlugin(configuredPlugins)];
         });
@@ -148,7 +152,7 @@ public class ReactivePluginShimTests
 
         _ = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             builder.UseContentRoot = true;
             _ = builder.FrameworkMatcher.AddInclude(Path.GetFileName(assemblyPath));
             builder.AssemblyScanFunc = _ => [new EarlierReactiveRecordingPlugin(configuredPlugins)];
@@ -174,10 +178,10 @@ public class ReactivePluginShimTests
 
             _ = hostBuilder.ConfigurePlugins(builder =>
             {
-                ArgumentNullException.ThrowIfNull(builder);
+                _ = builder ?? throw new ArgumentNullException(nameof(builder));
                 builder.PluginDirectories.Add(tempDirectory);
                 _ = builder.PluginMatcher.AddInclude(Path.GetFileName(pluginPath));
-                builder.ValidatePlugin = _ => false;
+                builder.ValidatePlugin = static _ => false;
             });
 
             using var host = hostBuilder.Build();
@@ -199,7 +203,7 @@ public class ReactivePluginShimTests
 
         _ = hostBuilder.ConfigurePlugins(builder =>
         {
-            ArgumentNullException.ThrowIfNull(builder);
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
             builder.PluginDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
             _ = builder.PluginMatcher.AddInclude(Path.GetFileName(assemblyPath));
         });
@@ -222,7 +226,7 @@ public class ReactivePluginShimTests
 
             _ = hostBuilder.ConfigurePlugins(builder =>
             {
-                ArgumentNullException.ThrowIfNull(builder);
+                _ = builder ?? throw new ArgumentNullException(nameof(builder));
                 builder.FrameworkDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
                 _ = builder.FrameworkMatcher.AddInclude(Path.GetFileName(assemblyPath));
                 builder.AssemblyScanFunc = _ => [new EarlierReactiveRecordingPlugin(configuredPlugins)];
@@ -253,7 +257,7 @@ public class ReactivePluginShimTests
 
             _ = hostBuilder.ConfigurePlugins(builder =>
             {
-                ArgumentNullException.ThrowIfNull(builder);
+                _ = builder ?? throw new ArgumentNullException(nameof(builder));
                 builder.PluginDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
                 _ = builder.PluginMatcher.AddInclude(Path.GetFileName(assemblyPath));
                 builder.AssemblyScanFunc = _ => [new EarlierReactiveRecordingPlugin(configuredPlugins)];
@@ -276,7 +280,9 @@ public class ReactivePluginShimTests
     public async Task ConfigurePlugins_IHostBuilder_WithRequiredPluginsAndNoPlugins_ThrowsInvalidOperationException()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        _ = hostBuilder.ConfigurePlugins(builder => builder.RequirePlugins());
+        _ = hostBuilder.ConfigurePlugins(
+            static builder => (builder ?? throw new InvalidOperationException("Plugin builder was not created."))
+                .RequirePlugins());
 
         var act = () => hostBuilder.Build();
         await Assert.That(act).Throws<InvalidOperationException>();
@@ -314,8 +320,8 @@ public class ReactivePluginShimTests
     /// <param name="serviceDescriptor">The service descriptor to inspect.</param>
     /// <returns>True when the descriptor registers the reactive hosted service.</returns>
     private static bool IsReactiveHostedServiceRegistration(ServiceDescriptor serviceDescriptor) =>
-        serviceDescriptor.ServiceType == typeof(IHostedService) &&
-        serviceDescriptor.ImplementationType == typeof(ReactiveHostedService);
+        serviceDescriptor.ServiceType == typeof(IHostedService)
+        && serviceDescriptor.ImplementationType == typeof(ReactiveHostedService);
 
     /// <summary>Hosted service used to verify reactive shim service registration.</summary>
     public sealed class ReactiveHostedService : IHostedService

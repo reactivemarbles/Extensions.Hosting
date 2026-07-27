@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,33 +43,40 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
                     avaloniaService.Initialize(UiContext.AvaloniaApplication);
                 }
 
-                var shellWindows = ServiceProvider.GetServices<IAvaloniaShell>().Cast<Window>().ToList();
+                var shellWindows = new List<Window>();
+                foreach (var shell in ServiceProvider.GetServices<IAvaloniaShell>())
+                {
+                    if (shell is Window window)
+                    {
+                        shellWindows.Add(window);
+                    }
+                }
 
                 switch (shellWindows.Count)
                 {
                     case 1:
-                    {
-                        lifetime.MainWindow = shellWindows[0];
-                        shellWindows[0].Show();
-                        break;
-                    }
-
-                    case 0:
-                    {
-                        break;
-                    }
-
-                    default:
-                    {
-                        lifetime.MainWindow = shellWindows[0];
-
-                        for (var i = 0; i < shellWindows.Count; i++)
                         {
-                            shellWindows[i]?.Show();
+                            lifetime.MainWindow = shellWindows[0];
+                            shellWindows[0].Show();
+                            break;
                         }
 
-                        break;
-                    }
+                    case 0:
+                        {
+                            break;
+                        }
+
+                    default:
+                        {
+                            lifetime.MainWindow = shellWindows[0];
+
+                            for (var i = 0; i < shellWindows.Count; i++)
+                            {
+                                shellWindows[i]?.Show();
+                            }
+
+                            break;
+                        }
                 }
 
                 UiContext.IsRunning = true;

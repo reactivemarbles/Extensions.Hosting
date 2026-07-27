@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -16,8 +16,8 @@ namespace ReactiveMarbles.Extensions.Logging;
 /// <inheritdoc cref="ILog4NetLoggingEventFactory"/>
 public class Log4NetLoggingEventFactory : ILog4NetLoggingEventFactory
 {
-    /// <summary>The default property name for scopes that don't provide their own property name by implementing an <see cref="IEnumerable{T}"/> where T is <see cref="KeyValuePair{TKey,TValue}"/> and where TKey is <see cref="string"/>.</summary>
-    protected const string DefaultScopeProperty = "scope";
+    /// <summary>The default property name for scopes that do not provide their own property name.</summary>
+    private const string DefaultScopeProperty = "scope";
 
     /// <summary>Stores the event id property value.</summary>
     private const string EventIdProperty = "eventId";
@@ -47,15 +47,9 @@ public class Log4NetLoggingEventFactory : ILog4NetLoggingEventFactory
         Log4NetProviderOptions options,
         IExternalScopeProvider scopeProvider)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        _ = options ?? throw new ArgumentNullException(nameof(options));
 
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        _ = logger ?? throw new ArgumentNullException(nameof(logger));
 
         var callerStackBoundaryDeclaringType = typeof(LoggerExtensions);
         var message = messageCandidate.Formatter(messageCandidate.State, messageCandidate.Exception);
@@ -193,5 +187,5 @@ public class Log4NetLoggingEventFactory : ILog4NetLoggingEventFactory
     /// <param name="newValue">The new property value.</param>
     /// <returns>The combined value.</returns>
     private static string? JoinOldAndNewValue(string? previousValue, string? newValue) =>
-        string.IsNullOrEmpty(previousValue) ? newValue : previousValue + " " + newValue;
+        string.IsNullOrEmpty(previousValue) ? newValue : $"{previousValue} {newValue}";
 }

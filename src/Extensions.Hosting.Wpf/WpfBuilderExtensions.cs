@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -35,10 +35,7 @@ public static class WpfBuilderExtensions
         public IWpfBuilder UseApplication<TApplication>()
             where TApplication : Application
         {
-            if (wpfBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(wpfBuilder));
-            }
+            _ = wpfBuilder ?? throw new ArgumentNullException(nameof(wpfBuilder));
 
             wpfBuilder.ApplicationType = typeof(TApplication);
             return wpfBuilder;
@@ -52,10 +49,7 @@ public static class WpfBuilderExtensions
         public IWpfBuilder UseCurrentApplication<TApplication>(TApplication currentApplication)
             where TApplication : Application
         {
-            if (wpfBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(wpfBuilder));
-            }
+            _ = wpfBuilder ?? throw new ArgumentNullException(nameof(wpfBuilder));
 
             wpfBuilder.ApplicationType = typeof(TApplication);
             wpfBuilder.Application = currentApplication;
@@ -69,10 +63,7 @@ public static class WpfBuilderExtensions
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="wpfBuilder"/> is null.</exception>
         public IWpfBuilder ConfigureContext(Action<IWpfContext> configureAction)
         {
-            if (wpfBuilder is null)
-            {
-                throw new ArgumentNullException(nameof(wpfBuilder));
-            }
+            _ = wpfBuilder ?? throw new ArgumentNullException(nameof(wpfBuilder));
 
             wpfBuilder.ConfigureContextAction = configureAction;
             return wpfBuilder;

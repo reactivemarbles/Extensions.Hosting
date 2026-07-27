@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,6 +13,12 @@ namespace Extensions.Hosting.Tests;
 /// ResourceMutex.</remarks>
 public class ResourceMutexTests
 {
+    /// <summary>The mutex operation timeout, in seconds.</summary>
+    private const int MutexOperationTimeoutSeconds = 5;
+
+    /// <summary>The prefix for process-local named mutexes.</summary>
+    private const string LocalMutexPrefix = @"Local\";
+
     /// <summary>Verifies that calling ResourceMutex.Create with a null mutex ID throws an ArgumentException.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -46,7 +52,7 @@ public class ResourceMutexTests
     public async Task Create_ValidMutexId_IsLocked()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-{Guid.NewGuid():N}";
 
         using var mutex = ResourceMutex.Create(logger, id);
         await Assert.That(mutex.IsLocked).IsTrue();
@@ -57,7 +63,7 @@ public class ResourceMutexTests
     [Test]
     public async Task Create_WithNullLogger_CreatesDefaultLogger()
     {
-        var id = "test-mutex-nulllogger-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-nulllogger-{Guid.NewGuid():N}";
 
         using var mutex = ResourceMutex.Create(null, id);
         await Assert.That(mutex).IsNotNull();
@@ -70,7 +76,7 @@ public class ResourceMutexTests
     public async Task Create_WithResourceName_Succeeds()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-resource-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-resource-{Guid.NewGuid():N}";
         const string resourceName = "TestResource";
 
         using var mutex = ResourceMutex.Create(logger, id, resourceName);
@@ -83,7 +89,7 @@ public class ResourceMutexTests
     public async Task Create_LocalMutex_Succeeds()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-local-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-local-{Guid.NewGuid():N}";
 
         using var mutex = ResourceMutex.Create(logger, id, global: false);
         await Assert.That(mutex.IsLocked).IsTrue();
@@ -95,7 +101,7 @@ public class ResourceMutexTests
     public async Task Create_SecondLocalMutexWithSameId_IsNotLocked()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-contention-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-contention-{Guid.NewGuid():N}";
 
         using var first = ResourceMutex.Create(logger, id);
         using var second = ResourceMutex.Create(logger, id);
@@ -110,8 +116,8 @@ public class ResourceMutexTests
     public async Task Create_WhenNamedMutexExistsButIsUnowned_ClaimsMutex()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-existing-" + Guid.NewGuid().ToString("N");
-        using var existing = new Mutex(initiallyOwned: false, @"Local\" + id);
+        var id = $"test-mutex-existing-{Guid.NewGuid():N}";
+        using var existing = new Mutex(initiallyOwned: false, LocalMutexPrefix + id);
 
         using var mutex = ResourceMutex.Create(logger, id);
 
@@ -124,7 +130,7 @@ public class ResourceMutexTests
     public async Task Create_WithInvalidMutexName_ReturnsUnlockedMutex()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-invalid-" + Guid.NewGuid().ToString("N") + @"\child";
+        var id = $"test-mutex-invalid-{Guid.NewGuid():N}\\child";
 
         using var mutex = ResourceMutex.Create(logger, id);
 
@@ -137,11 +143,11 @@ public class ResourceMutexTests
     public async Task Create_WhenNamedMutexIsAbandoned_RecoversMutex()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-abandoned-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-abandoned-{Guid.NewGuid():N}";
         var ready = new ManualResetEventSlim(initialState: false);
         var abandonThread = new Thread(() =>
         {
-            _ = new Mutex(initiallyOwned: true, @"Local\" + id);
+            _ = new Mutex(initiallyOwned: true, LocalMutexPrefix + id);
             ready.Set();
         });
 
@@ -167,11 +173,11 @@ public class ResourceMutexTests
 
         using var mutex = new ResourceMutex(
             NullLogger.Instance,
-            "test-mutex-unauthorized-" + Guid.NewGuid().ToString("N"),
+            $"test-mutex-unauthorized-{Guid.NewGuid():N}",
             resourceName: null,
             ThrowUnauthorized,
             static mutex => mutex.ReleaseMutex(),
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(MutexOperationTimeoutSeconds));
 
         var locked = mutex.Lock();
 
@@ -185,7 +191,7 @@ public class ResourceMutexTests
     public async Task Create_GlobalMutex_Succeeds()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-global-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-global-{Guid.NewGuid():N}";
 
         using var mutex = ResourceMutex.Create(logger, id, global: true);
         await Assert.That(mutex.IsLocked).IsTrue();
@@ -197,7 +203,7 @@ public class ResourceMutexTests
     public async Task Dispose_DoesNotThrow()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-dispose-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-dispose-{Guid.NewGuid():N}";
 
         var mutex = ResourceMutex.Create(logger, id);
         Exception? exception = null;
@@ -219,7 +225,7 @@ public class ResourceMutexTests
     public async Task Dispose_MultipleTimes_DoesNotThrow()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-double-dispose-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-double-dispose-{Guid.NewGuid():N}";
 
         var mutex = ResourceMutex.Create(logger, id);
         mutex.Dispose();
@@ -247,7 +253,7 @@ public class ResourceMutexTests
     public async Task Dispose_FromDifferentThread_DoesNotThrow()
     {
         var logger = NullLogger.Instance;
-        var id = "test-mutex-cross-thread-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-cross-thread-{Guid.NewGuid():N}";
 
         var mutex = ResourceMutex.Create(logger, id);
         await Assert.That(mutex.IsLocked).IsTrue();
@@ -276,12 +282,12 @@ public class ResourceMutexTests
     [Test]
     public async Task Dispose_WhenOwnerThreadDoesNotExitWithinTimeout_DoesNotThrow()
     {
-        var id = "test-mutex-timeout-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-timeout-{Guid.NewGuid():N}";
         using var releaseStarted = new ManualResetEventSlim(initialState: false);
         using var releaseCanContinue = new ManualResetEventSlim(initialState: false);
         var mutex = new ResourceMutex(
             NullLogger.Instance,
-            @"Local\" + id,
+            LocalMutexPrefix + id,
             resourceName: null,
             CreateNamedMutex,
             static mutex => mutex.ReleaseMutex(),
@@ -324,14 +330,14 @@ public class ResourceMutexTests
             throw new InvalidOperationException("Release failure.");
         }
 
-        var id = "test-mutex-release-failure-" + Guid.NewGuid().ToString("N");
+        var id = $"test-mutex-release-failure-{Guid.NewGuid():N}";
         var mutex = new ResourceMutex(
             NullLogger.Instance,
-            @"Local\" + id,
+            LocalMutexPrefix + id,
             resourceName: null,
             CreateNamedMutex,
             ReleaseThenThrow,
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(MutexOperationTimeoutSeconds));
 
         Exception? exception = null;
         try
@@ -352,8 +358,5 @@ public class ResourceMutexTests
     /// <summary>Creates a named mutex for ResourceMutex test seams.</summary>
     /// <param name="mutexId">The fully qualified mutex identifier.</param>
     /// <returns>The created mutex and a value indicating whether it was newly created.</returns>
-    private static (Mutex Mutex, bool CreatedNew) CreateNamedMutex(string mutexId)
-    {
-        return (new Mutex(true, mutexId, out var createdNew), createdNew);
-    }
+    private static (Mutex Mutex, bool CreatedNew) CreateNamedMutex(string mutexId) => (new Mutex(true, mutexId, out var createdNew), createdNew);
 }

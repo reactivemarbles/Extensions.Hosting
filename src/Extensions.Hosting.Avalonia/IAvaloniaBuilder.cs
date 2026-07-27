@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2026 ReactiveUI and Contributors. All rights reserved.
-// ReactiveUI and Contributors licenses this file to you under the MIT license.
+// Copyright (c) 2019-2026 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -8,7 +8,7 @@ using Avalonia;
 
 namespace ReactiveMarbles.Extensions.Hosting.Avalonia;
 
-/// <summary>Provides a contract for configuring an Avalonia application, including application type, existing application instance, window types, and context and builder configuration actions.</summary>
+/// <summary>Provides a contract for configuring an Avalonia application, its windows, context, and application builder.</summary>
 /// <remarks>Implementations of this interface allow developers to set up the Avalonia application environment by
 /// specifying the application type, supplying an existing application instance, defining window types, and providing
 /// actions to configure both the Avalonia context and the AppBuilder. This enables flexible customization of the
