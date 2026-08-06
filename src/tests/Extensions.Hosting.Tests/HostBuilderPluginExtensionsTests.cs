@@ -208,29 +208,31 @@ public class HostBuilderPluginExtensionsTests
     public async Task ConfigurePlugins_IHostBuilder_WithUnloadedPluginAssembly_LoadsAndScansAssembly()
     {
         var configuredPlugins = new List<string>();
-        var tempDirectory = CreateTemporaryDirectory();
-        try
-        {
-            var assemblyPath = CopyCurrentAssemblyToTemporaryPlugin(tempDirectory);
-            var hostBuilder = Host.CreateDefaultBuilder();
+        var assemblyPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "ExternalPluginFixtures",
+            "normal",
+            "Extensions.Hosting.PluginLoading.Fixture.dll");
+        string? loadedAssemblyLocation = null;
+        var hostBuilder = Host.CreateDefaultBuilder();
 
-            _ = hostBuilder.ConfigurePlugins(builder =>
+        _ = hostBuilder.ConfigurePlugins(builder =>
+        {
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
+            builder.PluginDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
+            _ = builder.PluginMatcher.AddInclude(Path.GetFileName(assemblyPath));
+            builder.AssemblyScanFunc = assembly =>
             {
-                _ = builder ?? throw new ArgumentNullException(nameof(builder));
-                builder.PluginDirectories.Add(Path.GetDirectoryName(assemblyPath)!);
-                _ = builder.PluginMatcher.AddInclude(Path.GetFileName(assemblyPath));
-                builder.AssemblyScanFunc = _ => [new EarlierRecordingPlugin(configuredPlugins)];
-            });
+                loadedAssemblyLocation = assembly.Location;
+                return [new EarlierRecordingPlugin(configuredPlugins)];
+            };
+        });
 
-            using var host = hostBuilder.Build();
+        using var host = hostBuilder.Build();
 
-            await Assert.That(configuredPlugins.Count).IsEqualTo(1);
-            await Assert.That(configuredPlugins[0]).IsEqualTo(EarlierRecordingPlugin.Name);
-        }
-        finally
-        {
-            Directory.Delete(tempDirectory, recursive: true);
-        }
+        await Assert.That(configuredPlugins.Count).IsEqualTo(1);
+        await Assert.That(configuredPlugins[0]).IsEqualTo(EarlierRecordingPlugin.Name);
+        await Assert.That(Path.GetFullPath(loadedAssemblyLocation!)).IsEqualTo(Path.GetFullPath(assemblyPath));
     }
 
     /// <summary>Verifies that required plugin configuration fails when no plugins are discovered.</summary>

@@ -36,7 +36,12 @@ public static class AssemblyLoadContextExtensions
                 return false;
             }
 
-            foreach (var assembly in AssemblyLoadContext.Assemblies)
+#if NETFRAMEWORK
+            var loadedAssemblies = AssemblyLoadContext.Assemblies;
+#else
+            var loadedAssemblies = System.Runtime.Loader.AssemblyLoadContext.Default.Assemblies;
+#endif
+            foreach (var assembly in loadedAssemblies)
             {
                 var name = assembly.GetName().Name;
                 if (name is null)

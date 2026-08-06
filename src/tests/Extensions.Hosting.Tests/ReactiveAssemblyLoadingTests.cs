@@ -291,13 +291,26 @@ public class ReactiveAssemblyLoadingTests
     [Test]
     public async Task PluginLoadContext_LoadFromAssemblyName_WithPluginLocalAssembly_ReturnsAssembly()
     {
-        var candidatePath = GetUnloadedAssemblyPath();
-        var assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(candidatePath));
-        var context = new PluginLoadContext(candidatePath, assemblyName.Name!);
+        var pluginPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "ExternalPluginFixtures",
+            "reactive",
+            "Extensions.Hosting.PluginLoading.Reactive.Fixture.dll");
+        var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
+        var context = new PluginLoadContext(pluginPath, assemblyName.Name!);
 
-        var assembly = context.LoadFromAssemblyName(assemblyName);
+        var assembly = context.TryLoadFromAssemblyName(assemblyName);
 
-        await Assert.That(assembly.GetName().Name).IsEqualTo(assemblyName.Name);
+        await Assert.That(assembly!.GetName().Name).IsEqualTo(assemblyName.Name);
+        await Assert.That(Path.GetFullPath(assembly.Location)).IsEqualTo(Path.GetFullPath(pluginPath));
+        var pluginCount = 0;
+        foreach (var plugin in ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.PluginScanner.ScanForPluginInstances(assembly))
+        {
+            _ = plugin;
+            pluginCount++;
+        }
+
+        await Assert.That(pluginCount).IsEqualTo(1);
     }
 
     /// <summary>Verifies that PluginLoadContext returns null when a plugin-local assembly cannot be resolved.</summary>
@@ -307,7 +320,7 @@ public class ReactiveAssemblyLoadingTests
     {
         var context = new PluginLoadContext(typeof(ReactiveAssemblyLoadingTests).Assembly.Location, nameof(Plugin));
 
-        Assembly? assembly = context.LoadFromAssemblyName(new("Missing.Plugin.Assembly"));
+        var assembly = context.TryLoadFromAssemblyName(new("Missing.Plugin.Assembly"));
 
         await Assert.That(assembly).IsNull();
     }
@@ -324,10 +337,10 @@ public class ReactiveAssemblyLoadingTests
         await Assert.That(result).IsEqualTo(IntPtr.Zero);
     }
 
-    /// <summary>Verifies that PluginLoadContext resolves unmanaged dependency paths before loading.</summary>
+    /// <summary>Verifies that PluginLoadContext attempts to load an existing unmanaged dependency from its resolved path.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
-    public async Task PluginLoadContext_LoadUnmanagedDll_WithExistingLibrary_ReturnsZeroFromShimLoader()
+    public async Task PluginLoadContext_LoadUnmanagedDll_WithInvalidExistingLibrary_ThrowsBadImageFormatException()
     {
         var tempDirectory = CreateTemporaryDirectory();
         try
@@ -338,9 +351,9 @@ public class ReactiveAssemblyLoadingTests
             await File.WriteAllTextAsync(dependencyPath, string.Empty);
             var context = new PluginLoadContext(pluginPath, nameof(Plugin));
 
-            var result = context.LoadUnmanagedLibrary(NativeLibraryName);
+            var act = () => context.LoadUnmanagedLibrary(NativeLibraryName);
 
-            await Assert.That(result).IsEqualTo(IntPtr.Zero);
+            await Assert.That(act).Throws<BadImageFormatException>();
         }
         finally
         {
@@ -355,55 +368,6 @@ public class ReactiveAssemblyLoadingTests
         var tempDirectory = Path.Combine(Path.GetTempPath(), "Extensions.Hosting.Tests", Guid.NewGuid().ToString("N"));
         _ = Directory.CreateDirectory(tempDirectory);
         return tempDirectory;
-    }
-
-    /// <summary>Finds a managed assembly in the test output that has not yet been loaded.</summary>
-    /// <returns>The path to an unloaded managed assembly.</returns>
-    private static string GetUnloadedAssemblyPath()
-    {
-        var assemblyDirectory = Path.GetDirectoryName(typeof(ReactiveAssemblyLoadingTests).Assembly.Location)!;
-        var loadedAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var loadedAssembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            var loadedAssemblyName = loadedAssembly.GetName().Name;
-            if (loadedAssemblyName is not null)
-            {
-                _ = loadedAssemblyNames.Add(loadedAssemblyName);
-            }
-        }
-
-        var assemblyPaths = new List<string>(Directory.EnumerateFiles(assemblyDirectory, "*.dll"));
-        assemblyPaths.Sort(
-            static (left, right) =>
-                StringComparer.Ordinal.Compare(Path.GetFileName(left), Path.GetFileName(right)));
-        foreach (var assemblyPath in assemblyPaths)
-        {
-            var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
-            if (!loadedAssemblyNames.Contains(assemblyName)
-                && !assemblyName.StartsWith("Extensions.Hosting", StringComparison.OrdinalIgnoreCase)
-                && IsManagedAssembly(assemblyPath))
-            {
-                return assemblyPath;
-            }
-        }
-
-        throw new InvalidOperationException("No unloaded assembly was available in the test output directory.");
-    }
-
-    /// <summary>Returns a value indicating whether the file is a managed assembly.</summary>
-    /// <param name="assemblyPath">The assembly path to inspect.</param>
-    /// <returns>True when the file is a managed assembly.</returns>
-    private static bool IsManagedAssembly(string assemblyPath)
-    {
-        try
-        {
-            _ = AssemblyName.GetAssemblyName(assemblyPath);
-            return true;
-        }
-        catch (BadImageFormatException)
-        {
-            return false;
-        }
     }
 
     /// <summary>Test assembly load context that delegates managed loads to a supplied assembly.</summary>

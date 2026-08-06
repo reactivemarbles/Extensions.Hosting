@@ -36,8 +36,8 @@ public class AssemblyLoadContext(string name)
     public string Name { get; } = name;
 
     /// <summary>Loads an assembly from the specified file path.</summary>
-    /// <remarks>The path is used to read the assembly's full identity before the runtime resolves that identity
-    /// through its normal trusted assembly-loading process.</remarks>
+    /// <remarks>The assembly is loaded from the supplied path so plug-ins discovered outside the application's
+    /// trusted assembly probing paths remain loadable.</remarks>
     /// <param name="assemblyPath">The path to the assembly file to load. The path must be a valid file system path to a managed assembly file.</param>
     /// <returns>The loaded assembly represented by the specified file path.</returns>
     public static Assembly LoadFromAssemblyPath(string assemblyPath)
@@ -46,7 +46,11 @@ public class AssemblyLoadContext(string name)
             ? assemblyPath
             : throw new ArgumentException("The assembly path cannot be null or whitespace.", nameof(assemblyPath));
         var fullPath = Path.GetFullPath(validAssemblyPath);
+#if NETFRAMEWORK
         return Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
+#else
+        return System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(fullPath);
+#endif
     }
 
     /// <summary>Loads an assembly given its display name.</summary>
