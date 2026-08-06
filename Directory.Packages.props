@@ -53,7 +53,7 @@
     <PackageVersion Include="Splat" Version="20.2.0" />
     <PackageVersion Include="Splat.Microsoft.Extensions.DependencyInjection" Version="20.2.0" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
-    <PackageVersion Include="StyleSharp.Analyzers" Version="3.39.0" />
+    <PackageVersion Include="StyleSharp.Analyzers" Version="3.39.2" />
     <PackageVersion Include="PerformanceSharp.Analyzers" Version="3.39.2" />
     <PackageVersion Include="SecuritySharp.Analyzers" Version="3.39.0" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
