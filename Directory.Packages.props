@@ -58,7 +58,7 @@
     <PackageVersion Include="SecuritySharp.Analyzers" Version="3.39.0" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
     <PackageVersion Include="TUnit" Version="1.61.38" />
-    <PackageVersion Include="Verify.TUnit" Version="31.27.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.28.0" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) != 'true'">
