@@ -19,7 +19,11 @@ namespace ReactiveMarbles.Extensions.Hosting.Plugins.Internals;
 /// <param name="pluginPath">The file system path to the root directory containing the plugin's assemblies and dependencies. Cannot be null or
 /// empty.</param>
 /// <param name="name">The unique name for the assembly load context. Used to identify the context within the application.</param>
+#if NETFRAMEWORK
 internal sealed class PluginLoadContext(string pluginPath, string name) : AssemblyLoadContext(name)
+#else
+internal sealed class PluginLoadContext(string pluginPath, string name) : System.Runtime.Loader.AssemblyLoadContext(name)
+#endif
 {
     /// <summary>Stores the resolver value.</summary>
     private readonly AssemblyDependencyResolver _resolver = new(pluginPath);
@@ -36,9 +40,19 @@ internal sealed class PluginLoadContext(string pluginPath, string name) : Assemb
     internal IntPtr LoadUnmanagedLibrary(string unmanagedDllName) =>
         LoadUnmanagedDll(unmanagedDllName);
 
+    /// <summary>Attempts to load an assembly by name without replacing a missing plugin-local assembly with a runtime exception.</summary>
+    /// <param name="assemblyName">The assembly name to resolve.</param>
+    /// <returns>The loaded assembly, or null when neither the default nor plugin context can resolve it.</returns>
+    internal Assembly? TryLoadFromAssemblyName(AssemblyName assemblyName) =>
+        Load(assemblyName);
+
     /// <inheritdoc />
+#if NETFRAMEWORK
     protected override Assembly Load(AssemblyName assemblyName) =>
-        Default.TryGetAssembly(assemblyName, out var alreadyLoadedAssembly)
+#else
+    protected override Assembly? Load(AssemblyName assemblyName) =>
+#endif
+        AssemblyLoadContext.Default.TryGetAssembly(assemblyName, out var alreadyLoadedAssembly)
             ? alreadyLoadedAssembly!
             : LoadAssemblyFromResolvedPath(assemblyName)!;
 
@@ -55,6 +69,10 @@ internal sealed class PluginLoadContext(string pluginPath, string name) : Assemb
     private Assembly? LoadAssemblyFromResolvedPath(AssemblyName assemblyName)
     {
         var assemblyPath = ResolveAssemblyPath(assemblyName);
+#if NETFRAMEWORK
         return assemblyPath is null ? null : AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+#else
+        return assemblyPath is null ? null : LoadFromAssemblyPath(assemblyPath);
+#endif
     }
 }

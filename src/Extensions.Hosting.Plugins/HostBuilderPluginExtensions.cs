@@ -329,6 +329,6 @@ public static class HostBuilderPluginExtensions
         }
 
         var loadContext = new PluginLoadContext(pluginAssemblyLocation, pluginName);
-        return loadContext.LoadFromAssemblyName(pluginAssemblyName);
+        return loadContext.TryLoadFromAssemblyName(pluginAssemblyName);
     }
 }

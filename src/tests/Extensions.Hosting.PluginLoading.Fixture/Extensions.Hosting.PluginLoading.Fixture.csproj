@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <AssemblyName>Extensions.Hosting.PluginLoading.Fixture</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Extensions.Hosting.PluginLoading.Fixture.Shared\ExternalPathPlugin.cs" Link="ExternalPathPlugin.cs" />
+    <ProjectReference Include="..\..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
+  </ItemGroup>
+</Project>

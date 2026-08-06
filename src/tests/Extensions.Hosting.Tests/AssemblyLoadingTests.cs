@@ -272,13 +272,26 @@ public class AssemblyLoadingTests
     [Test]
     public async Task PluginLoadContext_LoadFromAssemblyName_WithPluginLocalAssembly_ReturnsAssembly()
     {
-        var candidatePath = GetUnloadedAssemblyPath();
-        var assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(candidatePath));
-        var context = new PluginLoadContext(candidatePath, assemblyName.Name!);
+        var pluginPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "ExternalPluginFixtures",
+            "normal",
+            "Extensions.Hosting.PluginLoading.Fixture.dll");
+        var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
+        var context = new PluginLoadContext(pluginPath, assemblyName.Name!);
 
-        var assembly = context.LoadFromAssemblyName(assemblyName);
+        var assembly = context.TryLoadFromAssemblyName(assemblyName);
 
-        await Assert.That(assembly.GetName().Name).IsEqualTo(assemblyName.Name);
+        await Assert.That(assembly!.GetName().Name).IsEqualTo(assemblyName.Name);
+        await Assert.That(Path.GetFullPath(assembly.Location)).IsEqualTo(Path.GetFullPath(pluginPath));
+        var pluginCount = 0;
+        foreach (var plugin in ReactiveMarbles.Extensions.Hosting.Plugins.PluginScanner.ScanForPluginInstances(assembly))
+        {
+            _ = plugin;
+            pluginCount++;
+        }
+
+        await Assert.That(pluginCount).IsEqualTo(1);
     }
 
     /// <summary>Verifies that PluginLoadContext returns null when a plugin-local assembly cannot be resolved.</summary>
@@ -288,7 +301,7 @@ public class AssemblyLoadingTests
     {
         var context = new PluginLoadContext(typeof(AssemblyLoadingTests).Assembly.Location, nameof(Plugin));
 
-        Assembly? assembly = context.LoadFromAssemblyName(new("Missing.Plugin.Assembly"));
+        var assembly = context.TryLoadFromAssemblyName(new("Missing.Plugin.Assembly"));
 
         await Assert.That(assembly).IsNull();
     }
@@ -312,34 +325,6 @@ public class AssemblyLoadingTests
         var tempDirectory = Path.Combine(Path.GetTempPath(), "Extensions.Hosting.Tests", Guid.NewGuid().ToString("N"));
         _ = Directory.CreateDirectory(tempDirectory);
         return tempDirectory;
-    }
-
-    /// <summary>Finds a managed assembly in the test output that has not yet been loaded.</summary>
-    /// <returns>The path to an unloaded managed assembly.</returns>
-    private static string GetUnloadedAssemblyPath()
-    {
-        var assemblyDirectory = Path.GetDirectoryName(typeof(AssemblyLoadingTests).Assembly.Location)!;
-        var loadedAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var loadedAssembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            var loadedAssemblyName = loadedAssembly.GetName().Name;
-            if (loadedAssemblyName is not null)
-            {
-                _ = loadedAssemblyNames.Add(loadedAssemblyName);
-            }
-        }
-
-        foreach (var assemblyPath in Directory.EnumerateFiles(assemblyDirectory, "*.dll"))
-        {
-            var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
-            if (!loadedAssemblyNames.Contains(assemblyName)
-                && !assemblyName.StartsWith("Extensions.Hosting", StringComparison.OrdinalIgnoreCase))
-            {
-                return assemblyPath;
-            }
-        }
-
-        throw new InvalidOperationException("No unloaded assembly was available in the test output directory.");
     }
 
     /// <summary>Test assembly load context that delegates managed loads to a supplied assembly.</summary>

@@ -12,11 +12,25 @@
     <ProjectReference Include="..\..\Extensions.Hosting.MainUIThread\Extensions.Hosting.MainUIThread.csproj" />
     <ProjectReference Include="..\..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
     <ProjectReference Include="..\..\Extensions.Hosting.Plugins.Reactive\Extensions.Hosting.Plugins.Reactive.csproj" />
+    <ProjectReference Include="..\Extensions.Hosting.PluginLoading.Fixture\Extensions.Hosting.PluginLoading.Fixture.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Extensions.Hosting.PluginLoading.Reactive.Fixture\Extensions.Hosting.PluginLoading.Reactive.Fixture.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
+
+  <Target Name="CopyExternalPluginFixtures" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <ItemGroup>
+      <_ExternalPluginFixture Include="$(MSBuildProjectDirectory)\..\Extensions.Hosting.PluginLoading.Fixture\bin\$(Configuration)\$(TargetFramework)\Extensions.Hosting.PluginLoading.Fixture.dll">
+        <FixtureKind>normal</FixtureKind>
+      </_ExternalPluginFixture>
+      <_ExternalPluginFixture Include="$(MSBuildProjectDirectory)\..\Extensions.Hosting.PluginLoading.Reactive.Fixture\bin\$(Configuration)\$(TargetFramework)\Extensions.Hosting.PluginLoading.Reactive.Fixture.dll">
+        <FixtureKind>reactive</FixtureKind>
+      </_ExternalPluginFixture>
+    </ItemGroup>
+    <Copy SourceFiles="@(_ExternalPluginFixture)" DestinationFolder="$(OutDir)ExternalPluginFixtures\%(_ExternalPluginFixture.FixtureKind)" />
+  </Target>
 
   <!-- Global usings -->
   <ItemGroup>

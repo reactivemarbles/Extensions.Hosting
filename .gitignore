@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Local coverage test output
+/src/*[Bb]aseline*/
+/src/*[Cc]omposed*/
+/src/*[Cc]overage*/
+/src/*[Tt]est[Rr]esult*/
