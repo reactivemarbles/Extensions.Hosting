@@ -35,7 +35,7 @@
     <PackageVersion Include="ReactiveUI" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.1" />
     <PackageVersion Include="ReactiveUI.Core" Version="$(ReactiveUIPackageVersion)" />
-    <PackageVersion Include="ReactiveUI.Disposables" Version="7.1.0" />
+    <PackageVersion Include="ReactiveUI.Disposables" Version="7.2.0" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Maui" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.WinForms" Version="$(ReactiveUIPackageVersion)" />
