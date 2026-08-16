@@ -50,7 +50,7 @@
     <PackageVersion Include="ReactiveUI.WinForms.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.WinUI.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.WPF.Reactive" Version="$(ReactiveUIPackageVersion)" />
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.16.0" />
     <PackageVersion Include="Splat" Version="21.0.0" />
     <PackageVersion Include="Splat.Microsoft.Extensions.DependencyInjection" Version="21.0.0" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
