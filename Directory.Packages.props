@@ -31,7 +31,7 @@
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
     <PackageVersion Include="ReactiveUI.Primitives.Core" Version="7.1.0" />
     <!--Reactive UI with ReactiveUI.Primitives support-->
-    <PackageVersion Include="ReactiveUI.Primitives" Version="7.1.0" />
+    <PackageVersion Include="ReactiveUI.Primitives" Version="7.2.0" />
     <PackageVersion Include="ReactiveUI" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.1" />
     <PackageVersion Include="ReactiveUI.Core" Version="$(ReactiveUIPackageVersion)" />
