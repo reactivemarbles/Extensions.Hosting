@@ -58,7 +58,7 @@
     <PackageVersion Include="PerformanceSharp.Analyzers" Version="3.45.0" />
     <PackageVersion Include="SecuritySharp.Analyzers" Version="3.41.12" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
-    <PackageVersion Include="TUnit" Version="1.63.0" />
+    <PackageVersion Include="TUnit" Version="1.64.6" />
     <PackageVersion Include="Verify.TUnit" Version="31.28.0" />
   </ItemGroup>
 
