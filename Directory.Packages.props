@@ -56,7 +56,7 @@
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
     <PackageVersion Include="StyleSharp.Analyzers" Version="3.45.0" />
     <PackageVersion Include="PerformanceSharp.Analyzers" Version="3.45.0" />
-    <PackageVersion Include="SecuritySharp.Analyzers" Version="3.43.0" />
+    <PackageVersion Include="SecuritySharp.Analyzers" Version="3.43.2" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
     <PackageVersion Include="TUnit" Version="1.64.13" />
     <PackageVersion Include="Verify.TUnit" Version="31.28.0" />
