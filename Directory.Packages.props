@@ -7,7 +7,7 @@
     <Net10PackageVersion>10.0.11</Net10PackageVersion>
     <Net11PreviewPackageVersion>11.0.0-preview.7.26381.103</Net11PreviewPackageVersion>
     <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
-    <MauiNet10PackageVersion>10.0.90</MauiNet10PackageVersion>
+    <MauiNet10PackageVersion>10.0.100</MauiNet10PackageVersion>
     <MauiNet11PackageVersion>11.0.0-preview.7.26406.9</MauiNet11PackageVersion>
     <ReactiveUIPackageVersion>24.1.0</ReactiveUIPackageVersion>
   </PropertyGroup>
