@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Extensions.Hosting.LegacyNetFramework.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Extensions.Hosting.LegacyNetFramework.Worker\Extensions.Hosting.LegacyNetFramework.Worker.csproj" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=net462" />
+    <ProjectReference Include="..\Extensions.Hosting.PluginLoading.Fixture\Extensions.Hosting.PluginLoading.Fixture.csproj" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=net462" />
+    <ProjectReference Include="..\Extensions.Hosting.PluginLoading.Reactive.Fixture\Extensions.Hosting.PluginLoading.Reactive.Fixture.csproj" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=net462" />
+  </ItemGroup>
+
+  <Target Name="CopyLegacyNetFrameworkWorker" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <ItemGroup>
+      <_LegacyWorkerOutput Include="$(MSBuildProjectDirectory)\..\Extensions.Hosting.LegacyNetFramework.Worker\bin\$(Configuration)\net462\**\*.*" />
+      <_LegacyNormalPluginFixture Include="$(MSBuildProjectDirectory)\..\Extensions.Hosting.PluginLoading.Fixture\bin\$(Configuration)\net462\**\*.*" />
+      <_LegacyReactivePluginFixture Include="$(MSBuildProjectDirectory)\..\Extensions.Hosting.PluginLoading.Reactive.Fixture\bin\$(Configuration)\net462\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_LegacyWorkerOutput)" DestinationFiles="@(_LegacyWorkerOutput->'$(OutDir)LegacyNetFrameworkWorker\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LegacyNormalPluginFixture)" DestinationFiles="@(_LegacyNormalPluginFixture->'$(OutDir)LegacyNetFrameworkWorker\ExternalPluginFixtures\normal\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LegacyReactivePluginFixture)" DestinationFiles="@(_LegacyReactivePluginFixture->'$(OutDir)LegacyNetFrameworkWorker\ExternalPluginFixtures\reactive\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.IO" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TUnit.Assertions" />
+    <Using Include="TUnit.Assertions.Extensions" />
+    <Using Include="TUnit.Core" />
+  </ItemGroup>
+</Project>

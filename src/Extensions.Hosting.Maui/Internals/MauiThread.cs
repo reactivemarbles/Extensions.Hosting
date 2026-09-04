@@ -43,7 +43,7 @@ public class MauiThread : BaseUiThread<IMauiContext>
 
     /// <inheritdoc />
     protected override void UiThreadStart() =>
-        UiContext?.Dispatcher?.Dispatch(() =>
+        UiContext.Dispatcher?.Dispatch(() =>
         {
             // Create the new MAUI application
             var mauiApplication = _mauiApplicationStarter.Create(ServiceProvider);

@@ -51,21 +51,19 @@ public static class HostBuilderWinUIExtensions
             .AddHostedService<WinUIHostedService>();
 
     /// <summary>Registers the WinUI application type.</summary>
-    /// <typeparam name="TApp">The WinUI application type to register.</typeparam>
     /// <param name="services">The service collection to register services into.</param>
-    private static void RegisterWinUIApplication<TApp>(IServiceCollection services)
-        where TApp : Application
+    /// <param name="appType">The WinUI application type to register.</param>
+    private static void RegisterWinUIApplication(IServiceCollection services, Type appType)
     {
-        var appType = typeof(TApp);
         var baseApplicationType = typeof(Application);
 
-        _ = services.AddSingleton<TApp>();
+        _ = services.AddSingleton(appType);
         if (appType == baseApplicationType)
         {
             return;
         }
 
-        _ = services.AddSingleton<Application>(static services => services.GetRequiredService<TApp>());
+        _ = services.AddSingleton(typeof(Application), serviceProvider => (Application)serviceProvider.GetRequiredService(appType));
     }
 
     /// <summary>Provides extension members for this receiver.</summary>
@@ -76,28 +74,30 @@ public static class HostBuilderWinUIExtensions
         /// <remarks>This method registers the WinUI application and window types as singletons in the dependency
         /// injection container and sets up the necessary WinUI hosting services. Call this method before building the host
         /// to ensure proper WinUI initialization.</remarks>
-        /// <typeparam name="TApp">The type of the WinUI application to register. Must inherit from <see cref="Application"/>.</typeparam>
-        /// <typeparam name="TAppWindow">The type of the main window to use for the application. Must inherit from <see cref="Window"/>.</typeparam>
+        /// <param name="applicationType">The type of the WinUI application to register. Must inherit from <see cref="Application"/>.</param>
+        /// <param name="windowType">The type of the main window to use for the application. Must inherit from <see cref="Window"/>.</param>
         /// <returns>The same <see cref="IHostApplicationBuilder"/> instance for chaining further configuration.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">Thrown if <typeparamref name="TApp"/> does not inherit from <see cref="Application"/>.</exception>
-        public IHostApplicationBuilder ConfigureWinUI<TApp, TAppWindow>()
-            where TApp : Application
-            where TAppWindow : Window
+        /// <exception cref="ArgumentException">
+        /// Thrown if <paramref name="applicationType"/> does not inherit from <see cref="Application"/> or if
+        /// <paramref name="windowType"/> does not inherit from <see cref="Window"/>.
+        /// </exception>
+        public IHostApplicationBuilder ConfigureWinUI(Type applicationType, Type windowType)
         {
             _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
-            _ = typeof(TApp);
+            ValidateApplicationType(applicationType);
+            ValidateWindowType(windowType);
 
             if (!TryRetrieveWinUIContext(hostBuilder.Properties, out var winUIContext))
             {
                 RegisterWinUIHostingServices(hostBuilder.Services, winUIContext);
             }
 
-            winUIContext.AppWindowType = typeof(TAppWindow);
+            winUIContext.AppWindowType = windowType;
             winUIContext.IsLifetimeLinked = true;
 
-            RegisterWinUIApplication<TApp>(hostBuilder.Services);
+            RegisterWinUIApplication(hostBuilder.Services, applicationType);
 
             return hostBuilder;
         }
@@ -111,19 +111,23 @@ public static class HostBuilderWinUIExtensions
         /// <remarks>This method registers the WinUI application and main window types with the dependency
         /// injection container and links the application lifetime to the host. Call this method before building the host to
         /// ensure proper WinUI integration.</remarks>
-        /// <typeparam name="TApp">The type of the WinUI application to configure. Must inherit from <see cref="Application"/>.</typeparam>
-        /// <typeparam name="TAppWindow">The type of the main window for the application. Must inherit from <see cref="Window"/>.</typeparam>
+        /// <param name="applicationType">The type of the WinUI application to configure. Must inherit from <see cref="Application"/>.</param>
+        /// <param name="windowType">The type of the main window for the application. Must inherit from <see cref="Window"/>.</param>
         /// <returns>The same <see cref="IHostBuilder"/> instance for chaining, or <see langword="null"/> if <paramref
         /// name="hostBuilder"/> is null.</returns>
-        /// <exception cref="ArgumentException">Thrown if <typeparamref name="TApp"/> does not inherit from <see cref="Application"/>.</exception>
-        public IHostBuilder? ConfigureWinUI<TApp, TAppWindow>()
-            where TApp : Application
-            where TAppWindow : Window
+        /// <exception cref="ArgumentException">
+        /// Thrown if <paramref name="applicationType"/> does not inherit from <see cref="Application"/> or if
+        /// <paramref name="windowType"/> does not inherit from <see cref="Window"/>.
+        /// </exception>
+        public IHostBuilder? ConfigureWinUI(Type applicationType, Type windowType)
         {
             if (hostBuilder is null)
             {
                 return null;
             }
+
+            ValidateApplicationType(applicationType);
+            ValidateWindowType(windowType);
 
             _ = hostBuilder.ConfigureServices((context, serviceCollection) =>
             {
@@ -132,13 +136,43 @@ public static class HostBuilderWinUIExtensions
                     RegisterWinUIHostingServices(serviceCollection, winUIContext);
                 }
 
-                winUIContext.AppWindowType = typeof(TAppWindow);
+                winUIContext.AppWindowType = windowType;
                 winUIContext.IsLifetimeLinked = true;
             });
 
-            _ = hostBuilder.ConfigureServices(static (context, serviceCollection) => RegisterWinUIApplication<TApp>(serviceCollection));
+            _ = hostBuilder.ConfigureServices((context, serviceCollection) => RegisterWinUIApplication(serviceCollection, applicationType));
 
             return hostBuilder;
         }
+    }
+
+    /// <summary>Validates that the supplied type can be used as a WinUI application.</summary>
+    /// <param name="applicationType">The application type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="applicationType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="applicationType"/> does not derive from <see cref="Application"/>.</exception>
+    private static void ValidateApplicationType(Type applicationType)
+    {
+        _ = applicationType ?? throw new ArgumentNullException(nameof(applicationType));
+        if (typeof(Application).IsAssignableFrom(applicationType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered WinUI application type must inherit Microsoft.UI.Xaml.Application.", nameof(applicationType));
+    }
+
+    /// <summary>Validates that the supplied type can be used as a WinUI window.</summary>
+    /// <param name="windowType">The window type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="windowType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="windowType"/> does not derive from <see cref="Window"/>.</exception>
+    private static void ValidateWindowType(Type windowType)
+    {
+        _ = windowType ?? throw new ArgumentNullException(nameof(windowType));
+        if (typeof(Window).IsAssignableFrom(windowType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered WinUI window type must inherit Microsoft.UI.Xaml.Window.", nameof(windowType));
     }
 }

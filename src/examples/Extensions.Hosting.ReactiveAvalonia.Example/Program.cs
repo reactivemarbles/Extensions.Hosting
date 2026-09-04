@@ -50,8 +50,8 @@ public static class Program
             .ConfigureServices(static services => services.AddTransient<IViewFor<NugetDetailsViewModel>, NugetDetailsView>())
             .ConfigureAvalonia(static avaloniaBuilder =>
             {
-                _ = avaloniaBuilder.UseApplication<App>();
-                _ = avaloniaBuilder.UseWindow<MainWindow>();
+                _ = avaloniaBuilder.UseApplication(typeof(App));
+                _ = avaloniaBuilder.UseWindow(typeof(MainWindow));
             })
             .UseAvaloniaLifetime()
             .UseConsoleLifetime()

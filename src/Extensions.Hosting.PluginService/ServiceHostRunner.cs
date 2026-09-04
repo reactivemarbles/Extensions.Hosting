@@ -179,15 +179,17 @@ internal sealed class ServiceHostRunner
     /// <param name="args">The command-line arguments.</param>
     /// <returns>true when the host should run as a service; otherwise, false.</returns>
     internal static bool IsServiceMode(string[] args) =>
-        !Debugger.IsAttached && (args.Length == 0 || args[0].IndexOf("--console", StringComparison.InvariantCultureIgnoreCase) < 0);
+        IsServiceMode(args, Debugger.IsAttached);
+
+    /// <summary>Determines whether the current process should run as a service.</summary>
+    /// <param name="args">The command-line arguments.</param>
+    /// <param name="isDebuggerAttached">A value indicating whether a debugger is attached.</param>
+    /// <returns>true when the host should run as a service; otherwise, false.</returns>
+    internal static bool IsServiceMode(string[] args, bool isDebuggerAttached) =>
+        !isDebuggerAttached && (args.Length == 0 || args[0].IndexOf("--console", StringComparison.InvariantCultureIgnoreCase) < 0);
 
     /// <summary>Sets the current directory to the executable directory.</summary>
-    internal static void SetCurrentDirectoryToProcessRoot()
-    {
-        var pathToExe = Process.GetCurrentProcess().MainModule?.FileName;
-        var pathToContentRoot = Path.GetDirectoryName(pathToExe);
-        Directory.SetCurrentDirectory(pathToContentRoot!);
-    }
+    internal static void SetCurrentDirectoryToProcessRoot() => Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
     /// <summary>Configures a host lifetime for service or console execution.</summary>
     /// <param name="isService">true to use the service lifetime; otherwise, false.</param>
@@ -214,9 +216,7 @@ internal sealed class ServiceHostRunner
     /// <param name="nameSpace">The namespace prefix used to discover plugins.</param>
     internal static void ConfigurePluginScanning(IPluginBuilder? pluginBuilder, string? executableLocation, string? targetRuntime, string nameSpace)
     {
-        var process = Process.GetCurrentProcess();
-        var fullPath = process.MainModule?.FileName?.Replace(process.MainModule.ModuleName!, string.Empty);
-        pluginBuilder?.AddScanDirectories(fullPath!);
+        pluginBuilder?.AddScanDirectories(AppContext.BaseDirectory);
 
         pluginBuilder?.IncludeFrameworks(@"\netstandard2.0\*.FrameworkLib.dll");
 

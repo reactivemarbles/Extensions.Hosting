@@ -41,7 +41,7 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
     /// <inheritdoc />
     protected override void UiThreadStart()
     {
-        var wpfApplication = UiContext?.WpfApplication;
+        var wpfApplication = UiContext.WpfApplication;
         if (wpfApplication is null)
         {
             return;
@@ -70,62 +70,56 @@ public class WpfThread(IServiceProvider serviceProvider) : BaseUiThread<IWpfCont
         // Run the WPF application in this thread which was specifically created for it, with the specified shell
         var shellWindows = GetShellWindows();
 
-        switch (shellWindows.Count)
+        if (shellWindows.Count == 1)
         {
-            case 1:
-                {
-                    if (currentThreadOwnsApplicationDispatcher)
-                    {
-                        _ = wpfApplication.Run(shellWindows[0]);
-                    }
-                    else if (wpfApplication.StartupUri is not null)
-                    {
-                        _ = MessageBox.Show("Please remove the StartupUri configuration in App.xaml");
-                    }
-                    else
-                    {
-                        shellWindows[0].Show();
-                    }
+            if (currentThreadOwnsApplicationDispatcher)
+            {
+                _ = wpfApplication.Run(shellWindows[0]);
+            }
+            else if (wpfApplication.StartupUri is not null)
+            {
+                _ = MessageBox.Show("Please remove the StartupUri configuration in App.xaml");
+            }
+            else
+            {
+                shellWindows[0].Show();
+            }
 
-                    break;
-                }
-
-            case 0:
-                {
-                    if (currentThreadOwnsApplicationDispatcher)
-                    {
-                        _ = wpfApplication.Run();
-                    }
-                    else if (wpfApplication.MainWindow is not null)
-                    {
-                        wpfApplication.MainWindow.Show();
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Please inherit from IWpfShell in a Window to use the required IWpfShell interface");
-                    }
-
-                    break;
-                }
-
-            default:
-                {
-                    wpfApplication.Startup += (sender, args) =>
-                    {
-                        foreach (var window in shellWindows)
-                        {
-                            window?.Show();
-                        }
-                    };
-
-                    if (currentThreadOwnsApplicationDispatcher)
-                    {
-                        _ = wpfApplication.Run();
-                    }
-
-                    break;
-                }
+            return;
         }
+
+        if (shellWindows.Count == 0)
+        {
+            if (currentThreadOwnsApplicationDispatcher)
+            {
+                _ = wpfApplication.Run();
+            }
+            else if (wpfApplication.MainWindow is not null)
+            {
+                wpfApplication.MainWindow.Show();
+            }
+            else
+            {
+                throw new InvalidOperationException("Please inherit from IWpfShell in a Window to use the required IWpfShell interface");
+            }
+
+            return;
+        }
+
+        wpfApplication.Startup += (sender, args) =>
+        {
+            foreach (var window in shellWindows)
+            {
+                window.Show();
+            }
+        };
+
+        if (!currentThreadOwnsApplicationDispatcher)
+        {
+            return;
+        }
+
+        _ = wpfApplication.Run();
     }
 
     /// <summary>Resolves the registered WPF shell windows.</summary>

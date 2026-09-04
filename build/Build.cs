@@ -30,9 +30,9 @@ sealed partial class Build : NukeBuild
 
     private static AbsolutePath SolutionFile => RootDirectory / "src" / "Extensions.Hosting.slnx";
 
-    [GitRepository] readonly GitRepository Repository;
+    [GitRepository] readonly GitRepository Repository = null!;
     readonly Solution Solution = SolutionFile.ReadSolution();
-    [Parameter][Secret] readonly string NuGetApiKey;
+    [Parameter][Secret] readonly string NuGetApiKey = string.Empty;
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 

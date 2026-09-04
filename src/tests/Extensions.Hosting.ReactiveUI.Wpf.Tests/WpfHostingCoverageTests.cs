@@ -31,8 +31,8 @@ public sealed class WpfHostingCoverageTests
 
         var configuredBuilder = builder.ConfigureWpf(wpfBuilder =>
         {
-            _ = wpfBuilder.UseApplication<TestApplication>();
-            _ = wpfBuilder.UseWindow<TestShellWindow>();
+            _ = wpfBuilder.UseApplication(typeof(TestApplication));
+            _ = wpfBuilder.UseWindow(typeof(TestShellWindow));
             _ = wpfBuilder.ConfigureContext(context =>
             {
                 configuredContext = context;
@@ -68,8 +68,8 @@ public sealed class WpfHostingCoverageTests
         var hostBuilder = new HostBuilder();
         var configuredBuilder = hostBuilder.ConfigureWpf(static wpfBuilder =>
         {
-            _ = wpfBuilder.UseApplication<TestApplication>();
-            _ = wpfBuilder.UseWindow<TestShellWindow>();
+            _ = wpfBuilder.UseApplication(typeof(TestApplication));
+            _ = wpfBuilder.UseWindow(typeof(TestShellWindow));
         });
         var lifetimeBuilder = hostBuilder.UseWpfLifetime(ShutdownMode.OnExplicitShutdown);
 
@@ -103,9 +103,8 @@ public sealed class WpfHostingCoverageTests
     public async Task WpfBuilderExtensions_ConfigureBuilderProperties()
     {
         var builder = new RecordingWpfBuilder();
-        _ = builder.UseApplication<TestApplication>();
-        _ = builder.UseCurrentApplication<TestApplication>(null!);
-        _ = builder.UseWindow<TestShellWindow>();
+        _ = builder.UseApplication(typeof(TestApplication));
+        _ = builder.UseWindow(typeof(TestShellWindow));
         var configuredBuilder = builder.ConfigureContext(static context => context.IsLifetimeLinked = true);
 
         await Assert.That(configuredBuilder).IsSameReferenceAs(builder);

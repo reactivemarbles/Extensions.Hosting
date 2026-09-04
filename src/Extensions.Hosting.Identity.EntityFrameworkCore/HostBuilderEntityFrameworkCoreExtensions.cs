@@ -4,9 +4,11 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace ReactiveMarbles.Extensions.Hosting.Identity.EntityFrameworkCore;
@@ -70,115 +72,80 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         /// from configuration.</remarks>
         /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
         /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
         /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
-        public IHostApplicationBuilder AddSqlServerDbContext<TContext>(string connectionStringName)
+        public IHostApplicationBuilder AddSqlServerDbContext<TContext>(
+            string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory)
             where TContext : DbContext =>
-            builder.AddSqlServerDbContext<TContext>(connectionStringName, ServiceLifetime.Scoped);
+            builder.AddSqlServerDbContext(connectionStringName, contextFactory, ServiceLifetime.Scoped);
 
         /// <summary>Configures Entity Framework Core with SQL Server and an explicit service lifetime.</summary>
         /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
         /// <param name="connectionStringName">The configured connection string name.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
         /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
         /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
         /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
         /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
         public IHostApplicationBuilder AddSqlServerDbContext<TContext>(
             string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
             ServiceLifetime serviceLifetime)
             where TContext : DbContext
         {
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
+            _ = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
 
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionStringName);
 
-            var conString = builder.Configuration.GetConnectionString(connectionStringName);
-            _ = builder.Services.AddDbContext<TContext>(
-                options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
-                serviceLifetime);
+            var conString = builder.Configuration.GetConnectionString(connectionStringName)
+                ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.");
+            _ = AddSqlServerDbContextCore(builder.Services, conString, contextFactory, serviceLifetime);
             return builder;
         }
 
         /// <summary>Configures Entity Framework Core with SQL Server and ASP.NET Core Identity using IHostApplicationBuilder.</summary>
         /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern and
-        /// sets up both Entity Framework Core and ASP.NET Core Identity with the specified user and role types.</remarks>
+        /// sets up both Entity Framework Core and ASP.NET Core Identity with caller-provided identity configuration.</remarks>
         /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
-        /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity.</typeparam>
-        /// <typeparam name="TRole">The type representing application roles for ASP.NET Core Identity.</typeparam>
         /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
+        /// <param name="configureIdentity">Configures Identity services and returns the Identity builder to attach Entity Framework stores to.</param>
         /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
-        public IHostApplicationBuilder AddSqlServerWithIdentity<TContext, TUser, TRole>(string connectionStringName)
-            where TContext : DbContext
-            where TUser : class
-            where TRole : class =>
-            builder.AddSqlServerWithIdentity<TContext, TUser, TRole>(connectionStringName, ServiceLifetime.Scoped);
+        public IHostApplicationBuilder AddSqlServerWithIdentity<TContext>(
+            string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
+            Func<IServiceCollection, IdentityBuilder> configureIdentity)
+            where TContext : DbContext =>
+            builder.AddSqlServerWithIdentity(connectionStringName, contextFactory, configureIdentity, ServiceLifetime.Scoped);
 
         /// <summary>Configures SQL Server and Identity with an explicit service lifetime.</summary>
         /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
-        /// <typeparam name="TUser">The Identity user type.</typeparam>
-        /// <typeparam name="TRole">The Identity role type.</typeparam>
         /// <param name="connectionStringName">The configured connection string name.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
+        /// <param name="configureIdentity">Configures Identity services and returns the Identity builder to attach Entity Framework stores to.</param>
         /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
         /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
         /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
         /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
-        public IHostApplicationBuilder AddSqlServerWithIdentity<TContext, TUser, TRole>(
+        public IHostApplicationBuilder AddSqlServerWithIdentity<TContext>(
             string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
+            Func<IServiceCollection, IdentityBuilder> configureIdentity,
             ServiceLifetime serviceLifetime)
             where TContext : DbContext
-            where TUser : class
-            where TRole : class
         {
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
+            _ = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+            _ = configureIdentity ?? throw new ArgumentNullException(nameof(configureIdentity));
 
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionStringName);
 
-            var conString = builder.Configuration.GetConnectionString(connectionStringName);
-            _ = builder.Services
-                .AddDbContext<TContext>(
-                    options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
-                    serviceLifetime)
-                .AddDefaultIdentity<TUser>()
-                .AddRoles<TRole>()
-                .AddEntityFrameworkStores<TContext>();
-            return builder;
-        }
-
-        /// <summary>Configures Entity Framework Core with SQL Server and ASP.NET Core Identity (user only) using IHostApplicationBuilder.</summary>
-        /// <remarks>This method provides integration with the modern IHostApplicationBuilder pattern and
-        /// sets up both Entity Framework Core and ASP.NET Core Identity with the specified user type only.</remarks>
-        /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
-        /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity.</typeparam>
-        /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
-        /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
-        public IHostApplicationBuilder AddSqlServerWithIdentity<TContext, TUser>(string connectionStringName)
-            where TContext : DbContext
-            where TUser : class =>
-            builder.AddSqlServerWithIdentity<TContext, TUser>(connectionStringName, ServiceLifetime.Scoped);
-
-        /// <summary>Configures SQL Server and user-only Identity with an explicit service lifetime.</summary>
-        /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
-        /// <typeparam name="TUser">The Identity user type.</typeparam>
-        /// <param name="connectionStringName">The configured connection string name.</param>
-        /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
-        /// <returns>The same IHostApplicationBuilder instance so that additional calls can be chained.</returns>
-        /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
-        public IHostApplicationBuilder AddSqlServerWithIdentity<TContext, TUser>(
-            string connectionStringName,
-            ServiceLifetime serviceLifetime)
-            where TContext : DbContext
-            where TUser : class
-        {
-            _ = builder ?? throw new ArgumentNullException(nameof(builder));
-
-            ArgumentException.ThrowIfNullOrWhiteSpace(connectionStringName);
-
-            var conString = builder.Configuration.GetConnectionString(connectionStringName);
-            _ = builder.Services
-                .AddDbContext<TContext>(
-                    options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
-                    serviceLifetime)
-                .AddDefaultIdentity<TUser>()
+            var conString = builder.Configuration.GetConnectionString(connectionStringName)
+                ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.");
+            _ = AddSqlServerDbContextCore(builder.Services, conString, contextFactory, serviceLifetime);
+            _ = (configureIdentity(builder.Services) ?? throw new InvalidOperationException("The identity configuration delegate must return an IdentityBuilder."))
                 .AddEntityFrameworkStores<TContext>();
             return builder;
         }
@@ -294,110 +261,56 @@ public static class HostBuilderEntityFrameworkCoreExtensions
     /// <param name="services">The receiver instance.</param>
     extension(IServiceCollection services)
     {
-        /// <summary>Configures SQL Server and ASP.NET Core Identity with the specified context, user, and role types.</summary>
-        /// <remarks>This method sets up Entity Framework Core to use SQL Server as the database provider and
-        /// configures ASP.NET Core Identity with the specified user and role types. It is typically called during
-        /// application startup to register data access and identity services. The method also adds the Entity Framework
-        /// stores for Identity, enabling user and role management backed by the specified DbContext.</remarks>
+        /// <summary>Configures SQL Server and ASP.NET Core Identity with caller-provided identity services.</summary>
         /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
-        /// <typeparam name="TUser">The type representing application users for ASP.NET Core Identity. Must be a reference type.</typeparam>
-        /// <typeparam name="TRole">The type representing application roles for ASP.NET Core Identity. Must be a reference type.</typeparam>
         /// <param name="context">The web host builder context containing configuration and environment information. Cannot be null.</param>
         /// <param name="connectionStringName">The name of the connection string in the application's configuration to use for the SQL Server database. Cannot
         /// be null or whitespace.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
+        /// <param name="configureIdentity">Configures Identity services and returns the Identity builder to attach Entity Framework stores to.</param>
         /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
-        public IServiceCollection UseEntityFrameworkCoreSqlServer<TContext, TUser, TRole>(
+        public IServiceCollection UseEntityFrameworkCoreSqlServer<TContext>(
             WebHostBuilderContext context,
-            string connectionStringName)
-            where TContext : DbContext
-            where TUser : class
-            where TRole : class =>
-            services.UseEntityFrameworkCoreSqlServer<TContext, TUser, TRole>(
+            string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
+            Func<IServiceCollection, IdentityBuilder> configureIdentity)
+            where TContext : DbContext =>
+            services.UseEntityFrameworkCoreSqlServer(
                 context,
                 connectionStringName,
+                contextFactory,
+                configureIdentity,
                 ServiceLifetime.Scoped);
 
         /// <summary>Configures SQL Server and Identity with an explicit service lifetime.</summary>
         /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
-        /// <typeparam name="TUser">The Identity user type.</typeparam>
-        /// <typeparam name="TRole">The Identity role type.</typeparam>
         /// <param name="context">The web host builder context.</param>
         /// <param name="connectionStringName">The configured connection string name.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
+        /// <param name="configureIdentity">Configures Identity services and returns the Identity builder to attach Entity Framework stores to.</param>
         /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
         /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
         /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
         /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
-        public IServiceCollection UseEntityFrameworkCoreSqlServer<TContext, TUser, TRole>(
+        public IServiceCollection UseEntityFrameworkCoreSqlServer<TContext>(
             WebHostBuilderContext context,
             string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
+            Func<IServiceCollection, IdentityBuilder> configureIdentity,
             ServiceLifetime serviceLifetime)
             where TContext : DbContext
-            where TUser : class
-            where TRole : class
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
             _ = context ?? throw new ArgumentNullException(nameof(context));
+            _ = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+            _ = configureIdentity ?? throw new ArgumentNullException(nameof(configureIdentity));
 
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionStringName);
 
-            var conString = context.Configuration.GetConnectionString(connectionStringName);
-            _ = services
-                .AddDbContext<TContext>(
-                    options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
-                    serviceLifetime)
-                .AddDefaultIdentity<TUser>()
-                .AddRoles<TRole>()
-                .AddEntityFrameworkStores<TContext>();
-            return services;
-        }
-
-        /// <summary>Configures SQL Server with the specified DbContext and Identity user type.</summary>
-        /// <remarks>This method adds the DbContext, ASP.NET Core Identity, and Entity Framework stores to the
-        /// service collection, enabling authentication and data access using SQL Server. The connection string must be
-        /// defined in the application's configuration under the provided name.</remarks>
-        /// <typeparam name="TContext">The type of the DbContext to register for use with SQL Server.</typeparam>
-        /// <typeparam name="TUser">The type of the user entity to use with ASP.NET Core Identity.</typeparam>
-        /// <param name="context">The web host builder context containing configuration information. Cannot be null.</param>
-        /// <param name="connectionStringName">The name of the connection string in the configuration to use for the SQL Server database. Cannot be null or
-        /// whitespace.</param>
-        /// <returns>The IServiceCollection instance configured for SQL Server and Identity.</returns>
-        public IServiceCollection UseEntityFrameworkCoreSqlServer<TContext, TUser>(
-            WebHostBuilderContext context,
-            string connectionStringName)
-            where TContext : DbContext
-            where TUser : class =>
-            services.UseEntityFrameworkCoreSqlServer<TContext, TUser>(
-                context,
-                connectionStringName,
-                ServiceLifetime.Scoped);
-
-        /// <summary>Configures SQL Server and user-only Identity with an explicit service lifetime.</summary>
-        /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
-        /// <typeparam name="TUser">The Identity user type.</typeparam>
-        /// <param name="context">The web host builder context.</param>
-        /// <param name="connectionStringName">The configured connection string name.</param>
-        /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
-        /// <returns>The IServiceCollection instance with Entity Framework Core and identity services configured for SQL Server.</returns>
-        /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if the specified connection string is not found in the configuration.</exception>
-        public IServiceCollection UseEntityFrameworkCoreSqlServer<TContext, TUser>(
-            WebHostBuilderContext context,
-            string connectionStringName,
-            ServiceLifetime serviceLifetime)
-            where TContext : DbContext
-            where TUser : class
-        {
-            _ = services ?? throw new ArgumentNullException(nameof(services));
-            _ = context ?? throw new ArgumentNullException(nameof(context));
-
-            ArgumentException.ThrowIfNullOrWhiteSpace(connectionStringName);
-
-            var conString = context.Configuration.GetConnectionString(connectionStringName);
-            _ = services
-                .AddDbContext<TContext>(
-                    options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
-                    serviceLifetime)
-                .AddDefaultIdentity<TUser>()
+            var conString = context.Configuration.GetConnectionString(connectionStringName)
+                ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.");
+            _ = AddSqlServerDbContextCore(services, conString, contextFactory, serviceLifetime);
+            _ = (configureIdentity(services) ?? throw new InvalidOperationException("The identity configuration delegate must return an IdentityBuilder."))
                 .AddEntityFrameworkStores<TContext>();
             return services;
         }
@@ -409,20 +322,24 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
         /// <param name="configuration">The configuration instance containing the connection string. Cannot be null.</param>
         /// <param name="connectionStringName">The name of the connection string in the configuration. Cannot be null or whitespace.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
         /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
         public IServiceCollection AddSqlServerDbContext<TContext>(
             IConfiguration configuration,
-            string connectionStringName)
+            string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory)
             where TContext : DbContext =>
-            services.AddSqlServerDbContext<TContext>(
+            services.AddSqlServerDbContext(
                 configuration,
                 connectionStringName,
+                contextFactory,
                 ServiceLifetime.Scoped);
 
         /// <summary>Configures a SQL Server DbContext with an explicit service lifetime.</summary>
         /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
         /// <param name="configuration">The application configuration.</param>
         /// <param name="connectionStringName">The configured connection string name.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
         /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
         /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
         /// <exception cref="ArgumentException">Thrown if connectionStringName is null or consists only of white-space characters.</exception>
@@ -430,18 +347,19 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         public IServiceCollection AddSqlServerDbContext<TContext>(
             IConfiguration configuration,
             string connectionStringName,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
             ServiceLifetime serviceLifetime)
             where TContext : DbContext
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
             _ = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _ = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
 
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionStringName);
 
-            var conString = configuration.GetConnectionString(connectionStringName);
-            _ = services.AddDbContext<TContext>(
-                options => options.UseSqlServer(conString ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.")),
-                serviceLifetime);
+            var conString = configuration.GetConnectionString(connectionStringName)
+                ?? throw new InvalidOperationException($"Connection string '{connectionStringName}' not found.");
+            _ = AddSqlServerDbContextCore(services, conString, contextFactory, serviceLifetime);
             return services;
         }
 
@@ -451,32 +369,63 @@ public static class HostBuilderEntityFrameworkCoreExtensions
         /// other sources such as environment variables or secret managers.</remarks>
         /// <typeparam name="TContext">The type of the Entity Framework Core DbContext to use for data access.</typeparam>
         /// <param name="connectionString">The SQL Server connection string. Cannot be null or whitespace.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
         /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
-        public IServiceCollection AddSqlServerDbContextWithConnectionString<TContext>(string connectionString)
+        public IServiceCollection AddSqlServerDbContextWithConnectionString<TContext>(
+            string connectionString,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory)
             where TContext : DbContext =>
-            services.AddSqlServerDbContextWithConnectionString<TContext>(
+            services.AddSqlServerDbContextWithConnectionString(
                 connectionString,
+                contextFactory,
                 ServiceLifetime.Scoped);
 
         /// <summary>Configures a SQL Server DbContext from a connection string with an explicit lifetime.</summary>
         /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
         /// <param name="connectionString">The SQL Server connection string.</param>
+        /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
         /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
         /// <returns>The same IServiceCollection instance so that additional calls can be chained.</returns>
         /// <exception cref="ArgumentException">Thrown if connectionString is null or consists only of white-space characters.</exception>
         public IServiceCollection AddSqlServerDbContextWithConnectionString<TContext>(
             string connectionString,
+            Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
             ServiceLifetime serviceLifetime)
             where TContext : DbContext
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
+            _ = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
 
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
-            _ = services.AddDbContext<TContext>(
-                options => options.UseSqlServer(connectionString),
-                serviceLifetime);
+            _ = AddSqlServerDbContextCore(services, connectionString, contextFactory, serviceLifetime);
             return services;
         }
+    }
+
+    /// <summary>Registers SQL Server options and a typed context factory without overriding existing context registrations.</summary>
+    /// <typeparam name="TContext">The Entity Framework Core DbContext type.</typeparam>
+    /// <param name="services">The services to configure.</param>
+    /// <param name="connectionString">The SQL Server connection string.</param>
+    /// <param name="contextFactory">Creates the context instance from the service provider and typed context options.</param>
+    /// <param name="serviceLifetime">The lifetime with which to register the DbContext service.</param>
+    /// <returns>The configured service collection.</returns>
+    private static IServiceCollection AddSqlServerDbContextCore<TContext>(
+        IServiceCollection services,
+        string connectionString,
+        Func<IServiceProvider, DbContextOptions<TContext>, TContext> contextFactory,
+        ServiceLifetime serviceLifetime)
+        where TContext : DbContext
+    {
+        services.TryAdd(ServiceDescriptor.Describe(
+            typeof(TContext),
+            serviceProvider => contextFactory(
+                serviceProvider,
+                serviceProvider.GetRequiredService<DbContextOptions<TContext>>()),
+            serviceLifetime));
+        _ = services.AddDbContext<TContext>(
+            options => options.UseSqlServer(connectionString),
+            serviceLifetime);
+        return services;
     }
 }

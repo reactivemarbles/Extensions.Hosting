@@ -66,6 +66,10 @@ public class Log4NetTests
         await Assert.That(defaults.Log4NetConfigFileName).IsEqualTo("log4net.config");
         await Assert.That(singleArgument.Watch).IsFalse();
         await Assert.That(options.Watch).IsTrue();
+        options.Watch = false;
+        options.Log4NetConfigFileName = "replacement.config";
+        await Assert.That(options.Watch).IsFalse();
+        await Assert.That(options.Log4NetConfigFileName).IsEqualTo("replacement.config");
         await Assert.That(options.Name).IsEqualTo("test-name");
         await Assert.That(options.PropertyOverrides.Count).IsEqualTo(0);
         await Assert.That(candidate.LogLevel).IsEqualTo(LogLevel.Warning);

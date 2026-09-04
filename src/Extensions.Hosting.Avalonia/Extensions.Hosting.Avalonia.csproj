@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Extensions.Hosting.Avalonia.Tests" />
     <ProjectReference Include="..\Extensions.Hosting.MainUIThread\Extensions.Hosting.MainUIThread.csproj" />
   </ItemGroup>
 

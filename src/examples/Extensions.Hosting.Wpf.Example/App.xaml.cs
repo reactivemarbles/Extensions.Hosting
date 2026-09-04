@@ -55,7 +55,7 @@ public partial class App
                 pluginBuilder?.IncludePlugins(@$"\Plugins\{runtime}\{nameSpace}*.dll");
             })
             .ConfigureServices(static serviceCollection => serviceCollection.AddTransient<SecondWindow>())
-            .ConfigureWpf(wpfBuilder => wpfBuilder.UseCurrentApplication(this).UseWindow<MainWindow>())
+            .ConfigureWpf(wpfBuilder => wpfBuilder.UseCurrentApplication(this).UseWindow(typeof(MainWindow)))
             .UseWpfLifetime()
             .UseConsoleLifetime()
             .Build();

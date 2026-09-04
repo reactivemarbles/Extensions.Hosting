@@ -33,6 +33,9 @@ internal sealed class MauiBuilder : IMauiBuilder
     public Application? Application { get; set; }
 
     /// <inheritdoc/>
+    public Func<IServiceProvider, Application>? ApplicationFactory { get; set; }
+
+    /// <inheritdoc/>
     public IList<Type> PageTypes { get; } = [];
 
     /// <inheritdoc/>
@@ -44,10 +47,11 @@ internal sealed class MauiBuilder : IMauiBuilder
     /// </value>
     public MauiAppBuilder MauiAppBuilder { get; } = MauiApp.CreateBuilder();
 
-    /// <summary>Applies MAUI application defaults for the specified application type.</summary>
+    /// <summary>Applies MAUI application defaults to the underlying builder.</summary>
     /// <typeparam name="TApplication">The application type to configure.</typeparam>
+    /// <param name="applicationFactory">The factory that creates the MAUI application.</param>
     /// <returns>The underlying MAUI application builder.</returns>
-    internal MauiAppBuilder UseMauiApp<TApplication>()
+    internal MauiAppBuilder ApplyMauiApplicationDefaults<TApplication>(Func<IServiceProvider, TApplication> applicationFactory)
         where TApplication : Application
     {
         if (_configureMauiApplication is not null)
@@ -56,6 +60,6 @@ internal sealed class MauiBuilder : IMauiBuilder
             return MauiAppBuilder;
         }
 
-        return MauiAppBuilder.UseMauiApp<TApplication>();
+        return MauiAppBuilder.UseMauiApp(applicationFactory);
     }
 }

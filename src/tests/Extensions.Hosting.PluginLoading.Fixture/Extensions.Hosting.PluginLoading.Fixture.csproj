@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFrameworks>net462;net10.0;net11.0</TargetFrameworks>
     <AssemblyName>Extensions.Hosting.PluginLoading.Fixture</AssemblyName>
   </PropertyGroup>
 

@@ -2795,35 +2795,6 @@ resharper_identifier_typo_highlighting = none # typo checks are out of scope
 resharper_markup_text_typo_highlighting = none # typo checks are out of scope
 
 #############################################
-# Deliberate type-driven registration APIs
-#############################################
-# These public factory/registration APIs intentionally require callers to select types
-# explicitly. SST2307 documents this as a legitimate exception to its inference rule.
-[src/Extensions.Hosting.Avalonia/Extensions/AvaloniaBuilderExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite/HostBuilderEntityFrameworkCoreExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.Identity.EntityFrameworkCore/HostBuilderEntityFrameworkCoreExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.Maui/HostBuilderMauiExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.Maui/MauiBuilderExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.WinForms/HostBuilderWinFormsExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.WinUI/HostBuilderWinUIExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-[src/Extensions.Hosting.Wpf/WpfBuilderExtensions.cs]
-dotnet_diagnostic.SST2307.severity = none
-
-#############################################
 # Other Settings
 #############################################
 vsspell_dictionary_languages = en-US

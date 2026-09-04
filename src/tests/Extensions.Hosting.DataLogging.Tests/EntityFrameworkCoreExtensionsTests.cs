@@ -36,6 +36,46 @@ public class EntityFrameworkCoreExtensionsTests
     /// <summary>Provides requests to the ephemeral web hosts.</summary>
     private static readonly HttpClient _httpClient = new();
 
+    /// <summary>Creates SQL Server contexts for extension registration tests.</summary>
+    private static readonly Func<IServiceProvider, DbContextOptions<SqlServerContext>, SqlServerContext> _createSqlServerContext =
+        static (serviceProvider, options) =>
+        {
+            _ = serviceProvider;
+            return new SqlServerContext(options);
+        };
+
+    /// <summary>Creates SQL Server identity contexts for extension registration tests.</summary>
+    private static readonly Func<IServiceProvider, DbContextOptions<SqlServerIdentityContext>, SqlServerIdentityContext> _createSqlServerIdentityContext =
+        static (serviceProvider, options) =>
+        {
+            _ = serviceProvider;
+            return new SqlServerIdentityContext(options);
+        };
+
+    /// <summary>Creates SQLite contexts for extension registration tests.</summary>
+    private static readonly Func<IServiceProvider, DbContextOptions<SqliteContext>, SqliteContext> _createSqliteContext =
+        static (serviceProvider, options) =>
+        {
+            _ = serviceProvider;
+            return new SqliteContext(options);
+        };
+
+    /// <summary>Creates SQLite identity contexts for extension registration tests.</summary>
+    private static readonly Func<IServiceProvider, DbContextOptions<SqliteIdentityContext>, SqliteIdentityContext> _createSqliteIdentityContext =
+        static (serviceProvider, options) =>
+        {
+            _ = serviceProvider;
+            return new SqliteIdentityContext(options);
+        };
+
+    /// <summary>Configures test user Identity services.</summary>
+    private static readonly Func<IServiceCollection, IdentityBuilder> _addTestUserIdentity =
+        static services => services.AddDefaultIdentity<TestUser>();
+
+    /// <summary>Configures test user and role Identity services.</summary>
+    private static readonly Func<IServiceCollection, IdentityBuilder> _addTestUserAndRoleIdentity =
+        static services => services.AddDefaultIdentity<TestUser>().AddRoles<TestRole>();
+
     /// <summary>Verifies SQL Server application-builder registrations.</summary>
     /// <returns>A task representing the test.</returns>
     [Test]
@@ -50,8 +90,13 @@ public class EntityFrameworkCoreExtensionsTests
 
         var missing = () => SqlServerExtensions.GetRequiredConnectionString(configuration, MissingConnectionName);
         var whitespace = () => SqlServerExtensions.GetRequiredConnectionString(configuration, " ");
+        IConfiguration? nullConfiguration = null;
+        var nullHasConnection = () => SqlServerExtensions.HasConnectionString(nullConfiguration!, DatabaseConnectionName);
+        var nullGetRequired = () => SqlServerExtensions.GetRequiredConnectionString(nullConfiguration!, DatabaseConnectionName);
         await Assert.That(missing).Throws<InvalidOperationException>();
         await Assert.That(whitespace).Throws<ArgumentException>();
+        await Assert.That(nullHasConnection).Throws<ArgumentNullException>();
+        await Assert.That(nullGetRequired).Throws<ArgumentNullException>();
     }
 
     /// <summary>Verifies SQL Server application-builder validation.</summary>
@@ -60,38 +105,52 @@ public class EntityFrameworkCoreExtensionsTests
     public async Task SqlServerApplicationBuilderRegistrations_RegisterAllOverloads()
     {
         var databaseBuilder = CreateApplicationBuilder();
-        var databaseResult = SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(databaseBuilder, DatabaseConnectionName);
+        var databaseResult = SqlServerExtensions.AddSqlServerDbContext(databaseBuilder, DatabaseConnectionName, _createSqlServerContext);
         await Assert.That(databaseResult).IsEqualTo(databaseBuilder);
         await Assert.That(ContainsService<SqlServerContext>(databaseBuilder.Services)).IsTrue();
         await Assert.That(GetProviderName<SqlServerContext>(databaseBuilder.Services)).IsEqualTo(SqlServerProviderName);
 
         var databaseLifetimeBuilder = CreateApplicationBuilder();
-        var databaseLifetimeResult = SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(databaseLifetimeBuilder, DatabaseConnectionName, ServiceLifetime.Singleton);
+        var databaseLifetimeResult = SqlServerExtensions.AddSqlServerDbContext(databaseLifetimeBuilder, DatabaseConnectionName, _createSqlServerContext, ServiceLifetime.Singleton);
         await Assert.That(databaseLifetimeResult).IsEqualTo(databaseLifetimeBuilder);
 
         var userIdentityBuilder = CreateApplicationBuilder();
-        var userIdentityResult = SqlServerExtensions.AddSqlServerWithIdentity<SqlServerIdentityContext, TestUser>(userIdentityBuilder, DatabaseConnectionName);
+        var userIdentityResult = SqlServerExtensions.AddSqlServerWithIdentity(
+            userIdentityBuilder,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity);
         await Assert.That(userIdentityResult).IsEqualTo(userIdentityBuilder);
         await Assert.That(ContainsService<SqlServerIdentityContext>(userIdentityBuilder.Services)).IsTrue();
+        await Assert.That(ContainsService<UserManager<TestUser>>(userIdentityBuilder.Services)).IsTrue();
         await Assert.That(GetProviderName<SqlServerIdentityContext>(userIdentityBuilder.Services)).IsEqualTo(SqlServerProviderName);
 
         var userIdentityLifetimeBuilder = CreateApplicationBuilder();
-        var userIdentityLifetimeResult = SqlServerExtensions.AddSqlServerWithIdentity<SqlServerIdentityContext, TestUser>(
+        var userIdentityLifetimeResult = SqlServerExtensions.AddSqlServerWithIdentity(
             userIdentityLifetimeBuilder,
             DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity,
             ServiceLifetime.Singleton);
         await Assert.That(userIdentityLifetimeResult).IsEqualTo(userIdentityLifetimeBuilder);
 
         var roleIdentityBuilder = CreateApplicationBuilder();
-        var roleIdentityResult = SqlServerExtensions.AddSqlServerWithIdentity<SqlServerIdentityContext, TestUser, TestRole>(roleIdentityBuilder, DatabaseConnectionName);
+        var roleIdentityResult = SqlServerExtensions.AddSqlServerWithIdentity(
+            roleIdentityBuilder,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserAndRoleIdentity);
         await Assert.That(roleIdentityResult).IsEqualTo(roleIdentityBuilder);
         await Assert.That(ContainsService<SqlServerIdentityContext>(roleIdentityBuilder.Services)).IsTrue();
+        await Assert.That(ContainsService<RoleManager<TestRole>>(roleIdentityBuilder.Services)).IsTrue();
         await Assert.That(GetProviderName<SqlServerIdentityContext>(roleIdentityBuilder.Services)).IsEqualTo(SqlServerProviderName);
 
         var roleIdentityLifetimeBuilder = CreateApplicationBuilder();
-        var roleIdentityLifetimeResult = SqlServerExtensions.AddSqlServerWithIdentity<SqlServerIdentityContext, TestUser, TestRole>(
+        var roleIdentityLifetimeResult = SqlServerExtensions.AddSqlServerWithIdentity(
             roleIdentityLifetimeBuilder,
             DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserAndRoleIdentity,
             ServiceLifetime.Singleton);
         await Assert.That(roleIdentityLifetimeResult).IsEqualTo(roleIdentityLifetimeBuilder);
     }
@@ -102,17 +161,19 @@ public class EntityFrameworkCoreExtensionsTests
     public async Task SqlServerApplicationBuilderRegistrations_ValidateArgumentsAndMissingConnections()
     {
         IHostApplicationBuilder? nullBuilder = null;
-        var nullBuilderAction = () => SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(nullBuilder!, DatabaseConnectionName, ServiceLifetime.Scoped);
+        var nullBuilderAction = () => SqlServerExtensions.AddSqlServerDbContext(nullBuilder!, DatabaseConnectionName, _createSqlServerContext, ServiceLifetime.Scoped);
         await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
 
         var builder = CreateApplicationBuilder();
-        var whitespace = () => SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(builder, " ", ServiceLifetime.Scoped);
+        var whitespace = () => SqlServerExtensions.AddSqlServerDbContext(builder, " ", _createSqlServerContext, ServiceLifetime.Scoped);
         await Assert.That(whitespace).Throws<ArgumentException>();
 
         var missingBuilder = Host.CreateApplicationBuilder();
-        _ = SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(missingBuilder, MissingConnectionName, ServiceLifetime.Scoped);
-        await using var provider = missingBuilder.Services.BuildServiceProvider();
-        var missing = () => provider.GetRequiredService<SqlServerContext>();
+        var missing = () => SqlServerExtensions.AddSqlServerDbContext(
+            missingBuilder,
+            MissingConnectionName,
+            _createSqlServerContext,
+            ServiceLifetime.Scoped);
         await Assert.That(missing).Throws<InvalidOperationException>();
     }
 
@@ -122,56 +183,250 @@ public class EntityFrameworkCoreExtensionsTests
     public async Task SqlServerServiceCollectionRegistrations_RegisterAllOverloadsAndProviders()
     {
         var configuration = CreateConfiguration();
-        var context = new WebHostBuilderContext { Configuration = configuration };
 
         var databaseServices = new ServiceCollection();
-        var databaseResult = SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(databaseServices, configuration, DatabaseConnectionName);
+        var databaseResult = SqlServerExtensions.AddSqlServerDbContext(databaseServices, configuration, DatabaseConnectionName, _createSqlServerContext);
         await Assert.That(databaseResult).IsEqualTo(databaseServices);
         await Assert.That(GetProviderName<SqlServerContext>(databaseServices)).IsEqualTo(SqlServerProviderName);
 
         var databaseLifetimeServices = new ServiceCollection();
-        var databaseLifetimeResult = SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(databaseLifetimeServices, configuration, DatabaseConnectionName, ServiceLifetime.Singleton);
+        var databaseLifetimeResult = SqlServerExtensions.AddSqlServerDbContext(databaseLifetimeServices, configuration, DatabaseConnectionName, _createSqlServerContext, ServiceLifetime.Singleton);
         await Assert.That(databaseLifetimeResult).IsEqualTo(databaseLifetimeServices);
 
         var connectionStringServices = new ServiceCollection();
-        var connectionStringResult = SqlServerExtensions.AddSqlServerDbContextWithConnectionString<SqlServerContext>(connectionStringServices, SqlServerConnectionString);
+        var connectionStringResult = SqlServerExtensions.AddSqlServerDbContextWithConnectionString(connectionStringServices, SqlServerConnectionString, _createSqlServerContext);
         await Assert.That(connectionStringResult).IsEqualTo(connectionStringServices);
         await Assert.That(GetProviderName<SqlServerContext>(connectionStringServices)).IsEqualTo(SqlServerProviderName);
 
         var connectionStringLifetimeServices = new ServiceCollection();
-        var connectionStringLifetimeResult = SqlServerExtensions.AddSqlServerDbContextWithConnectionString<SqlServerContext>(
+        var connectionStringLifetimeResult = SqlServerExtensions.AddSqlServerDbContextWithConnectionString(
             connectionStringLifetimeServices,
             SqlServerConnectionString,
+            _createSqlServerContext,
             ServiceLifetime.Singleton);
         await Assert.That(connectionStringLifetimeResult).IsEqualTo(connectionStringLifetimeServices);
+    }
+
+    /// <summary>Verifies SQL Server service-collection Identity registrations.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqlServerServiceCollectionRegistrations_RegisterIdentityOverloads()
+    {
+        var configuration = CreateConfiguration();
+        var context = new WebHostBuilderContext { Configuration = configuration };
 
         var userServices = new ServiceCollection();
-        var userResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer<SqlServerIdentityContext, TestUser>(userServices, context, DatabaseConnectionName);
+        var userResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            userServices,
+            context,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity);
         await Assert.That(userResult).IsEqualTo(userServices);
         await Assert.That(ContainsService<SqlServerIdentityContext>(userServices)).IsTrue();
+        await Assert.That(ContainsService<UserManager<TestUser>>(userServices)).IsTrue();
 
         var userLifetimeServices = new ServiceCollection();
-        var userLifetimeResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer<SqlServerIdentityContext, TestUser>(
+        var userLifetimeResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
             userLifetimeServices,
             context,
             DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity,
             ServiceLifetime.Singleton);
         await Assert.That(userLifetimeResult).IsEqualTo(userLifetimeServices);
 
         var roleServices = new ServiceCollection();
-        var roleResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer<SqlServerIdentityContext, TestUser, TestRole>(roleServices, context, DatabaseConnectionName);
+        var roleResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            roleServices,
+            context,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserAndRoleIdentity);
         await Assert.That(roleResult).IsEqualTo(roleServices);
         await Assert.That(ContainsService<SqlServerIdentityContext>(roleServices)).IsTrue();
+        await Assert.That(ContainsService<RoleManager<TestRole>>(roleServices)).IsTrue();
 
         var roleLifetimeServices = new ServiceCollection();
-        var roleLifetimeResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer<SqlServerIdentityContext, TestUser, TestRole>(
+        var roleLifetimeResult = SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
             roleLifetimeServices,
             context,
             DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserAndRoleIdentity,
             ServiceLifetime.Singleton);
         await Assert.That(roleLifetimeResult).IsEqualTo(roleLifetimeServices);
         await Assert.That(GetProviderName<SqlServerIdentityContext>(userServices)).IsEqualTo(SqlServerProviderName);
         await Assert.That(GetProviderName<SqlServerIdentityContext>(roleServices)).IsEqualTo(SqlServerProviderName);
+    }
+
+    /// <summary>Verifies DbContext registration helpers preserve existing caller registrations.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task ServiceCollectionRegistrations_PreserveExistingContextRegistrations()
+    {
+        var factoryInvoked = false;
+        var factoryServices = new ServiceCollection();
+        _ = factoryServices.AddSingleton(new WebHostMarker());
+        _ = SqlServerExtensions.AddSqlServerDbContextWithConnectionString<SqlServerContext>(
+            factoryServices,
+            SqlServerConnectionString,
+            (serviceProvider, options) =>
+            {
+                factoryInvoked = serviceProvider.GetRequiredService<WebHostMarker>().IsRegistered;
+                return new SqlServerContext(options);
+            },
+            ServiceLifetime.Singleton);
+
+        await using var factoryProvider = factoryServices.BuildServiceProvider();
+        _ = factoryProvider.GetRequiredService<SqlServerContext>();
+        await Assert.That(factoryInvoked).IsTrue();
+
+        var sqliteFactoryInvoked = false;
+        var sqliteFactoryServices = new ServiceCollection();
+        _ = sqliteFactoryServices.AddSingleton(new WebHostMarker());
+        _ = SqliteExtensions.AddSqliteDbContextWithConnectionString<SqliteContext>(
+            sqliteFactoryServices,
+            SqliteMemoryConnectionString,
+            (serviceProvider, options) =>
+            {
+                sqliteFactoryInvoked = serviceProvider.GetRequiredService<WebHostMarker>().IsRegistered;
+                return new SqliteContext(options);
+            },
+            ServiceLifetime.Singleton);
+
+        await using var sqliteFactoryProvider = sqliteFactoryServices.BuildServiceProvider();
+        _ = sqliteFactoryProvider.GetRequiredService<SqliteContext>();
+        await Assert.That(sqliteFactoryInvoked).IsTrue();
+
+        var sqlServerOptions = new DbContextOptions<SqlServerContext>();
+        var sqlServerContext = new SqlServerContext(sqlServerOptions);
+        var sqlServerServices = new ServiceCollection();
+        _ = sqlServerServices.AddSingleton(sqlServerContext);
+
+        _ = SqlServerExtensions.AddSqlServerDbContextWithConnectionString(
+            sqlServerServices,
+            SqlServerConnectionString,
+            _createSqlServerContext,
+            ServiceLifetime.Singleton);
+
+        await using var sqlServerProvider = sqlServerServices.BuildServiceProvider();
+        await Assert.That(sqlServerProvider.GetRequiredService<SqlServerContext>()).IsEqualTo(sqlServerContext);
+
+        var sqliteOptions = new DbContextOptions<SqliteContext>();
+        var sqliteContext = new SqliteContext(sqliteOptions);
+        var sqliteServices = new ServiceCollection();
+        _ = sqliteServices.AddSingleton(sqliteContext);
+
+        _ = SqliteExtensions.AddSqliteDbContextWithConnectionString(
+            sqliteServices,
+            SqliteMemoryConnectionString,
+            _createSqliteContext,
+            ServiceLifetime.Singleton);
+
+        await using var sqliteProvider = sqliteServices.BuildServiceProvider();
+        await Assert.That(sqliteProvider.GetRequiredService<SqliteContext>()).IsEqualTo(sqliteContext);
+    }
+
+    /// <summary>Verifies SQL Server registration argument validation for typed factories and Identity callbacks.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqlServerRegistrations_ValidateFactoriesAndIdentityCallbacks()
+    {
+        var builder = CreateApplicationBuilder();
+        Func<IServiceProvider, DbContextOptions<SqlServerContext>, SqlServerContext>? nullFactory = null;
+        Func<IServiceCollection, IdentityBuilder>? nullIdentity = null;
+        Func<IServiceCollection, IdentityBuilder> returnsNullIdentity = ReturnNullIdentityBuilder;
+        var context = new WebHostBuilderContext { Configuration = CreateConfiguration() };
+        var services = new ServiceCollection();
+
+        var nullBuilderFactory = () => SqlServerExtensions.AddSqlServerDbContext(builder, DatabaseConnectionName, nullFactory!, ServiceLifetime.Scoped);
+        var nullBuilderIdentity = () => SqlServerExtensions.AddSqlServerWithIdentity(builder, DatabaseConnectionName, _createSqlServerIdentityContext, nullIdentity!);
+        var nullReturnedBuilderIdentity = () => SqlServerExtensions.AddSqlServerWithIdentity(
+            builder,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            returnsNullIdentity!);
+        var missingBuilderIdentity = static () => SqlServerExtensions.AddSqlServerWithIdentity(
+            Host.CreateApplicationBuilder(),
+            MissingConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity);
+        var nullServicesFactory = () => SqlServerExtensions.AddSqlServerDbContextWithConnectionString(services, SqlServerConnectionString, nullFactory!);
+        var nullServicesIdentity = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer(services, context, DatabaseConnectionName, _createSqlServerIdentityContext, nullIdentity!);
+        var nullReturnedServicesIdentity = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            services,
+            context,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            returnsNullIdentity!);
+
+        await Assert.That(nullBuilderFactory).Throws<ArgumentNullException>();
+        await Assert.That(nullBuilderIdentity).Throws<ArgumentNullException>();
+        await Assert.That(nullReturnedBuilderIdentity).Throws<InvalidOperationException>();
+        await Assert.That(missingBuilderIdentity).Throws<InvalidOperationException>();
+        await Assert.That(nullServicesFactory).Throws<ArgumentNullException>();
+        await Assert.That(nullServicesIdentity).Throws<ArgumentNullException>();
+        await Assert.That(nullReturnedServicesIdentity).Throws<InvalidOperationException>();
+    }
+
+    /// <summary>Verifies SQL Server Identity validation for context factories and missing configuration.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqlServerIdentityRegistrations_ValidateContextFactoriesAndMissingConnections()
+    {
+        IHostApplicationBuilder? nullBuilder = null;
+        Func<IServiceProvider, DbContextOptions<SqlServerIdentityContext>, SqlServerIdentityContext>? nullFactory = null;
+        var builder = CreateApplicationBuilder();
+        var context = new WebHostBuilderContext { Configuration = CreateConfiguration() };
+        var services = new ServiceCollection();
+
+        var nullBuilderAction = () => SqlServerExtensions.AddSqlServerWithIdentity(
+            nullBuilder!,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity);
+        var nullBuilderFactory = () => SqlServerExtensions.AddSqlServerWithIdentity(
+            builder,
+            DatabaseConnectionName,
+            nullFactory!,
+            _addTestUserIdentity);
+        var nullServicesFactory = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            services,
+            context,
+            DatabaseConnectionName,
+            nullFactory!,
+            _addTestUserIdentity);
+        var missingServicesConnection = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            services,
+            context,
+            MissingConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity);
+
+        await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullBuilderFactory).Throws<ArgumentNullException>();
+        await Assert.That(nullServicesFactory).Throws<ArgumentNullException>();
+        await Assert.That(missingServicesConnection).Throws<InvalidOperationException>();
+    }
+
+    /// <summary>Verifies SQL Server service-collection validation for DbContext factories.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqlServerServiceCollectionRegistrations_ValidateDbContextFactories()
+    {
+        var configuration = CreateConfiguration();
+        var services = new ServiceCollection();
+        Func<IServiceProvider, DbContextOptions<SqlServerContext>, SqlServerContext>? nullFactory = null;
+
+        var nullConfigurationFactory = () => SqlServerExtensions.AddSqlServerDbContext(
+            services,
+            configuration,
+            DatabaseConnectionName,
+            nullFactory!,
+            ServiceLifetime.Scoped);
+
+        await Assert.That(nullConfigurationFactory).Throws<ArgumentNullException>();
     }
 
     /// <summary>Verifies SQLite application-builder and service registrations.</summary>
@@ -182,22 +437,59 @@ public class EntityFrameworkCoreExtensionsTests
         var configuration = CreateConfiguration();
         var context = new WebHostBuilderContext { Configuration = configuration };
         IServiceCollection? nullServices = null;
-        var nullServicesAction = () => SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(nullServices!, configuration, DatabaseConnectionName, ServiceLifetime.Scoped);
+        var nullServicesAction = () => SqlServerExtensions.AddSqlServerDbContext(
+            nullServices!,
+            configuration,
+            DatabaseConnectionName,
+            _createSqlServerContext,
+            ServiceLifetime.Scoped);
         await Assert.That(nullServicesAction).Throws<ArgumentNullException>();
 
         var services = new ServiceCollection();
         IConfiguration? nullConfiguration = null;
-        var nullConfigurationAction = () => SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(services, nullConfiguration!, DatabaseConnectionName, ServiceLifetime.Scoped);
-        var nullContextAction = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer<SqlServerIdentityContext, TestUser>(services, null!, DatabaseConnectionName, ServiceLifetime.Scoped);
-        var whitespace = () => SqlServerExtensions.AddSqlServerDbContextWithConnectionString<SqlServerContext>(services, " ", ServiceLifetime.Scoped);
+        var nullConfigurationAction = () => SqlServerExtensions.AddSqlServerDbContext(
+            services,
+            nullConfiguration!,
+            DatabaseConnectionName,
+            _createSqlServerContext,
+            ServiceLifetime.Scoped);
+        var nullContextAction = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            services,
+            null!,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity,
+            ServiceLifetime.Scoped);
+        var nullIdentityServicesAction = () => SqlServerExtensions.UseEntityFrameworkCoreSqlServer(
+            nullServices!,
+            context,
+            DatabaseConnectionName,
+            _createSqlServerIdentityContext,
+            _addTestUserIdentity,
+            ServiceLifetime.Scoped);
+        var nullConnectionServicesAction = () => SqlServerExtensions.AddSqlServerDbContextWithConnectionString(
+            nullServices!,
+            SqlServerConnectionString,
+            _createSqlServerContext,
+            ServiceLifetime.Scoped);
+        var whitespace = () => SqlServerExtensions.AddSqlServerDbContextWithConnectionString(
+            services,
+            " ",
+            _createSqlServerContext,
+            ServiceLifetime.Scoped);
         await Assert.That(nullConfigurationAction).Throws<ArgumentNullException>();
         await Assert.That(nullContextAction).Throws<ArgumentNullException>();
+        await Assert.That(nullIdentityServicesAction).Throws<ArgumentNullException>();
+        await Assert.That(nullConnectionServicesAction).Throws<ArgumentNullException>();
         await Assert.That(whitespace).Throws<ArgumentException>();
 
         var missingServices = new ServiceCollection();
-        _ = SqlServerExtensions.AddSqlServerDbContext<SqlServerContext>(missingServices, configuration, MissingConnectionName, ServiceLifetime.Scoped);
-        await using var provider = missingServices.BuildServiceProvider();
-        var missing = () => provider.GetRequiredService<SqlServerContext>();
+        var missing = () => SqlServerExtensions.AddSqlServerDbContext(
+            missingServices,
+            configuration,
+            MissingConnectionName,
+            _createSqlServerContext,
+            ServiceLifetime.Scoped);
         await Assert.That(missing).Throws<InvalidOperationException>();
 
         await Assert.That(context.Configuration).IsEqualTo(configuration);
@@ -209,36 +501,73 @@ public class EntityFrameworkCoreExtensionsTests
     public async Task SqliteApplicationBuilderAndServiceCollectionRegistrations_RegisterAllOverloads()
     {
         var builder = CreateApplicationBuilder();
-        await Assert.That(SqliteExtensions.AddSqliteDbContext<SqliteContext>(builder, DatabaseConnectionName)).IsEqualTo(builder);
+        await Assert.That(SqliteExtensions.AddSqliteDbContext(builder, DatabaseConnectionName, _createSqliteContext)).IsEqualTo(builder);
         await Assert.That(GetProviderName<SqliteContext>(builder.Services)).IsEqualTo(SqliteProviderName);
-        await Assert.That(SqliteExtensions.AddSqliteDbContext<SqliteContext>(builder, DatabaseConnectionName, ServiceLifetime.Singleton)).IsEqualTo(builder);
+        await Assert.That(SqliteExtensions.AddSqliteDbContext(builder, DatabaseConnectionName, _createSqliteContext, ServiceLifetime.Singleton)).IsEqualTo(builder);
 
         var userBuilder = CreateApplicationBuilder();
-        await Assert.That(SqliteExtensions.AddSqliteWithIdentity<SqliteIdentityContext, TestUser>(userBuilder, DatabaseConnectionName)).IsEqualTo(userBuilder);
+        await Assert.That(SqliteExtensions.AddSqliteWithIdentity(
+            userBuilder,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity)).IsEqualTo(userBuilder);
         await Assert.That(GetProviderName<SqliteIdentityContext>(userBuilder.Services)).IsEqualTo(SqliteProviderName);
-        await Assert.That(SqliteExtensions.AddSqliteWithIdentity<SqliteIdentityContext, TestUser>(userBuilder, DatabaseConnectionName, ServiceLifetime.Singleton)).IsEqualTo(userBuilder);
+        await Assert.That(ContainsService<UserManager<TestUser>>(userBuilder.Services)).IsTrue();
+        await Assert.That(SqliteExtensions.AddSqliteWithIdentity(
+            userBuilder,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity,
+            ServiceLifetime.Singleton)).IsEqualTo(userBuilder);
 
         var roleBuilder = CreateApplicationBuilder();
-        await Assert.That(SqliteExtensions.AddSqliteWithIdentity<SqliteIdentityContext, TestUser, TestRole>(roleBuilder, DatabaseConnectionName)).IsEqualTo(roleBuilder);
+        await Assert.That(SqliteExtensions.AddSqliteWithIdentity(
+            roleBuilder,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserAndRoleIdentity)).IsEqualTo(roleBuilder);
         await Assert.That(GetProviderName<SqliteIdentityContext>(roleBuilder.Services)).IsEqualTo(SqliteProviderName);
-        await Assert.That(SqliteExtensions.AddSqliteWithIdentity<SqliteIdentityContext, TestUser, TestRole>(roleBuilder, DatabaseConnectionName, ServiceLifetime.Singleton)).IsEqualTo(roleBuilder);
+        await Assert.That(ContainsService<RoleManager<TestRole>>(roleBuilder.Services)).IsTrue();
+        await Assert.That(SqliteExtensions.AddSqliteWithIdentity(
+            roleBuilder,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserAndRoleIdentity,
+            ServiceLifetime.Singleton)).IsEqualTo(roleBuilder);
+    }
 
+    /// <summary>Verifies SQLite service-collection registrations.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqliteServiceCollectionRegistrations_RegisterAllOverloads()
+    {
         var configuration = CreateConfiguration();
         var context = new WebHostBuilderContext { Configuration = configuration };
         var services = new ServiceCollection();
-        await Assert.That(SqliteExtensions.AddSqliteDbContext<SqliteContext>(services, configuration, DatabaseConnectionName)).IsEqualTo(services);
+
+        await Assert.That(SqliteExtensions.AddSqliteDbContext(services, configuration, DatabaseConnectionName, _createSqliteContext)).IsEqualTo(services);
         await Assert.That(GetProviderName<SqliteContext>(services)).IsEqualTo(SqliteProviderName);
-        await Assert.That(SqliteExtensions.AddSqliteDbContext<SqliteContext>(services, configuration, DatabaseConnectionName, ServiceLifetime.Singleton)).IsEqualTo(services);
-        await Assert.That(SqliteExtensions.AddSqliteDbContextWithConnectionString<SqliteContext>(services, SqliteMemoryConnectionString)).IsEqualTo(services);
-        await Assert.That(SqliteExtensions.AddSqliteDbContextWithConnectionString<SqliteContext>(services, SqliteMemoryConnectionString, ServiceLifetime.Singleton)).IsEqualTo(services);
-        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite<SqliteIdentityContext, TestUser>(services, context, DatabaseConnectionName)).IsEqualTo(services);
-        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite<SqliteIdentityContext, TestUser>(services, context, DatabaseConnectionName, ServiceLifetime.Singleton)).IsEqualTo(services);
-        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite<SqliteIdentityContext, TestUser, TestRole>(services, context, DatabaseConnectionName)).IsEqualTo(services);
-        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite<SqliteIdentityContext, TestUser, TestRole>(
+        await Assert.That(SqliteExtensions.AddSqliteDbContext(services, configuration, DatabaseConnectionName, _createSqliteContext, ServiceLifetime.Singleton)).IsEqualTo(services);
+        await Assert.That(SqliteExtensions.AddSqliteDbContextWithConnectionString(services, SqliteMemoryConnectionString, _createSqliteContext)).IsEqualTo(services);
+        await Assert.That(SqliteExtensions.AddSqliteDbContextWithConnectionString(services, SqliteMemoryConnectionString, _createSqliteContext, ServiceLifetime.Singleton)).IsEqualTo(services);
+        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite(services, context, DatabaseConnectionName, _createSqliteIdentityContext, _addTestUserIdentity)).IsEqualTo(services);
+        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite(
             services,
             context,
             DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity,
             ServiceLifetime.Singleton)).IsEqualTo(services);
+        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite(services, context, DatabaseConnectionName, _createSqliteIdentityContext, _addTestUserAndRoleIdentity)).IsEqualTo(services);
+        await Assert.That(SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            services,
+            context,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserAndRoleIdentity,
+            ServiceLifetime.Singleton)).IsEqualTo(services);
+        await Assert.That(ContainsService<UserManager<TestUser>>(services)).IsTrue();
+        await Assert.That(ContainsService<RoleManager<TestRole>>(services)).IsTrue();
         await Assert.That(GetProviderName<SqliteContext>(services)).IsEqualTo(SqliteProviderName);
         await Assert.That(GetProviderName<SqliteIdentityContext>(services)).IsEqualTo(SqliteProviderName);
     }
@@ -257,16 +586,183 @@ public class EntityFrameworkCoreExtensionsTests
         await Assert.That(SqliteExtensions.CreateFileConnectionString("database.db")).IsEqualTo("DataSource=database.db");
 
         var builder = CreateApplicationBuilder();
-        var whitespace = () => SqliteExtensions.AddSqliteDbContext<SqliteContext>(builder, " ", ServiceLifetime.Scoped);
+        var whitespace = () => SqliteExtensions.AddSqliteDbContext(builder, " ", _createSqliteContext, ServiceLifetime.Scoped);
         await Assert.That(whitespace).Throws<ArgumentException>();
 
         var services = new ServiceCollection();
-        var nullServices = static () => SqliteExtensions.AddSqliteDbContextWithConnectionString<SqliteContext>(null!, SqliteMemoryConnectionString, ServiceLifetime.Scoped);
-        var nullConfiguration = () => SqliteExtensions.AddSqliteDbContext<SqliteContext>(services, null!, DatabaseConnectionName, ServiceLifetime.Scoped);
-        var emptyConnectionString = () => SqliteExtensions.AddSqliteDbContextWithConnectionString<SqliteContext>(services, " ", ServiceLifetime.Scoped);
+        var nullServices = static () => SqliteExtensions.AddSqliteDbContextWithConnectionString(null!, SqliteMemoryConnectionString, _createSqliteContext, ServiceLifetime.Scoped);
+        var nullConfiguration = () => SqliteExtensions.AddSqliteDbContext(services, null!, DatabaseConnectionName, _createSqliteContext, ServiceLifetime.Scoped);
+        var emptyConnectionString = () => SqliteExtensions.AddSqliteDbContextWithConnectionString(services, " ", _createSqliteContext, ServiceLifetime.Scoped);
         await Assert.That(nullServices).Throws<ArgumentNullException>();
         await Assert.That(nullConfiguration).Throws<ArgumentNullException>();
         await Assert.That(emptyConnectionString).Throws<ArgumentException>();
+    }
+
+    /// <summary>Verifies SQLite application-builder validation for typed factories and Identity callbacks.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqliteApplicationBuilderRegistrations_ValidateFactoriesAndIdentityCallbacks()
+    {
+        IHostApplicationBuilder? nullBuilder = null;
+        var builder = CreateApplicationBuilder();
+        Func<IServiceProvider, DbContextOptions<SqliteContext>, SqliteContext>? nullFactory = null;
+        Func<IServiceCollection, IdentityBuilder>? nullIdentity = null;
+        Func<IServiceCollection, IdentityBuilder> returnsNullIdentity = ReturnNullIdentityBuilder;
+
+        var nullBuilderAction = () => SqliteExtensions.AddSqliteDbContext(
+            nullBuilder!,
+            DatabaseConnectionName,
+            _createSqliteContext,
+            ServiceLifetime.Scoped);
+        var nullFactoryAction = () => SqliteExtensions.AddSqliteDbContext(
+            builder,
+            DatabaseConnectionName,
+            nullFactory!,
+            ServiceLifetime.Scoped);
+        var missingAction = static () => SqliteExtensions.AddSqliteDbContext(
+            Host.CreateApplicationBuilder(),
+            MissingConnectionName,
+            _createSqliteContext,
+            ServiceLifetime.Scoped);
+        var nullIdentityAction = () => SqliteExtensions.AddSqliteWithIdentity(
+            builder,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            nullIdentity!);
+        var nullIdentityBuilderAction = () => SqliteExtensions.AddSqliteWithIdentity(
+            nullBuilder!,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity);
+        var nullIdentityFactoryAction = () => SqliteExtensions.AddSqliteWithIdentity<SqliteIdentityContext>(
+            builder,
+            DatabaseConnectionName,
+            null!,
+            _addTestUserIdentity);
+        var nullReturnedIdentity = () => SqliteExtensions.AddSqliteWithIdentity(
+            builder,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            returnsNullIdentity);
+        var missingIdentity = static () => SqliteExtensions.AddSqliteWithIdentity(
+            Host.CreateApplicationBuilder(),
+            MissingConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity);
+
+        await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullFactoryAction).Throws<ArgumentNullException>();
+        await Assert.That(missingAction).Throws<InvalidOperationException>();
+        await Assert.That(nullIdentityAction).Throws<ArgumentNullException>();
+        await Assert.That(nullIdentityBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullIdentityFactoryAction).Throws<ArgumentNullException>();
+        await Assert.That(nullReturnedIdentity).Throws<InvalidOperationException>();
+        await Assert.That(missingIdentity).Throws<InvalidOperationException>();
+    }
+
+    /// <summary>Verifies SQLite service-collection validation for typed factories and Identity callbacks.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqliteServiceCollectionRegistrations_ValidateFactoriesAndIdentityCallbacks()
+    {
+        var configuration = CreateConfiguration();
+        var context = new WebHostBuilderContext { Configuration = configuration };
+        var services = new ServiceCollection();
+        IServiceCollection? nullServices = null;
+        Func<IServiceProvider, DbContextOptions<SqliteIdentityContext>, SqliteIdentityContext>? nullIdentityFactory = null;
+        Func<IServiceCollection, IdentityBuilder>? nullIdentity = null;
+        Func<IServiceCollection, IdentityBuilder> returnsNullIdentity = ReturnNullIdentityBuilder;
+
+        var nullIdentityServicesAction = () => SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            nullServices!,
+            context,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity);
+        var nullIdentityFactoryAction = () => SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            services,
+            context,
+            DatabaseConnectionName,
+            nullIdentityFactory!,
+            _addTestUserIdentity);
+        var nullIdentityAction = () => SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            services,
+            context,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            nullIdentity!);
+        var nullReturnedIdentity = () => SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            services,
+            context,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            returnsNullIdentity);
+        var missingIdentityConnection = () => SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            services,
+            context,
+            MissingConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity);
+        await Assert.That(nullIdentityServicesAction).Throws<ArgumentNullException>();
+        await Assert.That(nullIdentityFactoryAction).Throws<ArgumentNullException>();
+        await Assert.That(nullIdentityAction).Throws<ArgumentNullException>();
+        await Assert.That(nullReturnedIdentity).Throws<InvalidOperationException>();
+        await Assert.That(missingIdentityConnection).Throws<InvalidOperationException>();
+    }
+
+    /// <summary>Verifies SQLite service-collection validation for DbContext callbacks.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqliteServiceCollectionRegistrations_ValidateDbContextFactories()
+    {
+        var configuration = CreateConfiguration();
+        var context = new WebHostBuilderContext { Configuration = configuration };
+        var services = new ServiceCollection();
+        IServiceCollection? nullServices = null;
+        Func<IServiceProvider, DbContextOptions<SqliteContext>, SqliteContext>? nullFactory = null;
+
+        var nullIdentityContext = () => SqliteExtensions.UseEntityFrameworkCoreSqlite(
+            services,
+            null!,
+            DatabaseConnectionName,
+            _createSqliteIdentityContext,
+            _addTestUserIdentity);
+        var nullConfigurationFactory = () => SqliteExtensions.AddSqliteDbContext(
+            services,
+            configuration,
+            DatabaseConnectionName,
+            nullFactory!,
+            ServiceLifetime.Scoped);
+        var nullConfigurationServices = () => SqliteExtensions.AddSqliteDbContext(
+            nullServices!,
+            configuration,
+            DatabaseConnectionName,
+            _createSqliteContext,
+            ServiceLifetime.Scoped);
+        var nullConnectionStringServices = () => SqliteExtensions.AddSqliteDbContextWithConnectionString(
+            nullServices!,
+            SqliteMemoryConnectionString,
+            _createSqliteContext,
+            ServiceLifetime.Scoped);
+        var nullConnectionStringFactory = () => SqliteExtensions.AddSqliteDbContextWithConnectionString(
+            services,
+            SqliteMemoryConnectionString,
+            nullFactory!,
+            ServiceLifetime.Scoped);
+        var missingConfigurationConnection = () => SqliteExtensions.AddSqliteDbContext(
+            services,
+            configuration,
+            MissingConnectionName,
+            _createSqliteContext,
+            ServiceLifetime.Scoped);
+
+        await Assert.That(nullIdentityContext).Throws<ArgumentNullException>();
+        await Assert.That(nullConfigurationFactory).Throws<ArgumentNullException>();
+        await Assert.That(nullConfigurationServices).Throws<ArgumentNullException>();
+        await Assert.That(nullConnectionStringServices).Throws<ArgumentNullException>();
+        await Assert.That(nullConnectionStringFactory).Throws<ArgumentNullException>();
+        await Assert.That(missingConfigurationConnection).Throws<InvalidOperationException>();
+        await Assert.That(context.Configuration).IsEqualTo(configuration);
     }
 
     /// <summary>Verifies SQLite web-host service overloads.</summary>
@@ -330,12 +826,33 @@ public class EntityFrameworkCoreExtensionsTests
         await sixthHost.StartAsync();
         await sixthHost.StopAsync();
 
-        IHostBuilder? nullBuilder = null;
-        var nullBuilderAction = () => SqlServerExtensions.UseWebHostServices(nullBuilder!, static (_, _) => { }, true);
-        await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
         await Assert.That(serviceConfigured).IsTrue();
         await Assert.That(webHostConfigured).IsTrue();
         await Assert.That(appConfigured).IsTrue();
+    }
+
+    /// <summary>Verifies SQL Server web-host overload null receiver validation.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task WebHostServiceOverloads_ValidateNullBuilders()
+    {
+        IHostBuilder? nullBuilder = null;
+        var nullBuilderAction = () => SqlServerExtensions.UseWebHostServices(nullBuilder!, static (_, _) => { }, true);
+        var nullWebHostBuilderAction = () => SqlServerExtensions.UseWebHostServices(
+            nullBuilder!,
+            static (_, _) => { },
+            static builder => builder,
+            true);
+        var nullAppBuilderAction = () => SqlServerExtensions.UseWebHostServices(
+            nullBuilder!,
+            static (_, _) => { },
+            static builder => builder,
+            static app => app,
+            true);
+
+        await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullWebHostBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullAppBuilderAction).Throws<ArgumentNullException>();
     }
 
     /// <summary>Verifies SQLite web-host service overloads.</summary>
@@ -388,12 +905,33 @@ public class EntityFrameworkCoreExtensionsTests
         await Assert.That(SqliteExtensions.UseWebHostServices(sixth, static (_, _) => { }, static builder => builder, static app => app, true)).IsEqualTo(sixth);
         using var sixthHost = sixth.Build();
 
-        IHostBuilder? nullBuilder = null;
-        var nullBuilderAction = () => SqliteExtensions.UseWebHostServices(nullBuilder!, static (_, _) => { }, true);
-        await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
         await Assert.That(serviceConfigured).IsTrue();
         await Assert.That(webHostConfigured).IsTrue();
         await Assert.That(appConfigured).IsTrue();
+    }
+
+    /// <summary>Verifies SQLite web-host overload null receiver validation.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task SqliteWebHostServiceOverloads_ValidateNullBuilders()
+    {
+        IHostBuilder? nullBuilder = null;
+        var nullBuilderAction = () => SqliteExtensions.UseWebHostServices(nullBuilder!, static (_, _) => { }, true);
+        var nullWebHostBuilderAction = () => SqliteExtensions.UseWebHostServices(
+            nullBuilder!,
+            static (_, _) => { },
+            static builder => builder,
+            true);
+        var nullAppBuilderAction = () => SqliteExtensions.UseWebHostServices(
+            nullBuilder!,
+            static (_, _) => { },
+            static builder => builder,
+            static app => app,
+            true);
+
+        await Assert.That(nullBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullWebHostBuilderAction).Throws<ArgumentNullException>();
+        await Assert.That(nullAppBuilderAction).Throws<ArgumentNullException>();
     }
 
     /// <summary>Creates configuration containing the test connection string.</summary>
@@ -462,6 +1000,15 @@ public class EntityFrameworkCoreExtensionsTests
         }
 
         return false;
+    }
+
+    /// <summary>Returns a null Identity builder for validation tests.</summary>
+    /// <param name="services">The service collection passed by the production callback.</param>
+    /// <returns>A null Identity builder.</returns>
+    private static IdentityBuilder ReturnNullIdentityBuilder(IServiceCollection services)
+    {
+        _ = services;
+        return null!;
     }
 
     /// <summary>Provides a SQL Server context test double.</summary>

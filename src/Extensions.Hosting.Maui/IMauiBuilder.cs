@@ -22,6 +22,9 @@ public interface IMauiBuilder
     /// <summary>Gets or sets the application associated with the current context.</summary>
     Application? Application { get; set; }
 
+    /// <summary>Gets or sets the factory used to create the application associated with the current context.</summary>
+    Func<IServiceProvider, Application>? ApplicationFactory { get; set; }
+
     /// <summary>Gets the collection of page types supported by the current context.</summary>
     IList<Type> PageTypes { get; }
 

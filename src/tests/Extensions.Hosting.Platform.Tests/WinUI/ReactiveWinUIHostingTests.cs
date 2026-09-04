@@ -62,6 +62,20 @@ public class ReactiveWinUIHostingTests
         await Assert.That(factoryProvider).IsNull();
     }
 
+    /// <summary>Verifies that mapping a built host invokes the supplied factory with the service provider.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task MapSplatLocator_WithHost_InvokesFactoryWithServices()
+    {
+        using var host = Host.CreateDefaultBuilder().Build();
+        IServiceProvider? factoryProvider = null;
+
+        var result = host.MapSplatLocator(provider => factoryProvider = provider);
+
+        await Assert.That(result).IsSameReferenceAs(host);
+        await Assert.That(factoryProvider).IsSameReferenceAs(host.Services);
+    }
+
     /// <summary>Verifies that null application builders are rejected before any ReactiveUI registration occurs.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]

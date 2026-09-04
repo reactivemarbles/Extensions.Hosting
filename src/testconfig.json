@@ -9,6 +9,7 @@
             "Format": "cobertura",
             "IncludeTestAssembly": false,
             "CodeCoverage": {
+                "SkipAutoProperties": false,
                 "ModulePaths": {
                     "Exclude": [
                         "(^|.*[/\\\\])[^/\\\\]*Tests[^/\\\\]*\\.(dll|exe)$",

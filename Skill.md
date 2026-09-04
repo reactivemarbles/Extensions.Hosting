@@ -77,8 +77,8 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.ConfigureSingleInstance("Contoso.Desktop");
 builder.ConfigureSplatForMicrosoftDependencyResolver();
 builder.ConfigureWpf(wpf => wpf
-    .UseApplication<App>()
-    .UseWindow<MainWindow>());
+    .UseApplication(typeof(App))
+    .UseWindow(typeof(MainWindow)));
 builder.UseWpfLifetime();
 
 using var host = builder.Build();

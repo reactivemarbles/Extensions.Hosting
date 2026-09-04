@@ -24,21 +24,25 @@ public sealed class ZeroShellCoverageTests
     public async Task RunningApplication_ZeroShellShowsMainWindowAndRejectsMissingMainWindow()
     {
         var builder = Host.CreateApplicationBuilder();
-        _ = builder.ConfigureWpf(static wpfBuilder => wpfBuilder.UseApplication<ZeroShellApplication>());
+        var startupSignal = new StartupSignalWpfService();
+        _ = builder.Services.AddSingleton<IWpfService>(startupSignal);
+        _ = builder.ConfigureWpf();
         using var host = builder.Build();
 
         try
         {
             await host.StartAsync().WaitAsync(Timeout);
             var context = host.Services.GetRequiredService<IWpfContext>();
-            await ZeroShellApplication.Started.Task.WaitAsync(Timeout);
+            await startupSignal.Started.Task.WaitAsync(Timeout);
+            var application = context.WpfApplication;
+            await Assert.That(application).IsNotNull();
             var mainWindow = await context.Dispatcher.InvokeAsync(static () => new Window());
-            await context.Dispatcher.InvokeAsync(() => Application.Current!.MainWindow = mainWindow);
+            await context.Dispatcher.InvokeAsync(() => application!.MainWindow = mainWindow);
             using var runningThread = new ExposedWpfThread(host.Services);
             runningThread.RunUiThreadStart();
             var isVisible = await context.Dispatcher.InvokeAsync(() => mainWindow.IsVisible);
             await Assert.That(isVisible).IsTrue();
-            await context.Dispatcher.InvokeAsync(static () => Application.Current!.MainWindow = null);
+            await context.Dispatcher.InvokeAsync(() => application!.MainWindow = null);
 
             void Act() => runningThread.RunUiThreadStart();
 
@@ -62,5 +66,16 @@ public sealed class ZeroShellCoverageTests
 
         /// <summary>Runs the protected WPF UI-thread start implementation.</summary>
         public void RunUiThreadStart() => UiThreadStart();
+    }
+
+    /// <summary>Signals when the fallback WPF application has been initialized.</summary>
+    private sealed class StartupSignalWpfService : IWpfService
+    {
+        /// <summary>Gets a signal for when the fallback application has been initialized.</summary>
+        public TaskCompletionSource Started { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <inheritdoc />
+        public void Initialize(Application application) => _ = Started.TrySetResult();
     }
 }
