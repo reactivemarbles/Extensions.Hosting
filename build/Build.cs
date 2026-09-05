@@ -58,7 +58,9 @@ sealed partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetWorkloadRestore(s => s.DisableSkipManifestUpdate().SetProject(Solution));
-            return DotNetRestore(s => s.SetProjectFile(Solution));
+            return DotNetRestore(s => s
+                .SetProjectFile(Solution)
+                .SetProperty("Configuration", Configuration));
         });
 
     Target Compile => _ => _
