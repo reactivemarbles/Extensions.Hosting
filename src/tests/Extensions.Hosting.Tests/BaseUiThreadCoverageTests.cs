@@ -17,7 +17,23 @@ public class BaseUiThreadCoverageTests
     /// <summary>The duration used to confirm that a disposed UI thread does not begin execution.</summary>
     private static readonly TimeSpan _disposedUiThreadSignalTimeout = TimeSpan.FromMilliseconds(100);
 
-    /// <summary>Verifies that the dedicated-thread constructor runs the complete startup sequence.</summary>
+    /// <summary>Verifies that a UI context starts inactive and retains lifecycle state changes.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task BaseUiContext_RetainsLifecycleState()
+    {
+        var context = new BaseUiContext();
+        await Assert.That(context.IsLifetimeLinked).IsFalse();
+        await Assert.That(context.IsRunning).IsFalse();
+
+        context.IsLifetimeLinked = true;
+        context.IsRunning = true;
+
+        await Assert.That(context.IsLifetimeLinked).IsTrue();
+        await Assert.That(context.IsRunning).IsTrue();
+    }
+
+    /// <summary>Verifies that the dedicated-thread startup runs the complete startup sequence.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task Start_WithDedicatedUiThread_RunsInitializationAndUiThread()
@@ -26,10 +42,11 @@ public class BaseUiThreadCoverageTests
         await using var provider = CreateServiceProvider(context);
         using var uiThread = new TestUiThread(provider);
 
-        await Assert.That(uiThread.PreUiThreadStarted.Wait(_uiThreadSignalTimeout)).IsTrue();
+        await Assert.That(uiThread.PreUiThreadStarted.Wait(_disposedUiThreadSignalTimeout)).IsFalse();
 
         uiThread.Start();
 
+        await Assert.That(uiThread.PreUiThreadStarted.Wait(_uiThreadSignalTimeout)).IsTrue();
         await Assert.That(uiThread.UiThreadStarted.Wait(_uiThreadSignalTimeout)).IsTrue();
         await Assert.That(context.IsRunning).IsTrue();
     }
@@ -43,11 +60,28 @@ public class BaseUiThreadCoverageTests
         await using var provider = CreateServiceProvider(context);
         using var uiThread = new TestUiThread(provider, useDedicatedUiThread: false);
 
+        await Assert.That(uiThread.CapturedServiceProvider).IsEqualTo(provider);
         uiThread.Start();
 
         await Assert.That(uiThread.PreUiThreadStarted.IsSet).IsTrue();
         await Assert.That(uiThread.UiThreadStarted.IsSet).IsTrue();
         await Assert.That(context.IsRunning).IsTrue();
+    }
+
+    /// <summary>Verifies that repeated startup requests do not run initialization more than once.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Start_WhenAlreadyStarted_DoesNotRunInitializationAgain()
+    {
+        using var context = new TestUiContext();
+        await using var provider = CreateServiceProvider(context);
+        using var uiThread = new TestUiThread(provider, useDedicatedUiThread: false);
+
+        uiThread.Start();
+        uiThread.Start();
+
+        await Assert.That(uiThread.PreUiThreadStartCallCount).IsEqualTo(1);
+        await Assert.That(uiThread.UiThreadStartCallCount).IsEqualTo(1);
     }
 
     /// <summary>Verifies that disposing a waiting dedicated UI thread ends its startup safely.</summary>
@@ -59,12 +93,66 @@ public class BaseUiThreadCoverageTests
         await using var provider = CreateServiceProvider(context);
         var uiThread = new TestUiThread(provider);
 
+        uiThread.Start();
+
         await Assert.That(uiThread.PreUiThreadStarted.Wait(_uiThreadSignalTimeout)).IsTrue();
 
         uiThread.Dispose();
         context.ContinuePreUiThreadStart();
 
         await Assert.That(uiThread.UiThreadStarted.Wait(_disposedUiThreadSignalTimeout)).IsFalse();
+    }
+
+    /// <summary>Verifies that disposing a dedicated UI thread before startup prevents derived startup callbacks.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Dispose_BeforeDedicatedUiThreadStart_PreventsStartup()
+    {
+        using var context = new TestUiContext();
+        await using var provider = CreateServiceProvider(context);
+        var uiThread = new TestUiThread(provider);
+
+        uiThread.Dispose();
+
+        await Assert.That(uiThread.PreUiThreadStarted.Wait(_disposedUiThreadSignalTimeout)).IsFalse();
+        await Assert.That(uiThread.UiThreadStarted.Wait(_disposedUiThreadSignalTimeout)).IsFalse();
+        await Assert.That(context.IsRunning).IsFalse();
+    }
+
+    /// <summary>Verifies that a startup callback arriving after disposal does not run derived startup callbacks.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task RunStartupCallback_AfterDispose_DoesNotRunInitialization()
+    {
+        using var context = new TestUiContext();
+        await using var provider = CreateServiceProvider(context);
+        var uiThread = new TestUiThread(provider);
+
+        uiThread.Dispose();
+        uiThread.RunStartupCallback();
+
+        await Assert.That(uiThread.PreUiThreadStarted.IsSet).IsFalse();
+        await Assert.That(uiThread.UiThreadStarted.IsSet).IsFalse();
+        await Assert.That(uiThread.PreUiThreadStartCallCount).IsEqualTo(0);
+        await Assert.That(uiThread.UiThreadStartCallCount).IsEqualTo(0);
+        await Assert.That(context.IsRunning).IsFalse();
+    }
+
+    /// <summary>Verifies that startup after disposal fails consistently.</summary>
+    /// <param name="useDedicatedUiThread">Whether to use a dedicated UI thread.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
+    public async Task Start_AfterDispose_ThrowsObjectDisposedException(bool useDedicatedUiThread)
+    {
+        using var context = new TestUiContext();
+        await using var provider = CreateServiceProvider(context);
+        var uiThread = new TestUiThread(provider, useDedicatedUiThread);
+
+        uiThread.Dispose();
+
+        await Assert.That(uiThread.Start).Throws<ObjectDisposedException>();
     }
 
     /// <summary>Verifies that constructing the thread without a service provider fails.</summary>
@@ -212,6 +300,12 @@ public class BaseUiThreadCoverageTests
     /// <summary>Provides public hooks around the protected members of <see cref="BaseUiThread{T}"/>.</summary>
     private sealed class TestUiThread : BaseUiThread<TestUiContext>
     {
+        /// <summary>Stores the number of pre-UI startup calls.</summary>
+        private int _preUiThreadStartCallCount;
+
+        /// <summary>Stores the number of UI startup calls.</summary>
+        private int _uiThreadStartCallCount;
+
         /// <summary>Initializes a new instance of the <see cref="TestUiThread"/> class with a dedicated UI thread.</summary>
         /// <param name="serviceProvider">The service provider to use.</param>
         public TestUiThread(IServiceProvider serviceProvider)
@@ -233,6 +327,15 @@ public class BaseUiThreadCoverageTests
         /// <summary>Gets the event signaled when the UI thread begins.</summary>
         public ManualResetEventSlim UiThreadStarted { get; } = new(false);
 
+        /// <summary>Gets the number of pre-UI startup calls.</summary>
+        public int PreUiThreadStartCallCount => _preUiThreadStartCallCount;
+
+        /// <summary>Gets the number of UI startup calls.</summary>
+        public int UiThreadStartCallCount => _uiThreadStartCallCount;
+
+        /// <summary>Gets the service provider available to derived UI startup code.</summary>
+        public IServiceProvider CapturedServiceProvider => ServiceProvider;
+
         /// <summary>Invokes the protected application-exit handler.</summary>
         public void ExitApplication() => HandleApplicationExit();
 
@@ -242,6 +345,7 @@ public class BaseUiThreadCoverageTests
         /// <inheritdoc />
         protected override void PreUiThreadStart()
         {
+            _preUiThreadStartCallCount++;
             PreUiThreadStarted.Set();
 
             if (!UiContext.BlockPreUiThreadStart)
@@ -253,7 +357,11 @@ public class BaseUiThreadCoverageTests
         }
 
         /// <inheritdoc />
-        protected override void UiThreadStart() => UiThreadStarted.Set();
+        protected override void UiThreadStart()
+        {
+            _uiThreadStartCallCount++;
+            UiThreadStarted.Set();
+        }
     }
 
     /// <summary>Provides a controllable host lifetime for test instances.</summary>

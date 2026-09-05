@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Extensions.Hosting.LegacyNetFramework.Worker</AssemblyName>
+    <RootNamespace>Extensions.Hosting.LegacyNetFramework.Worker</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Extensions.Logging.Log4Net\Extensions.Logging.Log4Net.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.SingleInstance\Extensions.Hosting.SingleInstance.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.MainUIThread\Extensions.Hosting.MainUIThread.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.Plugins\Extensions.Hosting.Plugins.csproj" />
+    <ProjectReference Include="..\..\Extensions.Hosting.Plugins.Reactive\Extensions.Hosting.Plugins.Reactive.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+</Project>

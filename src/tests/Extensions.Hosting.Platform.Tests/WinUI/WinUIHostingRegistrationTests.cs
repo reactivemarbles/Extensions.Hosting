@@ -21,7 +21,7 @@ public class WinUIHostingRegistrationTests
     {
         var builder = Host.CreateApplicationBuilder();
 
-        var result = builder.ConfigureWinUI<TestWinUIApplication, TestWinUIWindow>();
+        var result = builder.ConfigureWinUI(typeof(TestWinUIApplication), typeof(TestWinUIWindow));
 
         await Assert.That(ReferenceEquals(result, builder)).IsTrue();
         await Assert.That(CountRegistrations(builder.Services, typeof(IWinUIContext), null)).IsEqualTo(1);
@@ -38,8 +38,8 @@ public class WinUIHostingRegistrationTests
     {
         var builder = Host.CreateApplicationBuilder();
 
-        _ = builder.ConfigureWinUI<TestWinUIApplication, TestWinUIWindow>();
-        _ = builder.ConfigureWinUI<TestWinUIApplication, TestWinUIWindow>();
+        _ = builder.ConfigureWinUI(typeof(TestWinUIApplication), typeof(TestWinUIWindow));
+        _ = builder.ConfigureWinUI(typeof(TestWinUIApplication), typeof(TestWinUIWindow));
 
         await Assert.That(CountRegistrations(builder.Services, typeof(IWinUIContext), null)).IsEqualTo(1);
         await Assert.That(CountRegistrations(builder.Services, typeof(IHostedService), null)).IsEqualTo(1);
@@ -52,7 +52,7 @@ public class WinUIHostingRegistrationTests
     {
         var builder = Host.CreateDefaultBuilder();
 
-        var result = builder.ConfigureWinUI<TestWinUIApplication, TestWinUIWindow>();
+        var result = builder.ConfigureWinUI(typeof(TestWinUIApplication), typeof(TestWinUIWindow));
 
         using var host = result!.Build();
         var context = host.Services.GetRequiredService<IWinUIContext>();
@@ -69,7 +69,7 @@ public class WinUIHostingRegistrationTests
     {
         var builder = Host.CreateApplicationBuilder();
 
-        _ = builder.ConfigureWinUI<Application, TestWinUIWindow>();
+        _ = builder.ConfigureWinUI(typeof(Application), typeof(TestWinUIWindow));
 
         await Assert.That(CountRegistrations(builder.Services, typeof(Application), null)).IsEqualTo(1);
     }
@@ -78,15 +78,33 @@ public class WinUIHostingRegistrationTests
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ConfigureWinUI_WithNullApplicationHostBuilder_ThrowsArgumentNullException() =>
-        await Assert.That(static () => ((IHostApplicationBuilder)null!).ConfigureWinUI<TestWinUIApplication, TestWinUIWindow>())
+        await Assert.That(static () => ((IHostApplicationBuilder)null!).ConfigureWinUI(typeof(TestWinUIApplication), typeof(TestWinUIWindow)))
             .Throws<ArgumentNullException>();
+
+    /// <summary>Verifies invalid WinUI type-selection arguments are rejected.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureWinUI_WithInvalidTypeSelectionArguments_Throws()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        var hostBuilder = Host.CreateDefaultBuilder();
+
+        await Assert.That(() => builder.ConfigureWinUI(null!, typeof(TestWinUIWindow))).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.ConfigureWinUI(typeof(TestWinUIApplication), null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => hostBuilder.ConfigureWinUI(null!, typeof(TestWinUIWindow))).Throws<ArgumentNullException>();
+        await Assert.That(() => hostBuilder.ConfigureWinUI(typeof(TestWinUIApplication), null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.ConfigureWinUI(typeof(string), typeof(TestWinUIWindow))).Throws<ArgumentException>();
+        await Assert.That(() => builder.ConfigureWinUI(typeof(TestWinUIApplication), typeof(string))).Throws<ArgumentException>();
+        await Assert.That(() => hostBuilder.ConfigureWinUI(typeof(string), typeof(TestWinUIWindow))).Throws<ArgumentException>();
+        await Assert.That(() => hostBuilder.ConfigureWinUI(typeof(TestWinUIApplication), typeof(string))).Throws<ArgumentException>();
+    }
 
     /// <summary>Verifies that a null legacy host builder preserves the documented null result.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
     public async Task ConfigureWinUI_WithNullHostBuilder_ReturnsNull()
     {
-        var result = ((IHostBuilder)null!).ConfigureWinUI<TestWinUIApplication, TestWinUIWindow>();
+        var result = ((IHostBuilder)null!).ConfigureWinUI(typeof(TestWinUIApplication), typeof(TestWinUIWindow));
 
         await Assert.That(result).IsNull();
     }

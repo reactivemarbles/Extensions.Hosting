@@ -57,7 +57,7 @@ public static class HostBuilderWinFormsExtensions
 
         /// <summary>Configures WinForms support without additional context configuration.</summary>
         /// <returns>The same host application builder.</returns>
-        public IHostApplicationBuilder ConfigureWinForms() => hostBuilder.ConfigureWinForms(null);
+        public IHostApplicationBuilder ConfigureWinForms() => hostBuilder.ConfigureWinForms((Action<IWinFormsContext>?)null);
 
         /// <summary>Configures WinForms support and applies the supplied context configuration.</summary>
         /// <param name="configureAction">The optional context configuration.</param>
@@ -80,42 +80,47 @@ public static class HostBuilderWinFormsExtensions
         }
 
         /// <summary>Configures WinForms and registers the specified main form type.</summary>
-        /// <typeparam name="TView">The main form type.</typeparam>
+        /// <param name="viewType">The main form type.</param>
         /// <returns>The same host application builder.</returns>
-        public IHostApplicationBuilder ConfigureWinForms<TView>()
-            where TView : Form =>
-            hostBuilder.ConfigureWinForms<TView>(null);
+        public IHostApplicationBuilder ConfigureWinForms(Type viewType) =>
+            hostBuilder.ConfigureWinForms(viewType, null);
 
         /// <summary>Configures WinForms, registers the specified main form type, and configures the context.</summary>
-        /// <typeparam name="TView">The main form type.</typeparam>
+        /// <param name="viewType">The main form type.</param>
         /// <param name="configureAction">The optional context configuration.</param>
         /// <returns>The same host application builder.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="hostBuilder"/> is null.</exception>
-        public IHostApplicationBuilder ConfigureWinForms<TView>(Action<IWinFormsContext>? configureAction)
-            where TView : Form
+        /// <exception cref="ArgumentException">Thrown if <paramref name="viewType"/> does not inherit from <see cref="Form"/>.</exception>
+        public IHostApplicationBuilder ConfigureWinForms(Type viewType, Action<IWinFormsContext>? configureAction)
         {
             _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
-            _ = hostBuilder.ConfigureWinForms(configureAction);
-            _ = hostBuilder.Services.AddSingleton<TView>();
+            ValidateFormType(viewType);
 
-            var viewType = typeof(TView);
+            _ = hostBuilder.ConfigureWinForms(configureAction);
+            _ = hostBuilder.Services.AddSingleton(viewType);
+
             var shellInterfaceType = typeof(IWinFormsShell);
             if (shellInterfaceType.IsAssignableFrom(viewType))
             {
                 _ = hostBuilder.Services.AddSingleton(
                     shellInterfaceType,
-                    static serviceProvider => serviceProvider.GetRequiredService<TView>());
+                    serviceProvider => serviceProvider.GetRequiredService(viewType));
             }
 
             return hostBuilder;
         }
 
         /// <summary>Configures the specified WinForms shell as the main form.</summary>
-        /// <typeparam name="TShell">The shell form type.</typeparam>
+        /// <param name="shellType">The shell form type.</param>
         /// <returns>The same host application builder.</returns>
-        public IHostApplicationBuilder ConfigureWinFormsShell<TShell>()
-            where TShell : Form, IWinFormsShell =>
-            hostBuilder.ConfigureWinForms<TShell>();
+        /// <exception cref="ArgumentException">Thrown if <paramref name="shellType"/> does not inherit from <see cref="Form"/> or implement <see cref="IWinFormsShell"/>.</exception>
+        public IHostApplicationBuilder ConfigureWinFormsShell(Type shellType)
+        {
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
+
+            ValidateShellType(shellType);
+            return hostBuilder.ConfigureWinForms(shellType);
+        }
     }
 
     /// <summary>Provides extension members for this receiver.</summary>
@@ -133,7 +138,7 @@ public static class HostBuilderWinFormsExtensions
 
         /// <summary>Configures WinForms support without additional context configuration.</summary>
         /// <returns>The configured host builder, or null when the receiver is null.</returns>
-        public IHostBuilder? ConfigureWinForms() => hostBuilder?.ConfigureWinForms(null);
+        public IHostBuilder? ConfigureWinForms() => hostBuilder?.ConfigureWinForms((Action<IWinFormsContext>?)null);
 
         /// <summary>Configures WinForms support and applies the supplied context configuration.</summary>
         /// <param name="configureAction">The optional context configuration.</param>
@@ -153,25 +158,31 @@ public static class HostBuilderWinFormsExtensions
             });
 
         /// <summary>Configures WinForms and registers the specified main form type.</summary>
-        /// <typeparam name="TView">The main form type.</typeparam>
+        /// <param name="viewType">The main form type.</param>
         /// <returns>The configured host builder, or null when the receiver is null.</returns>
-        public IHostBuilder? ConfigureWinForms<TView>()
-            where TView : Form =>
-            hostBuilder?.ConfigureWinForms<TView>(null);
+        public IHostBuilder? ConfigureWinForms(Type viewType) =>
+            hostBuilder?.ConfigureWinForms(viewType, null);
 
         /// <summary>Configures WinForms, registers the specified main form type, and configures the context.</summary>
-        /// <typeparam name="TView">The main form type.</typeparam>
+        /// <param name="viewType">The main form type.</param>
         /// <param name="configureAction">The optional context configuration.</param>
         /// <returns>The configured host builder, or null when the receiver is null.</returns>
-        public IHostBuilder? ConfigureWinForms<TView>(Action<IWinFormsContext>? configureAction)
-            where TView : Form =>
-            hostBuilder?
-                .ConfigureWinForms(configureAction)?
-                .ConfigureServices(static (hostBuilderContext, serviceCollection) =>
-                {
-                    _ = serviceCollection.AddSingleton<TView>();
+        /// <exception cref="ArgumentException">Thrown if <paramref name="viewType"/> does not inherit from <see cref="Form"/>.</exception>
+        public IHostBuilder? ConfigureWinForms(Type viewType, Action<IWinFormsContext>? configureAction)
+        {
+            if (hostBuilder is null)
+            {
+                return null;
+            }
 
-                    var viewType = typeof(TView);
+            ValidateFormType(viewType);
+
+            return hostBuilder
+                .ConfigureWinForms(configureAction)?
+                .ConfigureServices((hostBuilderContext, serviceCollection) =>
+                {
+                    _ = serviceCollection.AddSingleton(viewType);
+
                     var shellInterfaceType = typeof(IWinFormsShell);
                     if (!shellInterfaceType.IsAssignableFrom(viewType))
                     {
@@ -180,14 +191,53 @@ public static class HostBuilderWinFormsExtensions
 
                     _ = serviceCollection.AddSingleton(
                         shellInterfaceType,
-                        static serviceProvider => serviceProvider.GetRequiredService<TView>());
+                        serviceProvider => serviceProvider.GetRequiredService(viewType));
                 });
+        }
 
         /// <summary>Configures the specified WinForms shell as the main form.</summary>
-        /// <typeparam name="TShell">The shell form type.</typeparam>
+        /// <param name="shellType">The shell form type.</param>
         /// <returns>The configured host builder, or null when the receiver is null.</returns>
-        public IHostBuilder? ConfigureWinFormsShell<TShell>()
-            where TShell : Form, IWinFormsShell =>
-            hostBuilder?.ConfigureWinForms<TShell>();
+        /// <exception cref="ArgumentException">Thrown if <paramref name="shellType"/> does not inherit from <see cref="Form"/> or implement <see cref="IWinFormsShell"/>.</exception>
+        public IHostBuilder? ConfigureWinFormsShell(Type shellType)
+        {
+            if (hostBuilder is null)
+            {
+                return null;
+            }
+
+            ValidateShellType(shellType);
+            return hostBuilder.ConfigureWinForms(shellType);
+        }
+    }
+
+    /// <summary>Validates that the supplied type can be used as a WinForms form.</summary>
+    /// <param name="viewType">The form type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="viewType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="viewType"/> does not derive from <see cref="Form"/>.</exception>
+    private static void ValidateFormType(Type viewType)
+    {
+        _ = viewType ?? throw new ArgumentNullException(nameof(viewType));
+        if (typeof(Form).IsAssignableFrom(viewType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered WinForms view type must inherit System.Windows.Forms.Form.", nameof(viewType));
+    }
+
+    /// <summary>Validates that the supplied type can be used as a WinForms shell.</summary>
+    /// <param name="shellType">The shell type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="shellType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="shellType"/> does not derive from <see cref="Form"/> or implement <see cref="IWinFormsShell"/>.</exception>
+    private static void ValidateShellType(Type shellType)
+    {
+        ValidateFormType(shellType);
+        if (typeof(IWinFormsShell).IsAssignableFrom(shellType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered WinForms shell type must implement IWinFormsShell.", nameof(shellType));
     }
 }

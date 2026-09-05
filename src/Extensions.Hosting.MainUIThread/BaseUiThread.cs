@@ -19,14 +19,25 @@ namespace ReactiveMarbles.Extensions.Hosting.UiThread;
 public abstract class BaseUiThread<T> : IDisposable
     where T : class, IUiContext
 {
-    /// <summary>Stores the service manual reset event value.</summary>
-    private readonly ManualResetEventSlim _serviceManualResetEvent = new(false);
+#if NET9_0_OR_GREATER
+    /// <summary>Stores the synchronization gate for startup and disposal transitions.</summary>
+    private readonly Lock _gate = new();
+#else
+    /// <summary>Stores the synchronization gate for startup and disposal transitions.</summary>
+    private readonly object _gate = new();
+#endif
 
     /// <summary>Stores the host application lifetime value.</summary>
     private readonly IHostApplicationLifetime? _hostApplicationLifetime;
 
+    /// <summary>Stores the configured dedicated UI thread, when one is used.</summary>
+    private readonly Thread? _uiThread;
+
     /// <summary>Stores the use dedicated ui thread value.</summary>
     private readonly bool _useDedicatedUiThread;
+
+    /// <summary>Stores whether startup has been requested.</summary>
+    private bool _started;
 
     /// <summary>Stores the disposed value.</summary>
     private bool _disposedValue;
@@ -39,13 +50,13 @@ public abstract class BaseUiThread<T> : IDisposable
     }
 
     /// <summary>Initializes a new instance of the <see cref="BaseUiThread{T}"/> class.</summary>
-    /// <remarks>The constructor creates and starts a new background thread to run the UI. On Windows
+    /// <remarks>The constructor creates and configures a new background thread to run the UI. On Windows
     /// platforms, the thread is set to single-threaded apartment (STA) state to support UI frameworks that require it.
     /// The provided service provider is used to resolve dependencies needed by the UI thread and is stored for later
     /// use.</remarks>
     /// <param name="serviceProvider">The service provider used to resolve required services for the UI thread. Cannot be null.</param>
     /// <param name="useDedicatedUiThread">
-    /// If set to <c>true</c>, a dedicated UI thread is created immediately; otherwise, UI startup runs on the caller
+    /// If set to <c>true</c>, a dedicated UI thread is created immediately and started by <see cref="Start"/>; otherwise, UI startup runs on the caller
     /// thread when <see cref="Start"/> is invoked.
     /// </param>
     protected BaseUiThread(IServiceProvider serviceProvider, bool useDedicatedUiThread)
@@ -63,20 +74,20 @@ public abstract class BaseUiThread<T> : IDisposable
         }
 
         // Create a thread which runs the UI
-        var newUiThread = new Thread(InternalUiThreadStart) { IsBackground = true };
+        _uiThread = new(RunStartupCallback) { IsBackground = true };
 
 #if NET5_0_OR_GREATER
-        if (OperatingSystem.IsWindows())
+        var isWindows = OperatingSystem.IsWindows();
 #else
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        var isWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
 #endif
+        if (!isWindows)
         {
-            // Set the apartment state for Windows desktop UI frameworks.
-            newUiThread.SetApartmentState(ApartmentState.STA);
+            return;
         }
 
-        // Start the new UI thread
-        newUiThread.Start();
+        // Set the apartment state for Windows desktop UI frameworks.
+        _uiThread.SetApartmentState(ApartmentState.STA);
     }
 
     /// <summary>Gets the UI context associated with the current instance.</summary>
@@ -85,19 +96,50 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <summary>Gets the service provider used to resolve application services.</summary>
     protected IServiceProvider ServiceProvider { get; }
 
+    /// <summary>Gets a value indicating whether this instance has already been disposed.</summary>
+    private bool IsDisposed
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _disposedValue;
+            }
+        }
+    }
+
     /// <summary>Signals the service to begin processing or resume operation.</summary>
     /// <remarks>Call this method to allow the service to proceed if it is waiting for a start signal. This
     /// method is typically used to control the execution flow of a service that waits for an external trigger before
     /// starting.</remarks>
     public void Start()
     {
-        if (_useDedicatedUiThread)
+        Thread? dedicatedUiThread = null;
+
+        lock (_gate)
         {
-            _serviceManualResetEvent.Set(); // Make the UI thread go
+            ThrowIfDisposed();
+
+            if (_started)
+            {
+                return;
+            }
+
+            _started = true;
+
+            if (_useDedicatedUiThread)
+            {
+                dedicatedUiThread = _uiThread;
+            }
+        }
+
+        if (dedicatedUiThread is null)
+        {
+            RunStartupCallback();
             return;
         }
 
-        InternalUiThreadStart();
+        dedicatedUiThread.Start();
     }
 
     /// <summary>Releases all resources used by the current instance of the class.</summary>
@@ -108,6 +150,33 @@ public abstract class BaseUiThread<T> : IDisposable
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Runs the UI startup callback when a start request reaches the selected execution thread.</summary>
+    /// <remarks>This method is intended for internal use to coordinate the startup sequence of the UI thread.
+    /// The callback may arrive after disposal when disposal wins the race against a previously requested dedicated
+    /// thread start, so disposal is checked before invoking derived startup callbacks and again before entering the UI
+    /// loop.</remarks>
+    internal void RunStartupCallback()
+    {
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        // Do the pre initialization, if any
+        PreUiThreadStart();
+
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        // Run the application
+        UiContext!.IsRunning = true;
+
+        // Run the actual code
+        UiThreadStart();
     }
 
     /// <summary>Performs custom initialization logic before the UI thread starts.</summary>
@@ -147,46 +216,27 @@ public abstract class BaseUiThread<T> : IDisposable
     /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposedValue)
+        _ = disposing;
+
+        lock (_gate)
+        {
+            if (_disposedValue)
+            {
+                return;
+            }
+
+            _disposedValue = true;
+        }
+    }
+
+    /// <summary>Throws if this instance has already been disposed.</summary>
+    private void ThrowIfDisposed()
+    {
+        if (!_disposedValue)
         {
             return;
         }
 
-        if (disposing)
-        {
-            _serviceManualResetEvent.Dispose();
-        }
-
-        _disposedValue = true;
-    }
-
-    /// <summary>Initializes and starts the UI thread, performing any required pre-initialization and waiting for the service to signal readiness before running the main UI logic.</summary>
-    /// <remarks>This method is intended for internal use to coordinate the startup sequence of the UI thread.
-    /// It ensures that any necessary pre-initialization is completed and that the service is ready before the UI thread
-    /// begins execution. This method should not be called directly by user code.</remarks>
-    private void InternalUiThreadStart()
-    {
-        // Do the pre initialization, if any
-        PreUiThreadStart();
-
-        if (_useDedicatedUiThread)
-        {
-            // Wait for the startup
-            try
-            {
-                _serviceManualResetEvent.Wait();
-            }
-            catch (ObjectDisposedException)
-            {
-                // If the event was disposed during shutdown just return
-                return;
-            }
-        }
-
-        // Run the application
-        UiContext!.IsRunning = true;
-
-        // Run the actual code
-        UiThreadStart();
+        throw new ObjectDisposedException(GetType().FullName);
     }
 }

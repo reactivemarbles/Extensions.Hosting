@@ -87,6 +87,20 @@ public sealed class ReactiveWpfSchedulerTests
         await Assert.That(Act).Throws<ArgumentNullException>();
     }
 
+    /// <summary>Verifies null receiver branches for ReactiveUI WPF host extension methods.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureSplatForMicrosoftDependencyResolver_HandlesNullReceivers()
+    {
+        IServiceProvider? receivedProvider = new EmptyServiceProvider();
+
+        var hostResult = ((IHost)null!).MapSplatLocator(provider => receivedProvider = provider);
+
+        await Assert.That(hostResult).IsNull();
+        await Assert.That(receivedProvider).IsNull();
+        await Assert.That(static () => ((IHostApplicationBuilder)null!).ConfigureSplatForMicrosoftDependencyResolver()).Throws<ArgumentNullException>();
+    }
+
     /// <summary>Builds a host on a thread with a dispatcher that differs from the hosted WPF dispatcher.</summary>
     /// <returns>A task that produces the configured host.</returns>
     private static Task<IHost> BuildHostOnBootstrapThread()
@@ -98,7 +112,7 @@ public sealed class ReactiveWpfSchedulerTests
             {
                 var builder = Host.CreateApplicationBuilder();
                 _ = builder.ConfigureSplatForMicrosoftDependencyResolver();
-                _ = builder.ConfigureWpf(static wpfBuilder => wpfBuilder.UseApplication<TestApplication>());
+                _ = builder.ConfigureWpf(static wpfBuilder => wpfBuilder.UseApplication(typeof(TestApplication)));
                 _ = hostCompletion.TrySetResult(builder.Build());
             }
             catch (Exception exception)
@@ -110,5 +124,12 @@ public sealed class ReactiveWpfSchedulerTests
         bootstrapThread.SetApartmentState(ApartmentState.STA);
         bootstrapThread.Start();
         return hostCompletion.Task;
+    }
+
+    /// <summary>Provides a non-null sentinel service provider for null-receiver assertions.</summary>
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        /// <inheritdoc />
+        public object? GetService(Type serviceType) => null;
     }
 }

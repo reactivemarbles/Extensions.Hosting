@@ -110,9 +110,9 @@ The libraries target .NET Framework where the platform supports it, current .NET
 | Log4Net | `net462`, `net472`, `net48`, `net481`, `net8.0`, `net9.0`, `net10.0`, `net11.0` |
 
 The repository uses Central Package Management in `Directory.Packages.props`. Notable
-centrally managed versions include `StyleSharp.Analyzers` `3.39.0`,
-`ReactiveUI.Primitives` `7.1.0`, `ReactiveUI` `24.0.0`,
-`ReactiveUI.Avalonia` `12.1.0`, and `Splat` `20.2.0`. `net11.0` support uses preview
+centrally managed versions include `StyleSharp.Analyzers` `3.46.0`,
+`ReactiveUI.Primitives` `7.3.0`, `ReactiveUI` `24.2.0`,
+`ReactiveUI.Avalonia` `12.1.1`, and `Splat` `21.0.0`. `net11.0` support uses preview
 SDK and workload packages until those dependencies become stable.
 
 ## Host Builder Styles
@@ -158,7 +158,7 @@ let `Configure*` register them rather than registering them a second time.
 
 `UseWpfLifetime` and `UseAvaloniaLifetime` throw `NotSupportedException` when invoked
 before their matching `Configure*` method. WinUI installs its hosted lifetime from
-`ConfigureWinUI<TApp,TAppWindow>()`; there is no `UseWinUILifetime` method.
+`ConfigureWinUI(typeof(TApp), typeof(TAppWindow))`; there is no `UseWinUILifetime` method.
 
 ### Shared Platform Lifecycle
 
@@ -279,9 +279,9 @@ Namespace: `ReactiveMarbles.Extensions.Hosting.Wpf`
 | --- | --- |
 | `ConfigureWpf()` / `ConfigureWpf(Action<IWpfBuilder>? configureDelegate)` | Registers WPF context, UI thread, hosted service, and optional application/window types. Both overloads are available on `IHostBuilder` and `IHostApplicationBuilder`. |
 | `UseWpfLifetime()` / `UseWpfLifetime(ShutdownMode shutdownMode)` | Links host shutdown to WPF. The no-argument overload uses `OnLastWindowClose`. Call after `ConfigureWpf`; otherwise it throws `NotSupportedException`. |
-| `IWpfBuilder.UseApplication<TApplication>()` | Registers a WPF `Application` type. |
-| `IWpfBuilder.UseCurrentApplication<TApplication>(TApplication currentApplication)` | Registers an existing WPF `Application` instance. |
-| `IWpfBuilder.UseWindow<TWindow>() where TWindow : Window` | Registers a singleton WPF window. If it implements `IWpfShell`, it is also registered as the shell. |
+| `IWpfBuilder.UseApplication(typeof(TApplication))` | Registers a WPF `Application` type. |
+| `IWpfBuilder.UseCurrentApplication(Application currentApplication)` | Registers an existing WPF `Application` instance. |
+| `IWpfBuilder.UseWindow(typeof(TWindow)) where TWindow : Window` | Registers a singleton WPF window. If it implements `IWpfShell`, it is also registered as the shell. |
 | `IWpfBuilder.ConfigureContext(Action<IWpfContext> configureAction)` | Customizes the WPF context before it is used. |
 | `IWpfBuilder.ApplicationType` / `Application` | Configured application type and optional current application instance. |
 | `IWpfBuilder.WindowTypes` | Ordered list of singleton window types to register and show. |
@@ -317,7 +317,7 @@ public sealed partial class App : Application
             .ConfigureWpf(wpf =>
             {
                 wpf.UseCurrentApplication(this);
-                wpf.UseWindow<MainWindow>();
+                wpf.UseWindow(typeof(MainWindow));
                 wpf.ConfigureContext(context =>
                     context.ShutdownMode = ShutdownMode.OnLastWindowClose);
             })
@@ -355,8 +355,8 @@ Namespace: `ReactiveMarbles.Extensions.Hosting.WinForms`
 | API | Description |
 | --- | --- |
 | `ConfigureWinForms()` / `ConfigureWinForms(Action<IWinFormsContext>? configureAction)` | Registers WinForms context, UI thread, and hosted service. Available on both host builder styles. |
-| `ConfigureWinForms<TView>()` / `ConfigureWinForms<TView>(Action<IWinFormsContext>? configureAction) where TView : Form` | Registers a form as a singleton. If it implements `IWinFormsShell`, it is also mapped as the shell. |
-| `ConfigureWinFormsShell<TShell>() where TShell : Form, IWinFormsShell` | Registers a singleton shell form. |
+| `ConfigureWinForms(typeof(TView))` / `ConfigureWinForms(typeof(TView), Action<IWinFormsContext>? configureAction)` | Registers a form as a singleton. If it implements `IWinFormsShell`, it is also mapped as the shell. |
+| `ConfigureWinFormsShell(typeof(TShell)) where TShell : Form, IWinFormsShell` | Registers a singleton shell form. |
 | `UseWinFormsLifetime()` | Links host shutdown to the WinForms message loop. |
 | `IWinFormsContext.EnableVisualStyles` | Enables or disables WinForms visual styles before the UI starts. |
 | `IWinFormsContext.Dispatcher` | Optional dispatcher used for marshaling work. |
@@ -385,7 +385,7 @@ public static class Program
             {
                 services.AddSingleton<MainPresenter>();
             })
-            .ConfigureWinForms<MainForm>(context => context.EnableVisualStyles = true)
+            .ConfigureWinForms(typeof(MainForm), context => context.EnableVisualStyles = true)
             .UseWinFormsLifetime()
             .Build();
 
@@ -417,9 +417,9 @@ Namespace: `ReactiveMarbles.Extensions.Hosting.WinUI`
 
 | API | Description |
 | --- | --- |
-| `ConfigureWinUI<TApp,TAppWindow>() where TApp : Application where TAppWindow : Window` | Registers the WinUI application, main window, context, UI thread, and hosted service. Available on both builder styles. |
+| `ConfigureWinUI(typeof(TApp), typeof(TAppWindow)) where TApp : Application where TAppWindow : Window` | Registers the WinUI application, main window, context, UI thread, and hosted service. Available on both builder styles. |
 | `IWinUIContext.AppWindow` | Current WinUI window instance. |
-| `IWinUIContext.AppWindowType` | Window type to create. Set by `ConfigureWinUI<TApp, TAppWindow>()`. |
+| `IWinUIContext.AppWindowType` | Window type to create. Set by `ConfigureWinUI(typeof(TApp), typeof(TAppWindow))`. |
 | `IWinUIContext.Dispatcher` | `DispatcherQueue` for UI-thread work. |
 | `IWinUIContext.WinUIApplication` | Current WinUI application instance. |
 | `IWinUIService.Initialize(Application)` | Initializes a registered service on the hosted WinUI thread before the main window is activated. |
@@ -441,7 +441,7 @@ public partial class App : Application
     public App()
     {
         _host = new HostBuilder()
-            .ConfigureWinUI<App, MainWindow>()
+            .ConfigureWinUI(typeof(App), typeof(MainWindow))
             .Build();
     }
 }
@@ -473,9 +473,9 @@ Namespace: `ReactiveMarbles.Extensions.Hosting.Avalonia`
 | --- | --- |
 | `ConfigureAvalonia()` / `ConfigureAvalonia(Action<IAvaloniaBuilder>? configureDelegate)` | Registers Avalonia context, application builder, hosted service, and optional application/window types. Available on both builder styles. |
 | `UseAvaloniaLifetime()` / `UseAvaloniaLifetime(ShutdownMode shutdownMode)` | Links host shutdown to the desktop lifetime. The no-argument overload uses `OnLastWindowClose`. Call after `ConfigureAvalonia`; otherwise it throws `NotSupportedException`. |
-| `IAvaloniaBuilder.UseApplication<TApplication>()` | Registers an Avalonia `Application` type. |
-| `IAvaloniaBuilder.UseCurrentApplication<TApplication>(TApplication currentApplication)` | Registers an existing Avalonia application instance. |
-| `IAvaloniaBuilder.UseWindow<TWindow>()` | Registers an Avalonia `Window` type. If it implements `IAvaloniaShell`, it is also registered as the shell. |
+| `IAvaloniaBuilder.UseApplication(typeof(TApplication))` | Registers an Avalonia `Application` type. |
+| `IAvaloniaBuilder.UseCurrentApplication(Application currentApplication)` | Registers an existing Avalonia application instance. |
+| `IAvaloniaBuilder.UseWindow(typeof(TWindow))` | Registers an Avalonia `Window` type. If it implements `IAvaloniaShell`, it is also registered as the shell. |
 | `IAvaloniaBuilder.ConfigureContext(Action<IAvaloniaContext> configureAction)` | Customizes the Avalonia context. |
 | `IAvaloniaBuilder.ConfigureAppBuilder(Action<AppBuilder> configureAction)` | Customizes Avalonia `AppBuilder` before startup. |
 | `IAvaloniaBuilder.ApplicationType` / `Application` | Configured application type and optional current application instance. |
@@ -508,8 +508,8 @@ public static class Program
         using var host = new HostBuilder()
             .ConfigureAvalonia(avalonia =>
             {
-                avalonia.UseApplication<App>();
-                avalonia.UseWindow<MainWindow>();
+                avalonia.UseApplication(typeof(App));
+                avalonia.UseWindow(typeof(MainWindow));
                 avalonia.ConfigureAppBuilder(appBuilder =>
                     appBuilder.UsePlatformDetect().LogToTrace());
             })
@@ -543,10 +543,10 @@ Namespace: `ReactiveMarbles.Extensions.Hosting.Maui`
 | --- | --- |
 | `ConfigureMaui()` / `ConfigureMaui(Action<IMauiBuilder>? configureDelegate)` | Creates/configures `MauiAppBuilder` and registers MAUI context, startup, and hosted services. It does not eagerly build a `MauiApp`. Available on both builder styles. |
 | `UseMauiLifetime()` | Links host shutdown to the MAUI lifetime. |
-| `ConfigureMauiShell<TShell>()` | Registers a singleton shell page where `TShell : Page, IMauiShell`. |
-| `IMauiBuilder.AddSingletonPage<TPage>()` | Registers a MAUI `Page` as a singleton. If it implements `IMauiShell`, it is also registered as the shell. |
-| `IMauiBuilder.UseMauiApp<TApplication>()` / `(Action<MauiAppBuilder>? configureMauiApp)` | Registers a MAUI application type and optionally configures the underlying builder. |
-| `IMauiBuilder.UseMauiApp<TApplication>(TApplication currentApplication)` / `(TApplication currentApplication, Action<MauiAppBuilder>? configureMauiApp)` | Registers an existing MAUI application and optionally configures the underlying builder. |
+| `ConfigureMauiShell(typeof(TShell))` | Registers a singleton shell page where `TShell : Page, IMauiShell`. |
+| `IMauiBuilder.AddSingletonPage(typeof(TPage))` | Registers a MAUI `Page` as a singleton. If it implements `IMauiShell`, it is also registered as the shell. |
+| `IMauiBuilder.UseMauiApp(Func<IServiceProvider, TApplication> applicationFactory)` / `(Func<IServiceProvider, TApplication> applicationFactory, Action<MauiAppBuilder>? configureMauiApp)` | Registers a MAUI application factory and optionally configures the underlying builder. |
+| `IMauiBuilder.UseMauiApp(TApplication currentApplication)` / `(TApplication currentApplication, Action<MauiAppBuilder>? configureMauiApp)` | Registers an existing MAUI application and optionally configures the underlying builder. |
 | `IMauiBuilder.ConfigureContext(Action<IMauiContext> configureAction)` | Customizes the MAUI context. |
 | `IMauiBuilder.ApplicationType` / `Application` | Configured application type and optional existing application instance. |
 | `IMauiBuilder.PageTypes` | Ordered list of singleton pages to register. |
@@ -575,7 +575,7 @@ public static class MauiProgram
         return Host.CreateDefaultBuilder()
             .ConfigureMaui(maui =>
             {
-                maui.UseMauiApp<App>(builder =>
+                maui.UseMauiApp(static _ => new App(), builder =>
                 {
                     builder.ConfigureFonts(fonts =>
                     {
@@ -583,7 +583,7 @@ public static class MauiProgram
                     });
                 });
 
-                maui.AddSingletonPage<AppShell>();
+                maui.AddSingletonPage(typeof(AppShell));
             })
             .UseMauiLifetime()
             .Build();
@@ -656,7 +656,7 @@ var host = new HostBuilder()
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<IViewFor<MainWindowViewModel>, MainWindow>();
     })
-    .ConfigureWpf(wpf => wpf.UseApplication<App>().UseWindow<MainWindow>())
+    .ConfigureWpf(wpf => wpf.UseApplication(typeof(App)).UseWindow(typeof(MainWindow)))
     .UseWpfLifetime()
     .Build();
 
@@ -677,8 +677,8 @@ using ReactiveMarbles.Extensions.Hosting.ReactiveUI;
 var builder = Host.CreateApplicationBuilder(args);
 builder.ConfigureSplatForMicrosoftDependencyResolver();
 builder.ConfigureAvalonia(avalonia => avalonia
-    .UseApplication<App>()
-    .UseWindow<MainWindow>());
+    .UseApplication(typeof(App))
+    .UseWindow(typeof(MainWindow)));
 builder.UseAvaloniaLifetime();
 
 using var host = builder.Build();
@@ -697,7 +697,7 @@ using ReactiveMarbles.Extensions.Hosting.Wpf;
 
 var host = new HostBuilder()
     .ConfigureSplatForMicrosoftDependencyResolver()
-    .ConfigureWpf(wpf => wpf.UseApplication<App>().UseWindow<MainWindow>())
+    .ConfigureWpf(wpf => wpf.UseApplication(typeof(App)).UseWindow(typeof(MainWindow)))
     .UseWpfLifetime()
     .Build();
 ```
@@ -1094,25 +1094,21 @@ Identity stores, and the selected service lifetime.
 | --- | --- |
 | `IConfiguration.HasConnectionString(string connectionStringName)` | Returns `true` when the named connection string exists and is not empty. |
 | `IConfiguration.GetRequiredConnectionString(string connectionStringName)` | Gets the named connection string or throws a descriptive `InvalidOperationException`. |
-| `IHostApplicationBuilder.AddSqlServerDbContext<TContext>(string connectionStringName)` / `(string connectionStringName, ServiceLifetime serviceLifetime)` | Registers a SQL Server `DbContext`; the short overload uses `Scoped`. |
-| `IHostApplicationBuilder.AddSqlServerWithIdentity<TContext,TUser,TRole>(string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQL Server EF Core plus Identity with roles; the short overload uses `Scoped`. |
-| `IHostApplicationBuilder.AddSqlServerWithIdentity<TContext,TUser>(string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQL Server EF Core plus Identity without a custom role type. |
-| `IServiceCollection.UseEntityFrameworkCoreSqlServer<TContext,TUser,TRole>(WebHostBuilderContext context, string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQL Server EF Core plus Identity with roles in a web-host callback. |
-| `IServiceCollection.UseEntityFrameworkCoreSqlServer<TContext,TUser>(WebHostBuilderContext context, string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQL Server EF Core plus Identity without a custom role type. |
-| `IServiceCollection.AddSqlServerDbContext<TContext>(IConfiguration configuration, string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQL Server `DbContext` from configuration. |
-| `IServiceCollection.AddSqlServerDbContextWithConnectionString<TContext>(string connectionString)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQL Server `DbContext` from a direct connection string. |
+| `IHostApplicationBuilder.AddSqlServerDbContext<TContext>(string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQL Server `DbContext`; the short overload uses `Scoped`. |
+| `IHostApplicationBuilder.AddSqlServerWithIdentity<TContext>(string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory, Func<IServiceCollection,IdentityBuilder> configureIdentity)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQL Server EF Core plus caller-configured Identity. |
+| `IServiceCollection.UseEntityFrameworkCoreSqlServer<TContext>(WebHostBuilderContext context, string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory, Func<IServiceCollection,IdentityBuilder> configureIdentity)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQL Server EF Core plus caller-configured Identity in a web-host callback. |
+| `IServiceCollection.AddSqlServerDbContext<TContext>(IConfiguration configuration, string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQL Server `DbContext` from configuration. |
+| `IServiceCollection.AddSqlServerDbContextWithConnectionString<TContext>(string connectionString, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQL Server `DbContext` from a direct connection string. |
 
 ### SQLite API
 
 | API | Description |
 | --- | --- |
-| `IHostApplicationBuilder.AddSqliteDbContext<TContext>(string connectionStringName)` / `(string connectionStringName, ServiceLifetime serviceLifetime)` | Registers a SQLite `DbContext`; the short overload uses `Scoped`. |
-| `IHostApplicationBuilder.AddSqliteWithIdentity<TContext,TUser,TRole>(string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQLite EF Core plus Identity with roles. |
-| `IHostApplicationBuilder.AddSqliteWithIdentity<TContext,TUser>(string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQLite EF Core plus Identity without a custom role type. |
-| `IServiceCollection.UseEntityFrameworkCoreSqlite<TContext,TUser,TRole>(WebHostBuilderContext context, string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQLite EF Core plus Identity with roles in a web-host callback. |
-| `IServiceCollection.UseEntityFrameworkCoreSqlite<TContext,TUser>(WebHostBuilderContext context, string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQLite EF Core plus Identity without a custom role type. |
-| `IServiceCollection.AddSqliteDbContext<TContext>(IConfiguration configuration, string connectionStringName)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQLite `DbContext` from configuration. |
-| `IServiceCollection.AddSqliteDbContextWithConnectionString<TContext>(string connectionString)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQLite `DbContext` from a direct connection string. |
+| `IHostApplicationBuilder.AddSqliteDbContext<TContext>(string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQLite `DbContext`; the short overload uses `Scoped`. |
+| `IHostApplicationBuilder.AddSqliteWithIdentity<TContext>(string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory, Func<IServiceCollection,IdentityBuilder> configureIdentity)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQLite EF Core plus caller-configured Identity. |
+| `IServiceCollection.UseEntityFrameworkCoreSqlite<TContext>(WebHostBuilderContext context, string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory, Func<IServiceCollection,IdentityBuilder> configureIdentity)` / `(..., ServiceLifetime serviceLifetime)` | Registers SQLite EF Core plus caller-configured Identity in a web-host callback. |
+| `IServiceCollection.AddSqliteDbContext<TContext>(IConfiguration configuration, string connectionStringName, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQLite `DbContext` from configuration. |
+| `IServiceCollection.AddSqliteDbContextWithConnectionString<TContext>(string connectionString, Func<IServiceProvider,DbContextOptions<TContext>,TContext> contextFactory)` / `(..., ServiceLifetime serviceLifetime)` | Registers a SQLite `DbContext` from a direct connection string. |
 | `CreateInMemoryConnectionString()` / `CreateInMemoryConnectionString(string? databaseName)` | Creates a named or unnamed SQLite in-memory connection string. |
 | `CreateFileConnectionString(string filePath)` | Creates a SQLite file connection string. |
 
@@ -1142,8 +1138,10 @@ using ReactiveMarbles.Extensions.Hosting.Identity.EntityFrameworkCore;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.AddSqlServerWithIdentity<AppDbContext, IdentityUser, IdentityRole>(
-    "DefaultConnection");
+builder.AddSqlServerWithIdentity(
+    "DefaultConnection",
+    static (_, options) => new AppDbContext(options),
+    static services => services.AddDefaultIdentity<IdentityUser>().AddRoles<IdentityRole>());
 
 using var host = builder.Build();
 await host.RunAsync().ConfigureAwait(false);
@@ -1164,9 +1162,11 @@ using ReactiveMarbles.Extensions.Hosting.Identity.EntityFrameworkCore.Sqlite;
 var host = new HostBuilder()
     .UseWebHostServices((context, services) =>
     {
-        services.UseEntityFrameworkCoreSqlite<AppDbContext, IdentityUser>(
+        services.UseEntityFrameworkCoreSqlite(
             context,
-            "DefaultConnection");
+            "DefaultConnection",
+            static (_, options) => new AppDbContext(options),
+            static services => services.AddDefaultIdentity<IdentityUser>());
     })
     .Build();
 
@@ -1183,7 +1183,9 @@ var services = new ServiceCollection();
 var connectionString =
     HostBuilderEntityFrameworkCoreExtensions.CreateInMemoryConnectionString("tests");
 
-services.AddSqliteDbContextWithConnectionString<AppDbContext>(connectionString);
+services.AddSqliteDbContextWithConnectionString(
+    connectionString,
+    static (_, options) => new AppDbContext(options));
 ```
 
 ## Log4Net Logging
@@ -1287,7 +1289,7 @@ var host = new HostBuilder()
         plugins?.AddScanDirectories(AppContext.BaseDirectory);
         plugins?.IncludePlugins("plugins/**/*.dll");
     })
-    .ConfigureWpf(wpf => wpf.UseApplication<App>().UseWindow<MainWindow>())
+    .ConfigureWpf(wpf => wpf.UseApplication(typeof(App)).UseWindow(typeof(MainWindow)))
     .UseWpfLifetime()
     .Build();
 
@@ -1519,8 +1521,8 @@ repository and skips provider configuration.
 - The base MAUI host retains `net9.0`, but V4 MAUI platform workload assets begin at
   `net10.0-*`. ReactiveUI MAUI V4 begins at net10.
 - Log4Net removes `netstandard2.0`.
-- ReactiveUI moves from 23.2.27 to 24.0.0, Splat from 19.3.1 to 20.2.0, Avalonia from
-  12.0.2 to 12.1.0, and the default packages use ReactiveUI.Primitives 7.1.
+- ReactiveUI moves from 23.2.27 to 24.2.0, Splat from 19.3.1 to 21.0.0, Avalonia from
+  12.0.2 to 12.1.2, and the default packages use ReactiveUI.Primitives 7.3.
 - EF helper call sites remain conceptually compatible. Short overloads use
   `ServiceLifetime.Scoped`; use the new explicit-lifetime overloads when a different
   lifetime is required.
@@ -1541,4 +1543,37 @@ dotnet test --solution Extensions.Hosting.slnx -c Release
 dotnet test --solution Extensions.Hosting.slnx --coverage --coverage-output-format cobertura
 ```
 
+For packaged-code coverage verification, collect the full suite on Windows, then collect the matching Windows/Linux branch report below before running the package gate. Start from the repository root and use a fresh output directory for each run:
+
+```powershell
+dotnet tool update dotnet-coverage --tool-path ./artifacts/tools --version 18.10.0
+cd src
+../artifacts/tools/dotnet-coverage.exe collect --settings ../scripts/PackageCoverage.config --output-format cobertura --output ../artifacts/coverage/final/coverage.cobertura.xml dotnet test --solution Extensions.Hosting.slnx -c Release --max-parallel-test-modules 1 -- --output Detailed
+cd ..
+```
+
+`PackageCoverage.config` limits Microsoft instrumentation to anchored package DLL filenames, including the packable fixture packages, so solution-level collection does not spend time instrumenting test runners or external dependencies. It must set `SkipAutoProperties` to `false`; otherwise Microsoft Code Coverage omits auto-property sequence points and the package gate will fail those source files as missing. `-CoveragePath` may point at either a coverage directory or one Cobertura XML file. A single Cobertura report produced by one live `dotnet-coverage collect` session is the preferred gate input because converting or merging separate Microsoft reports can drop branch instrumentation; do not use `dotnet-coverage merge` as the final branch-coverage report for this gate. When multiple Cobertura files are supplied directly, the script keeps a conservative branch check and will not add partial branch counts from separate reports into a false pass. The script also rejects branchless Cobertura for package modules whose IL contains branches, so `0/0` branches on nontrivial modules does not count as 100% branch coverage. The script discovers packable source packages through evaluated MSBuild project metadata and requires every package module, including linked-source `.Reactive` package variants, to report 100% executable line and branch coverage for the selected coverage target framework. Run the gate against freshly built coverage output so the corresponding package assemblies and embedded or portable PDBs are available for missing executable-source detection.
+
+For the `Extensions.Hosting.MainUIThread` operating-system branch, collect a module-specific Coverlet report from the same already-built `net10.0` test binaries on Windows and Linux, merging through Coverlet JSON before exporting Cobertura. This keeps branch identities by module, source line, IL offset, path, and ordinal, and the final Cobertura file can be placed beside the Microsoft full-package report before running the gate over the directory:
+
+```powershell
+dotnet tool update coverlet.console --tool-path ./artifacts/tools --version 6.0.4
+$mainUiCopy = "./artifacts/coverage/mainui-coverlet/windows/net10.0"
+New-Item -ItemType Directory -Force -Path $mainUiCopy | Out-Null
+Copy-Item -Path ./src/tests/Extensions.Hosting.Tests/bin/Release/net10.0/* -Destination $mainUiCopy -Recurse -Force
+./scripts/Export-EmbeddedPortablePdb.ps1 -Path $mainUiCopy -Pattern Extensions.Hosting.MainUIThread.dll
+./artifacts/tools/coverlet.exe "$mainUiCopy/Extensions.Hosting.Tests.dll" --target dotnet --targetargs "$mainUiCopy/Extensions.Hosting.Tests.dll --treenode-filter /*/*/BaseUiThreadCoverageTests/*" --include "[Extensions.Hosting.MainUIThread]*" --include-directory $mainUiCopy --exclude-assemblies-without-sources None --format json --output ./artifacts/coverage/mainui-coverlet/mainui.windows.json
+```
+
+Copy the same `mainui-coverlet` directory to Linux without rebuilding it. If the copy does not include side-by-side PDB files, run `Export-EmbeddedPortablePdb.ps1` before the Linux Coverlet command. Then run the Linux side against the copied Windows-built binaries and copy `mainui.merged.cobertura.xml` back into `artifacts/coverage/final` with the Microsoft report:
+
+```bash
+dotnet tool update coverlet.console --tool-path ./artifacts/tools --version 6.0.4
+./artifacts/tools/coverlet ./artifacts/coverage/mainui-coverlet/windows/net10.0/Extensions.Hosting.Tests.dll --target dotnet --targetargs "./artifacts/coverage/mainui-coverlet/windows/net10.0/Extensions.Hosting.Tests.dll --treenode-filter /*/*/BaseUiThreadCoverageTests/*" --include "[Extensions.Hosting.MainUIThread]*" --include-directory ./artifacts/coverage/mainui-coverlet/windows/net10.0 --exclude-assemblies-without-sources None --format cobertura --merge-with ./artifacts/coverage/mainui-coverlet/mainui.windows.json --output ./artifacts/coverage/mainui-coverlet/mainui.merged.cobertura.xml
+```
+
+```powershell
+Copy-Item ./artifacts/coverage/mainui-coverlet/mainui.merged.cobertura.xml ./artifacts/coverage/final/mainui.merged.cobertura.xml
+./scripts/Assert-PackagedCodeCoverage.ps1 -CoveragePath ./artifacts/coverage/final
+```
 Run full builds on Windows because WPF, WinForms, WinUI, Windows service, and .NET Framework target frameworks are part of the solution.

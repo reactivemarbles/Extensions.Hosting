@@ -2,6 +2,7 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls;
 using ReactiveMarbles.Extensions.Hosting.Maui;
 using ReactiveMarbles.Extensions.Hosting.Maui.Internals;
@@ -18,8 +19,8 @@ public class MauiBuilderExtensionsTests
     {
         var builder = new MauiBuilder(static _ => { });
 
-        var result = builder.AddSingletonPage<ContentPage>();
-        var nullResult = ((IMauiBuilder)null!).AddSingletonPage<ContentPage>();
+        var result = builder.AddSingletonPage(typeof(ContentPage));
+        var nullResult = ((IMauiBuilder)null!).AddSingletonPage(typeof(ContentPage));
 
         await Assert.That(result).IsSameReferenceAs(builder);
         await Assert.That(builder.PageTypes).Contains(typeof(ContentPage));
@@ -32,24 +33,39 @@ public class MauiBuilderExtensionsTests
     public async Task UseMauiApp_WithApplicationType_ConfiguresBuilder()
     {
         var builder = new MauiBuilder(static _ => { });
-        var result = builder.UseMauiApp<TestMauiApplication>(static _ => { });
+        var result = builder.UseMauiApp(static _ => new TestMauiApplication(), static _ => { });
 
         await Assert.That(result).IsSameReferenceAs(builder);
         await Assert.That(builder.ApplicationType).IsEqualTo(typeof(TestMauiApplication));
     }
 
-    /// <summary>Verifies application-parameter configuration assigns the application and supports the convenience overload.</summary>
+    /// <summary>Verifies application factory configuration records the host registration factory.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
-    public async Task UseMauiApp_WithApplicationParameter_ConfiguresBuilder()
+    public async Task UseMauiApp_WithApplicationFactory_StoresApplicationFactory()
+    {
+        var builder = new MauiBuilder(static _ => { });
+        Func<IServiceProvider, TestMauiApplication> applicationFactory = static _ => null!;
+
+        var result = builder.UseMauiApp(applicationFactory);
+
+        await Assert.That(result).IsSameReferenceAs(builder);
+        await Assert.That(builder.ApplicationType).IsEqualTo(typeof(TestMauiApplication));
+        await Assert.That(builder.ApplicationFactory).IsNotNull();
+        await Assert.That(builder.ApplicationFactory!(new ServiceCollection().BuildServiceProvider())).IsNull();
+    }
+
+    /// <summary>Verifies invalid page and application factory arguments are rejected.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task BuilderTypeSelection_WithInvalidArguments_Throws()
     {
         var builder = new MauiBuilder(static _ => { });
 
-        var result = builder.UseMauiApp((TestMauiApplication)null!);
-
-        await Assert.That(result).IsSameReferenceAs(builder);
-        await Assert.That(builder.Application).IsNull();
-        await Assert.That(builder.ApplicationType).IsEqualTo(typeof(TestMauiApplication));
+        await Assert.That(() => builder.AddSingletonPage(typeof(string))).Throws<ArgumentException>();
+        await Assert.That(() => builder.AddSingletonPage(null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.UseMauiApp((Func<IServiceProvider, TestMauiApplication>)null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.UseMauiApp((TestMauiApplication)null!)).Throws<ArgumentNullException>();
     }
 
     /// <summary>Verifies context configuration stores the provided action.</summary>
@@ -73,7 +89,7 @@ public class MauiBuilderExtensionsTests
     public async Task RequiredBuilderOperations_WithNullBuilder_ThrowArgumentNullException()
     {
         IMauiBuilder? builder = null;
-        await Assert.That(() => builder!.UseMauiApp<TestMauiApplication>()).Throws<ArgumentNullException>();
+        await Assert.That(() => builder!.UseMauiApp(static _ => new TestMauiApplication())).Throws<ArgumentNullException>();
         await Assert.That(() => builder!.UseMauiApp((TestMauiApplication)null!)).Throws<ArgumentNullException>();
         await Assert.That(() => builder!.ConfigureContext(static _ => { })).Throws<ArgumentNullException>();
     }

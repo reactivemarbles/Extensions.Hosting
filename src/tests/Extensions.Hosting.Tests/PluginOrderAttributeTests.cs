@@ -52,6 +52,7 @@ public class PluginOrderAttributeTests
     {
         var attribute = new PluginOrderAttribute(TestOrder.High);
         await Assert.That(attribute.Order).IsEqualTo((int)TestOrder.High);
+        await Assert.That(attribute.EnumValue).IsEqualTo(TestOrder.High);
     }
 
     /// <summary>Verifies that the attribute can be retrieved from a decorated class.</summary>

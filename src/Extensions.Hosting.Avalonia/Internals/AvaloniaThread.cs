@@ -35,8 +35,7 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
             lifetime.Exit += (s, e) => HandleApplicationExit();
             lifetime.Startup += (s, e) =>
             {
-                UiContext.AvaloniaApplication = Application.Current ?? ServiceProvider.GetService<Application>()
-                    ?? throw new InvalidOperationException("Unable to initialize the Avalonia application.");
+                UiContext.AvaloniaApplication = AvaloniaApplicationResolver.Resolve(Application.Current, ServiceProvider);
 
                 foreach (var avaloniaService in ServiceProvider.GetServices<IAvaloniaService>())
                 {
@@ -52,31 +51,14 @@ public class AvaloniaThread(IServiceProvider serviceProvider, AppBuilder appBuil
                     }
                 }
 
-                switch (shellWindows.Count)
+                for (var i = 0; i < shellWindows.Count; i++)
                 {
-                    case 1:
-                        {
-                            lifetime.MainWindow = shellWindows[0];
-                            shellWindows[0].Show();
-                            break;
-                        }
+                    if (i == 0)
+                    {
+                        lifetime.MainWindow = shellWindows[i];
+                    }
 
-                    case 0:
-                        {
-                            break;
-                        }
-
-                    default:
-                        {
-                            lifetime.MainWindow = shellWindows[0];
-
-                            for (var i = 0; i < shellWindows.Count; i++)
-                            {
-                                shellWindows[i]?.Show();
-                            }
-
-                            break;
-                        }
+                    shellWindows[i].Show();
                 }
 
                 UiContext.IsRunning = true;

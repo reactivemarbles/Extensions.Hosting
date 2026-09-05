@@ -5,7 +5,6 @@
     <WindowsPackageType>None</WindowsPackageType>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <CentralPackageVersionOverrideEnabled>true</CentralPackageVersionOverrideEnabled>
     <DefineConstants>$(DefineConstants);REACTIVE_SHIM</DefineConstants>
     <IsTestProject>true</IsTestProject>
     <GenerateProgramFile>false</GenerateProgramFile>
@@ -19,14 +18,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" VersionOverride="10.0.90" />
-    <PackageReference Include="Microsoft.Maui.Core" VersionOverride="10.0.90" />
-    <PackageReference Include="Microsoft.Maui.Essentials" VersionOverride="10.0.90" />
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <PackageReference Include="Microsoft.Maui.Core" />
+    <PackageReference Include="Microsoft.Maui.Essentials" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="MauiHostedServiceTests.cs" />
     <Compile Remove="MauiHostingRegistrationTests.cs" />
+    <!-- Native MAUI lifecycle coverage is owned by Extensions.Hosting.Maui.Platform.Tests. -->
+    <Compile Remove="MauiNativeRuntimeTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

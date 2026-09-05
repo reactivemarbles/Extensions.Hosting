@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ReactiveMarbles.Extensions.Hosting.AppServices.Internal;
 
 namespace ReactiveMarbles.Extensions.Hosting.AppServices;
@@ -42,7 +43,11 @@ public static class HostBuilderApplicationExtensions
     /// <param name="mutexBuilder">The configured mutex builder.</param>
     private static void AddMutexServices(IServiceCollection services, IMutexBuilder mutexBuilder) => _ = services
             .AddSingleton(mutexBuilder)
-            .AddHostedService<MutexLifetimeService>();
+            .AddHostedService(static serviceProvider => new MutexLifetimeService(
+                serviceProvider.GetRequiredService<ILogger<MutexLifetimeService>>(),
+                serviceProvider.GetRequiredService<IHostEnvironment>(),
+                serviceProvider.GetRequiredService<IHostApplicationLifetime>(),
+                serviceProvider.GetRequiredService<IMutexBuilder>()));
 
     /// <summary>Provides extension members for this receiver.</summary>
     /// <param name="hostBuilder">The receiver instance.</param>

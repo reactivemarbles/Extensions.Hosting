@@ -36,7 +36,7 @@ public partial class App
                     ApplicationAlreadyRunning(logger, hostingEnvironment.ApplicationName, null);
             })
             .ConfigureServices(static services => services.AddTransient<IViewFor<NugetDetailsViewModel>, NugetDetailsView>())
-            .ConfigureWpf(wpfBuilder => wpfBuilder.UseCurrentApplication(this).UseWindow<MainWindow>())
+            .ConfigureWpf(wpfBuilder => wpfBuilder.UseCurrentApplication(this).UseWindow(typeof(MainWindow)))
             .UseWpfLifetime()
             .UseConsoleLifetime()
             .Build();

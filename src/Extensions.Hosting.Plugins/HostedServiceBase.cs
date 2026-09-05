@@ -40,6 +40,9 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
     private static readonly Action<ILogger, string, Exception?> _serviceStartFailed =
         LoggerMessage.Define<string>(LogLevel.Error, new(4, nameof(_serviceStartFailed)), "{ServiceName} Service OnStarted failed.");
 
+    /// <summary>Stores the hosted service type name.</summary>
+    private static readonly string _serviceName = typeof(T).Name;
+
     /// <summary>Stores the disposed value.</summary>
     private bool _disposedValue;
 
@@ -90,7 +93,7 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
     /// implementation to ensure standard cleanup is performed.</remarks>
     public virtual void OnStopping()
     {
-        _serviceStopping(Logger, nameof(T), null);
+        _serviceStopping(Logger, _serviceName, null);
         CleanUp.Dispose();
     }
 
@@ -98,7 +101,7 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
     /// <remarks>Override this method in a derived class to implement custom actions that should occur when
     /// the service stops. The base implementation logs a message indicating that the service has stopped.</remarks>
     public virtual void OnStopped() =>
-        _serviceStopped(Logger, nameof(T), null);
+        _serviceStopped(Logger, _serviceName, null);
 
     /// <summary>Releases unmanaged and - optionally - managed resources.</summary>
     /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
@@ -127,14 +130,14 @@ public class HostedServiceBase<T>(ILogger<T> logger, IHostApplicationLifetime ho
         }
         catch (Exception ex)
         {
-            _serviceStartFailed(Logger, nameof(T), ex);
+            _serviceStartFailed(Logger, _serviceName, ex);
         }
     }
 
     /// <summary>Handles the application-started lifetime notification.</summary>
     private void OnApplicationStarted()
     {
-        _serviceStarted(Logger, nameof(T), null);
+        _serviceStarted(Logger, _serviceName, null);
         CleanUp = [];
         _ = RunOnStartedAsync();
     }
