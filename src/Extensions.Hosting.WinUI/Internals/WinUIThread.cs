@@ -20,12 +20,12 @@ public class WinUIThread : BaseUiThread<IWinUIContext>
     private static readonly IWinUIThreadRuntime DefaultRuntime = new WinUIThreadRuntime();
 
     /// <summary>Stores the platform application-loop runtime.</summary>
-    private readonly IWinUIThreadRuntime? _runtime;
+    private readonly IWinUIThreadRuntime _runtime;
 
     /// <summary>Initializes a new instance of the <see cref="WinUIThread"/> class.</summary>
     /// <param name="serviceProvider">The service provider used to resolve WinUI application services and dependencies.</param>
     public WinUIThread(IServiceProvider serviceProvider)
-        : base(serviceProvider)
+        : this(serviceProvider, DefaultRuntime, useDedicatedUiThread: true)
     {
     }
 
@@ -41,17 +41,17 @@ public class WinUIThread : BaseUiThread<IWinUIContext>
 
     /// <inheritdoc />
     protected override void PreUiThreadStart() =>
-        (_runtime ?? DefaultRuntime).InitializeComWrappers();
+        _runtime.InitializeComWrappers();
 
     /// <inheritdoc />
     protected override void UiThreadStart()
     {
-        (_runtime ?? DefaultRuntime).Start((dispatcher, synchronizationContext) =>
+        _runtime.Start((dispatcher, synchronizationContext) =>
         {
             UiContext!.Dispatcher = dispatcher;
             SynchronizationContext.SetSynchronizationContext(synchronizationContext);
 
-            var application = (_runtime ?? DefaultRuntime).GetApplication(ServiceProvider);
+            var application = _runtime.GetApplication(ServiceProvider);
             UiContext.WinUIApplication = application;
 
             // Use the provided IWinUIService
@@ -64,9 +64,9 @@ public class WinUIThread : BaseUiThread<IWinUIContext>
                 }
             }
 
-            var appWindow = (_runtime ?? DefaultRuntime).CreateWindow(ServiceProvider, UiContext.AppWindowType!);
+            var appWindow = _runtime.CreateWindow(ServiceProvider, UiContext.AppWindowType!);
             UiContext.AppWindow = appWindow;
-            (_runtime ?? DefaultRuntime).ActivateWindow(appWindow);
+            _runtime.ActivateWindow(appWindow);
         });
         HandleApplicationExit();
     }

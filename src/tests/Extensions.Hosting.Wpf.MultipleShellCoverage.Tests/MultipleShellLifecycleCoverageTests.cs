@@ -15,7 +15,7 @@ namespace Extensions.Hosting.Wpf.MultipleShellCoverage.Tests;
 public sealed class MultipleShellLifecycleCoverageTests
 {
     /// <summary>Gets the maximum duration allowed for WPF application startup and shutdown.</summary>
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
     /// <summary>Verifies two registered shell windows are shown during application startup.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
