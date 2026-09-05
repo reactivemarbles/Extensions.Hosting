@@ -66,7 +66,8 @@ public class AppViewModel : ReactiveObject
         var source = new SourceRepository(package, providers);
 
         var filter = new SearchFilter(false);
-        var resource = await source.GetResourceAsync<PackageSearchResource>().ConfigureAwait(false);
+        var resource = await source.GetResourceAsync<PackageSearchResource>().ConfigureAwait(false)
+            ?? throw new InvalidOperationException("The NuGet source does not provide a package search resource.");
         var metadata = await resource.SearchAsync(
                 term,
                 filter,

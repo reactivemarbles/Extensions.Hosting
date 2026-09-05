@@ -58,26 +58,18 @@ public class WinFormsThread(IServiceProvider serviceProvider) : BaseUiThread<IWi
             }
         }
 
-        switch (shells.Count)
+        if (shells.Count == 1)
         {
-            case 1:
-                {
-                    Application.Run(shells[0]);
-                    break;
-                }
-
-            case 0:
-                {
-                    Application.Run();
-                    break;
-                }
-
-            default:
-                {
-                    var multiShellContext = new MultiShellContext(shells.ToArray());
-                    Application.Run(multiShellContext);
-                    break;
-                }
+            Application.Run(shells[0]);
+        }
+        else if (shells.Count == 0)
+        {
+            Application.Run();
+        }
+        else
+        {
+            var multiShellContext = new MultiShellContext(shells.ToArray());
+            Application.Run(multiShellContext);
         }
     }
 

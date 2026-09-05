@@ -73,6 +73,10 @@ public static class HostBuilderMauiExtensions
         {
             _ = services.AddSingleton(mauiBuilder.ApplicationType, mauiBuilder.Application);
         }
+        else if (mauiBuilder.ApplicationFactory is not null)
+        {
+            _ = services.AddSingleton(mauiBuilder.ApplicationType, serviceProvider => mauiBuilder.ApplicationFactory(serviceProvider));
+        }
         else
         {
             _ = services.AddSingleton(mauiBuilder.ApplicationType);
@@ -161,12 +165,15 @@ public static class HostBuilderMauiExtensions
         /// <remarks>This method registers the specified shell page type as a singleton and sets it as the root
         /// navigation shell for the application. Use this method to customize the application's navigation structure by
         /// providing your own implementation of IMauiShell.</remarks>
-        /// <typeparam name="TShell">The type of the shell page to use as the application's main navigation shell. Must implement the IMauiShell
-        /// interface and derive from Page.</typeparam>
+        /// <param name="shellType">The type of the shell page to use as the application's main navigation shell. Must implement the IMauiShell
+        /// interface and derive from Page.</param>
         /// <returns>The same IHostApplicationBuilder instance, enabling further configuration.</returns>
-        public IHostApplicationBuilder ConfigureMauiShell<TShell>()
-            where TShell : Page, IMauiShell =>
-            hostBuilder.ConfigureMaui(static maui => maui.AddSingletonPage<TShell>());
+        /// <exception cref="ArgumentException">Thrown if <paramref name="shellType"/> does not inherit from <see cref="Page"/> or implement <see cref="IMauiShell"/>.</exception>
+        public IHostApplicationBuilder ConfigureMauiShell(Type shellType)
+        {
+            ValidateMauiShellType(shellType);
+            return hostBuilder.ConfigureMaui(maui => maui.AddSingletonPage(shellType));
+        }
     }
 
     /// <summary>Provides extension members for this receiver.</summary>
@@ -237,11 +244,39 @@ public static class HostBuilderMauiExtensions
         /// <remarks>This method registers the specified shell page type as a singleton in the dependency
         /// injection container, enabling it to serve as the application's main navigation shell. Use this method during
         /// application startup to set up the shell for a .NET MAUI app.</remarks>
-        /// <typeparam name="TShell">The type of the shell page to use as the application's main shell. Must implement the IMauiShell interface and
-        /// derive from Page.</typeparam>
+        /// <param name="shellType">The type of the shell page to use as the application's main shell. Must implement the IMauiShell interface and
+        /// derive from Page.</param>
         /// <returns>The configured host builder instance, or null if the input host builder is null.</returns>
-        public IHostBuilder? ConfigureMauiShell<TShell>()
-            where TShell : Page, IMauiShell =>
-            hostBuilder?.ConfigureMaui(static maui => maui.AddSingletonPage<TShell>());
+        /// <exception cref="ArgumentException">Thrown if <paramref name="shellType"/> does not inherit from <see cref="Page"/> or implement <see cref="IMauiShell"/>.</exception>
+        public IHostBuilder? ConfigureMauiShell(Type shellType)
+        {
+            if (hostBuilder is null)
+            {
+                return null;
+            }
+
+            ValidateMauiShellType(shellType);
+            return hostBuilder.ConfigureMaui(maui => maui.AddSingletonPage(shellType));
+        }
+    }
+
+    /// <summary>Validates that the supplied type can be used as a MAUI shell.</summary>
+    /// <param name="shellType">The shell type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="shellType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="shellType"/> does not derive from <see cref="Page"/> or implement <see cref="IMauiShell"/>.</exception>
+    private static void ValidateMauiShellType(Type shellType)
+    {
+        _ = shellType ?? throw new ArgumentNullException(nameof(shellType));
+        if (!typeof(Page).IsAssignableFrom(shellType))
+        {
+            throw new ArgumentException("The registered MAUI shell type must inherit Microsoft.Maui.Controls.Page.", nameof(shellType));
+        }
+
+        if (typeof(IMauiShell).IsAssignableFrom(shellType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered MAUI shell type must implement IMauiShell.", nameof(shellType));
     }
 }

@@ -22,29 +22,32 @@ public static class AvaloniaBuilderExtensions
         /// <remarks>Use this method to configure the application builder to create instances of a custom window
         /// type. This is typically called during application startup to specify the main window or additional window
         /// types.</remarks>
-        /// <typeparam name="TWindow">Specifies the window type to register. The type must derive from the Window class.</typeparam>
+        /// <param name="windowType">Specifies the window type to register. The type must derive from the Window class.</param>
         /// <returns>The updated Avalonia builder instance, enabling further configuration through method chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the avaloniaBuilder parameter is null.</exception>
-        public IAvaloniaBuilder UseWindow<TWindow>()
-            where TWindow : Window
+        /// <exception cref="ArgumentException">Thrown if <paramref name="windowType"/> does not inherit from <see cref="Window"/>.</exception>
+        public IAvaloniaBuilder UseWindow(Type windowType)
         {
             _ = avaloniaBuilder ?? throw new ArgumentNullException(nameof(avaloniaBuilder));
+            ValidateWindowType(windowType);
 
-            avaloniaBuilder.WindowTypes.Add(typeof(TWindow));
+            avaloniaBuilder.WindowTypes.Add(windowType);
             return avaloniaBuilder;
         }
 
         /// <summary>Configures the Avalonia application to use the specified application type.</summary>
         /// <remarks>This method sets the application type for the Avalonia application, allowing the framework to
         /// instantiate the specified application class during startup.</remarks>
-        /// <typeparam name="TApplication">The type of the application to be used, which must derive from the Application class.</typeparam>
+        /// <param name="applicationType">The type of the application to be used, which must derive from the Application class.</param>
         /// <returns>The updated IAvaloniaBuilder instance for further configuration.</returns>
-        public IAvaloniaBuilder UseApplication<TApplication>()
-            where TApplication : Application
+        /// <exception cref="ArgumentNullException">Thrown if the avaloniaBuilder parameter is null.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="applicationType"/> does not inherit from <see cref="Application"/>.</exception>
+        public IAvaloniaBuilder UseApplication(Type applicationType)
         {
             _ = avaloniaBuilder ?? throw new ArgumentNullException(nameof(avaloniaBuilder));
+            ValidateApplicationType(applicationType);
 
-            avaloniaBuilder.ApplicationType = typeof(TApplication);
+            avaloniaBuilder.ApplicationType = applicationType;
             return avaloniaBuilder;
         }
 
@@ -52,16 +55,15 @@ public static class AvaloniaBuilderExtensions
         /// <remarks>This method sets both the application type and the current application instance on the
         /// builder, allowing the builder to manage the application's lifecycle. Use this method when you want to provide an
         /// existing application instance rather than letting the builder create one.</remarks>
-        /// <typeparam name="TApplication">Specifies the type of the application to be used. The type must derive from the Application class.</typeparam>
         /// <param name="currentApplication">The application instance to associate with the Avalonia builder.</param>
         /// <returns>The configured IAvaloniaBuilder instance, enabling further method chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the avaloniaBuilder parameter is null.</exception>
-        public IAvaloniaBuilder UseCurrentApplication<TApplication>(TApplication currentApplication)
-            where TApplication : Application
+        public IAvaloniaBuilder UseCurrentApplication(Application currentApplication)
         {
             _ = avaloniaBuilder ?? throw new ArgumentNullException(nameof(avaloniaBuilder));
+            _ = currentApplication ?? throw new ArgumentNullException(nameof(currentApplication));
 
-            avaloniaBuilder.ApplicationType = typeof(TApplication);
+            avaloniaBuilder.ApplicationType = currentApplication.GetType();
             avaloniaBuilder.Application = currentApplication;
             return avaloniaBuilder;
         }
@@ -91,5 +93,35 @@ public static class AvaloniaBuilderExtensions
             avaloniaBuilder.ConfigureAppBuilderAction = configureAction;
             return avaloniaBuilder;
         }
+    }
+
+    /// <summary>Validates that the supplied type can be used as an Avalonia window.</summary>
+    /// <param name="windowType">The window type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="windowType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="windowType"/> does not derive from <see cref="Window"/>.</exception>
+    private static void ValidateWindowType(Type windowType)
+    {
+        _ = windowType ?? throw new ArgumentNullException(nameof(windowType));
+        if (typeof(Window).IsAssignableFrom(windowType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered window type must inherit Avalonia.Controls.Window.", nameof(windowType));
+    }
+
+    /// <summary>Validates that the supplied type can be used as an Avalonia application.</summary>
+    /// <param name="applicationType">The application type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="applicationType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="applicationType"/> does not derive from <see cref="Application"/>.</exception>
+    private static void ValidateApplicationType(Type applicationType)
+    {
+        _ = applicationType ?? throw new ArgumentNullException(nameof(applicationType));
+        if (typeof(Application).IsAssignableFrom(applicationType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered application type must inherit Avalonia.Application.", nameof(applicationType));
     }
 }

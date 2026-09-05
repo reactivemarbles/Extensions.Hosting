@@ -18,40 +18,46 @@ public static class WpfBuilderExtensions
     extension(IWpfBuilder wpfBuilder)
     {
         /// <summary>Registers the specified window type with the WPF builder for use in the application.</summary>
-        /// <typeparam name="TWindow">The type of the window to register. Must derive from <see cref="Window"/>.</typeparam>
+        /// <param name="windowType">The type of the window to register. Must derive from <see cref="Window"/>.</param>
         /// <returns>The same <see cref="IWpfBuilder"/> instance to allow for method chaining, or <see langword="null"/> if <paramref
         /// name="wpfBuilder"/> is null.</returns>
-        public IWpfBuilder? UseWindow<TWindow>()
-            where TWindow : Window
+        /// <exception cref="ArgumentException">Thrown if <paramref name="windowType"/> does not inherit from <see cref="Window"/>.</exception>
+        public IWpfBuilder? UseWindow(Type windowType)
         {
-            wpfBuilder?.WindowTypes.Add(typeof(TWindow));
+            if (wpfBuilder is null)
+            {
+                return null;
+            }
+
+            ValidateWindowType(windowType);
+            wpfBuilder.WindowTypes.Add(windowType);
             return wpfBuilder;
         }
 
         /// <summary>Configures the WPF builder to use the specified application type.</summary>
-        /// <typeparam name="TApplication">The type of the WPF application to use. Must derive from <see cref="Application"/>.</typeparam>
+        /// <param name="applicationType">The type of the WPF application to use. Must derive from <see cref="Application"/>.</param>
         /// <returns>The same <see cref="IWpfBuilder"/> instance for method chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="wpfBuilder"/> is null.</exception>
-        public IWpfBuilder UseApplication<TApplication>()
-            where TApplication : Application
+        /// <exception cref="ArgumentException">Thrown if <paramref name="applicationType"/> does not inherit from <see cref="Application"/>.</exception>
+        public IWpfBuilder UseApplication(Type applicationType)
         {
             _ = wpfBuilder ?? throw new ArgumentNullException(nameof(wpfBuilder));
+            ValidateApplicationType(applicationType);
 
-            wpfBuilder.ApplicationType = typeof(TApplication);
+            wpfBuilder.ApplicationType = applicationType;
             return wpfBuilder;
         }
 
         /// <summary>Configures the WPF builder to use the specified application instance as the current application.</summary>
-        /// <typeparam name="TApplication">The type of the application to use. Must derive from <see cref="Application"/>.</typeparam>
         /// <param name="currentApplication">The application instance to set as the current application. Must not be null.</param>
         /// <returns>The same <see cref="IWpfBuilder"/> instance for method chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="wpfBuilder"/> is null.</exception>
-        public IWpfBuilder UseCurrentApplication<TApplication>(TApplication currentApplication)
-            where TApplication : Application
+        public IWpfBuilder UseCurrentApplication(Application currentApplication)
         {
             _ = wpfBuilder ?? throw new ArgumentNullException(nameof(wpfBuilder));
+            _ = currentApplication ?? throw new ArgumentNullException(nameof(currentApplication));
 
-            wpfBuilder.ApplicationType = typeof(TApplication);
+            wpfBuilder.ApplicationType = currentApplication.GetType();
             wpfBuilder.Application = currentApplication;
             return wpfBuilder;
         }
@@ -68,5 +74,35 @@ public static class WpfBuilderExtensions
             wpfBuilder.ConfigureContextAction = configureAction;
             return wpfBuilder;
         }
+    }
+
+    /// <summary>Validates that the supplied type can be used as a WPF window.</summary>
+    /// <param name="windowType">The window type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="windowType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="windowType"/> does not derive from <see cref="Window"/>.</exception>
+    private static void ValidateWindowType(Type windowType)
+    {
+        _ = windowType ?? throw new ArgumentNullException(nameof(windowType));
+        if (typeof(Window).IsAssignableFrom(windowType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered window type must inherit System.Windows.Window.", nameof(windowType));
+    }
+
+    /// <summary>Validates that the supplied type can be used as a WPF application.</summary>
+    /// <param name="applicationType">The application type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="applicationType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="applicationType"/> does not derive from <see cref="Application"/>.</exception>
+    private static void ValidateApplicationType(Type applicationType)
+    {
+        _ = applicationType ?? throw new ArgumentNullException(nameof(applicationType));
+        if (typeof(Application).IsAssignableFrom(applicationType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered application type must inherit System.Windows.Application.", nameof(applicationType));
     }
 }

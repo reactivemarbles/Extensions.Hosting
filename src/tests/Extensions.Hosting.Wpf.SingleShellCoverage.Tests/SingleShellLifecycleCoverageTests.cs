@@ -37,8 +37,8 @@ public sealed partial class SingleShellLifecycleCoverageTests
         var builder = Host.CreateApplicationBuilder();
         _ = builder.ConfigureWpf(static wpfBuilder =>
         {
-            _ = wpfBuilder.UseApplication<SingleShellApplication>();
-            _ = wpfBuilder.UseWindow<SingleShellWindow>();
+            _ = wpfBuilder.UseApplication(typeof(SingleShellApplication));
+            _ = wpfBuilder.UseWindow(typeof(SingleShellWindow));
         });
         using var host = builder.Build();
 

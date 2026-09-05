@@ -9,7 +9,6 @@
     <LangVersion>preview</LangVersion>
     <Configuration>$(TargetFramework)</Configuration>
     <Company>ChrisPulman</Company>
-    <NoWarn>CS1591;IDE0190;IDE1006;IDE0130</NoWarn>
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -63,10 +62,10 @@
     <TUnitImplicitUsings>false</TUnitImplicitUsings>
     <TUnitAssertionsImplicitUsings>false</TUnitAssertionsImplicitUsings>
     <EnableVSTestReferences>false</EnableVSTestReferences>
-    <NoWarn>$(NoWarn);CS4014</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="$(IsTestProject)">
+    <AssemblyAttribute Include="TUnit.Core.NotInParallelAttribute" />
     <PackageReference Include="TUnit"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage"/>

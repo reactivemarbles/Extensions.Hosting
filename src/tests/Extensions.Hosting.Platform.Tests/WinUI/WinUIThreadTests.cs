@@ -17,8 +17,25 @@ namespace Extensions.Hosting.WinUI.Platform.Tests;
 /// <summary>Tests the WinUI-thread startup flow without starting a native WinUI event loop.</summary>
 public class WinUIThreadTests
 {
+    /// <summary>Defines the dispatcher polling interval in milliseconds.</summary>
+    private const int DispatcherPollIntervalMilliseconds = 10;
+
+    /// <summary>Defines the dispatcher polling interval.</summary>
+    private static readonly TimeSpan DispatcherPollInterval = TimeSpan.FromMilliseconds(DispatcherPollIntervalMilliseconds);
+
     /// <summary>Defines the maximum time to await native WinUI-loop completion.</summary>
     private static readonly TimeSpan NativeLoopTimeout = TimeSpan.FromSeconds(15);
+
+    /// <summary>Verifies that the testable constructor validates its supplied runtime.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Constructor_WithNullRuntime_ThrowsArgumentNullException()
+    {
+        var services = new ServiceCollection().AddSingleton<IWinUIContext>(new TestWinUIContext());
+        await using var serviceProvider = services.BuildServiceProvider();
+
+        await Assert.That(() => new WinUIThread(serviceProvider, null!, useDedicatedUiThread: false)).Throws<ArgumentNullException>();
+    }
 
     /// <summary>Verifies that the UI-thread startup flow initializes WinUI services and activates the configured window.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -75,7 +92,7 @@ public class WinUIThreadTests
                     var resolvedApplication = runtime.GetApplication(serviceProvider);
                     var window = runtime.CreateWindow(serviceProvider, typeof(RuntimeTestWindow));
                     var hostBuilder = Host.CreateApplicationBuilder();
-                    _ = hostBuilder.ConfigureWinUI<RuntimeTestApplication, RuntimeTestWindow>();
+                    _ = hostBuilder.ConfigureWinUI(typeof(RuntimeTestApplication), typeof(RuntimeTestWindow));
                     _ = hostBuilder.Services.AddSingleton(application);
                     using var hostServices = hostBuilder.Services.BuildServiceProvider();
                     configuredApplicationPreserved = ReferenceEquals(
@@ -109,6 +126,87 @@ public class WinUIThreadTests
         await Assert.That(configuredApplicationPreserved).IsTrue();
         await Assert.That(stopTask).IsNotNull();
         await Assert.That(stopTask!.IsCompletedSuccessfully).IsTrue();
+    }
+
+    /// <summary>Verifies that the public WinUI thread constructor starts through the default native runtime.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    [NotInParallel]
+    public async Task Start_WithPublicConstructor_InitializesAndStopsNativeApplicationLoop()
+    {
+        var completion = new TaskCompletionSource<Exception?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var initializedApplications = new List<Application?>();
+        var context = new WinUIContext { AppWindowType = typeof(RuntimeTestWindow) };
+        var services = new ServiceCollection()
+            .AddSingleton<IWinUIContext>(context)
+            .AddSingleton<Application, RuntimeTestApplication>()
+            .AddSingleton<IWinUIService>(new TestWinUIService(initializedApplications));
+        await using var serviceProvider = services.BuildServiceProvider();
+        using var winUIThread = new WinUIThread(serviceProvider);
+
+        winUIThread.Start();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var timer = new PeriodicTimer(DispatcherPollInterval);
+                while (context.Dispatcher is null)
+                {
+                    _ = await timer.WaitForNextTickAsync();
+                }
+
+                var dispatcher = context.Dispatcher;
+                if (dispatcher is null)
+                {
+                    completion.SetResult(new InvalidOperationException("The dispatcher was not created."));
+                    return;
+                }
+
+                if (!dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        context.AppWindow?.Close();
+                        context.WinUIApplication?.Exit();
+                        completion.SetResult(null);
+                    }
+                    catch (Exception exception)
+                    {
+                        completion.SetResult(exception);
+                    }
+                }))
+                {
+                    completion.SetResult(new InvalidOperationException("The dispatcher rejected the shutdown callback."));
+                }
+            }
+            catch (Exception exception)
+            {
+                completion.SetResult(exception);
+            }
+        });
+
+        var exception = await completion.Task.WaitAsync(NativeLoopTimeout);
+
+        await Assert.That(exception).IsNull();
+        await Assert.That(initializedApplications).Count().IsEqualTo(1);
+        await Assert.That(context.WinUIApplication).IsNotNull();
+        await Assert.That(context.AppWindow).IsNotNull();
+        await Assert.That(context.Dispatcher).IsNotNull();
+        await Assert.That(context.IsRunning).IsTrue();
+    }
+
+    /// <summary>Verifies the concrete WinUI context exposes default lifecycle and UI component state.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task WinUIContext_DefaultState_IsEmpty()
+    {
+        var context = new WinUIContext();
+
+        await Assert.That(context.AppWindow).IsNull();
+        await Assert.That(context.Dispatcher).IsNull();
+        await Assert.That(context.IsRunning).IsFalse();
+        await Assert.That(context.WinUIApplication).IsNull();
     }
 
     /// <summary>Provides a WinUI window for the production runtime lifecycle test.</summary>

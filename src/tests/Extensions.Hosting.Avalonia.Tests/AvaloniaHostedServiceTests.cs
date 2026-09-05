@@ -40,6 +40,12 @@ public sealed class AvaloniaHostedServiceTests
             await Assert.That(context.IsRunning).IsTrue();
             await Assert.That(context.AvaloniaApplication).IsSameReferenceAs(application);
 
+            var applicationLifetime = context.ApplicationLifetime;
+            context.ApplicationLifetime = null;
+            await service.StopAsync(CancellationToken.None).WaitAsync(Timeout);
+            await Assert.That(context.IsRunning).IsTrue();
+            context.ApplicationLifetime = applicationLifetime;
+
             await service.StopAsync(CancellationToken.None).WaitAsync(Timeout);
             await start.WaitAsync(Timeout);
         }
@@ -74,11 +80,7 @@ public sealed class AvaloniaHostedServiceTests
         Action<IAvaloniaBuilder>? configureAppBuilderAction = configureAppBuilder
             ? avaloniaBuilder => avaloniaBuilder.ConfigureAppBuilder(_ => signals.AppBuilderConfigured = true)
             : null;
-        _ = builder.ConfigureAvalonia(avaloniaBuilder =>
-        {
-            _ = avaloniaBuilder.UseApplication<TestApplication>();
-            configureAppBuilderAction?.Invoke(avaloniaBuilder);
-        });
+        _ = builder.ConfigureAvalonia(avaloniaBuilder => configureAppBuilderAction?.Invoke(avaloniaBuilder));
 
         return builder.Build();
     }
@@ -168,18 +170,41 @@ public sealed class AvaloniaHostedServiceTests
         var completion = new TaskCompletionSource<Exception?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var thread = new Thread(() =>
         {
-            try
-            {
-                _ = service.StartAsync(CancellationToken.None);
-                _ = completion.TrySetResult(null);
-            }
-            catch (Exception exception)
-            {
-                _ = completion.TrySetResult(exception);
-            }
+            var startup = ObserveStartupAsync(service, completion);
+            _ = startup.ContinueWith(
+                static (task, state) =>
+                {
+                    if (!task.IsFaulted)
+                    {
+                        return;
+                    }
+
+                    _ = ((TaskCompletionSource<Exception?>)state!).TrySetResult(task.Exception);
+                },
+                completion,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
         }) { IsBackground = true };
         SetApartmentState(thread, ApartmentState.MTA);
         thread.Start();
         return completion.Task;
+    }
+
+    /// <summary>Observes startup completion without blocking its initiating thread.</summary>
+    /// <param name="service">The hosted service to start.</param>
+    /// <param name="completion">Receives the startup exception, if any.</param>
+    /// <returns>A task that observes the complete startup operation.</returns>
+    private static async Task ObserveStartupAsync(AvaloniaHostedService service, TaskCompletionSource<Exception?> completion)
+    {
+        try
+        {
+            await service.StartAsync(CancellationToken.None);
+            _ = completion.TrySetResult(null);
+        }
+        catch (Exception exception)
+        {
+            _ = completion.TrySetResult(exception);
+        }
     }
 }

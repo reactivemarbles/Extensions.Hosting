@@ -6,12 +6,16 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.Hosting;
 using Microsoft.UI.Xaml;
 using ReactiveMarbles.Extensions.Hosting.Maui;
 using ReactiveMarbles.Extensions.Hosting.Maui.Internals;
+using WinRT;
 using MauiApplication = Microsoft.Maui.Controls.Application;
+using MauiIApplication = Microsoft.Maui.IApplication;
 using WinUIApplication = Microsoft.UI.Xaml.Application;
 
 namespace Extensions.Hosting.Maui.Platform.Tests;
@@ -49,6 +53,8 @@ public class MauiNativeRuntimeTests
         await Assert.That(outcome.Results.StarterCreatedFallback).IsTrue();
         await Assert.That(outcome.Results.ShellMappingResolved).IsTrue();
         await Assert.That(outcome.Results.ApplicationExitObserved).IsTrue();
+        await Assert.That(outcome.Results.ConcreteContextDispatcherAvailable).IsTrue();
+        await Assert.That(outcome.Results.HostedServiceStoppedApplication).IsTrue();
     }
 
     /// <summary>Runs native MAUI verification within a WinUI application loop.</summary>
@@ -60,6 +66,7 @@ public class MauiNativeRuntimeTests
 
         try
         {
+            ComWrappersSupport.InitializeComWrappers();
             WinUIApplication.Start(_ =>
             {
                 var winUIApplication = new RuntimeTestWinUIApplication();
@@ -91,10 +98,12 @@ public class MauiNativeRuntimeTests
     {
         var application = new TestMauiApplication();
         var internalBuilder = new MauiBuilder();
-        var internalNativeResult = internalBuilder.UseMauiApp<TestMauiApplication>();
-        var internalExtensionResult = ((IMauiBuilder)internalBuilder).UseMauiApp<TestMauiApplication>(static _ => { });
+        var internalNativeResult = internalBuilder.UseMauiApp(static _ => new TestMauiApplication());
+        var internalExtensionResult = ((IMauiBuilder)internalBuilder).UseMauiApp(static _ => new TestMauiApplication(), static _ => { });
+        var internalInstanceBuilder = new MauiBuilder();
+        var internalInstanceResult = internalInstanceBuilder.UseMauiApp(application, static _ => { });
         var externalTypeBuilder = new ExternalMauiBuilder();
-        var externalTypeResult = externalTypeBuilder.UseMauiApp<TestMauiApplication>();
+        var externalTypeResult = externalTypeBuilder.UseMauiApp(static _ => new TestMauiApplication());
         var externalInstanceBuilder = new ExternalMauiBuilder();
         var externalInstanceResult = externalInstanceBuilder.UseMauiApp(application);
 
@@ -103,7 +112,7 @@ public class MauiNativeRuntimeTests
         {
             maui.ApplicationType = typeof(TestMauiApplication);
             maui.Application = application;
-            _ = maui.AddSingletonPage<TestMauiShell>();
+            _ = maui.AddSingletonPage(typeof(TestMauiShell));
         });
         using var hostServices = hostBuilder.Services.BuildServiceProvider();
 
@@ -120,18 +129,23 @@ public class MauiNativeRuntimeTests
         var starter = new MauiApplicationStarter();
         var resolvedApplication = starter.Create(registeredProvider);
         var fallbackApplication = starter.Create(emptyProvider);
-        var applicationExitObserved = false;
-        starter.RegisterApplicationExit(fallbackApplication, () => applicationExitObserved = true);
-        MauiApplicationStarter.RegisterApplicationExit(
-            handler => handler(fallbackApplication, new(new ContentPage())),
-            () => applicationExitObserved = true);
+        var applicationExitObserved = ObserveApplicationExit(starter, fallbackApplication);
+        var concreteContextDispatcherAvailable = new MauiContext().Dispatcher is not null;
+        var hostedServiceStoppedApplication = StopHostedService(application);
 
         return new(
-            ReferenceEquals(internalNativeResult, internalBuilder.MauiAppBuilder)
-                && ReferenceEquals(internalExtensionResult, internalBuilder)
-                && internalBuilder.ApplicationType == typeof(TestMauiApplication),
+            InternalBuilderConfigured(
+                internalBuilder,
+                internalNativeResult,
+                internalExtensionResult,
+                internalInstanceBuilder,
+                internalInstanceResult,
+                ResolveMauiApplicationFromServices(internalInstanceBuilder, application),
+                application),
             ReferenceEquals(externalTypeResult, externalTypeBuilder) && externalTypeBuilder.ApplicationType == typeof(TestMauiApplication),
-            ReferenceEquals(externalInstanceResult, externalInstanceBuilder) && ReferenceEquals(externalInstanceBuilder.Application, application),
+            ReferenceEquals(externalInstanceResult, externalInstanceBuilder)
+                && ReferenceEquals(externalInstanceBuilder.Application, application)
+                && ResolveMauiApplicationFromServices(externalInstanceBuilder, application),
             ReferenceEquals(hostServices.GetRequiredService<TestMauiApplication>(), application)
                 && ReferenceEquals(hostServices.GetRequiredService<MauiApplication>(), application),
             ReferenceEquals(matchingBuilder.Application, application),
@@ -140,7 +154,78 @@ public class MauiNativeRuntimeTests
             ReferenceEquals(resolvedApplication, application),
             fallbackApplication is not null,
             hostServices.GetRequiredService<IMauiShell>() is TestMauiShell,
-            applicationExitObserved);
+            applicationExitObserved,
+            concreteContextDispatcherAvailable,
+            hostedServiceStoppedApplication);
+    }
+
+    /// <summary>Checks whether the internal builder paths recorded and resolved their configured application.</summary>
+    /// <param name="internalBuilder">The internal builder configured with an application factory.</param>
+    /// <param name="internalNativeResult">The result returned from the concrete internal builder overload.</param>
+    /// <param name="internalExtensionResult">The result returned from the interface overload.</param>
+    /// <param name="internalInstanceBuilder">The internal builder configured with an application instance.</param>
+    /// <param name="internalInstanceResult">The result returned from the internal instance overload.</param>
+    /// <param name="internalApplicationResolved">Whether the internal MAUI service collection resolved the application.</param>
+    /// <param name="application">The expected application instance.</param>
+    /// <returns>true when all internal builder paths preserve the configured application; otherwise, false.</returns>
+    private static bool InternalBuilderConfigured(
+        MauiBuilder internalBuilder,
+        IMauiBuilder internalNativeResult,
+        IMauiBuilder internalExtensionResult,
+        MauiBuilder internalInstanceBuilder,
+        IMauiBuilder internalInstanceResult,
+        bool internalApplicationResolved,
+        MauiApplication application) =>
+        ReferenceEquals(internalNativeResult, internalBuilder)
+        && ReferenceEquals(internalExtensionResult, internalBuilder)
+        && internalBuilder.ApplicationType == typeof(TestMauiApplication)
+        && ReferenceEquals(internalInstanceResult, internalInstanceBuilder)
+        && ReferenceEquals(internalInstanceBuilder.Application, application)
+        && ReferenceEquals(internalInstanceBuilder.ApplicationFactory!(new ServiceCollection().BuildServiceProvider()), application)
+        && internalApplicationResolved;
+
+    /// <summary>Checks whether the MAUI service collection resolves the expected application instance.</summary>
+    /// <param name="mauiBuilder">The MAUI builder whose public service collection is inspected.</param>
+    /// <param name="application">The expected application instance.</param>
+    /// <returns>true when the registered application service resolves the expected instance; otherwise, false.</returns>
+    private static bool ResolveMauiApplicationFromServices(IMauiBuilder mauiBuilder, MauiApplication application)
+    {
+        using var serviceProvider = mauiBuilder.MauiAppBuilder.Services.BuildServiceProvider();
+        return ReferenceEquals(serviceProvider.GetRequiredService<MauiIApplication>(), application);
+    }
+
+    /// <summary>Observes application exit through production and composed modal-pop subscriptions.</summary>
+    /// <param name="starter">The application starter to verify.</param>
+    /// <param name="application">The application instance to observe.</param>
+    /// <returns>true when application exit was observed; otherwise, false.</returns>
+    private static bool ObserveApplicationExit(MauiApplicationStarter starter, MauiApplication application)
+    {
+        var applicationExitObserved = false;
+        starter.RegisterApplicationExit(application, () => applicationExitObserved = true);
+        MauiApplicationStarter.RegisterApplicationExit(
+            handler => handler(application, new(new ContentPage())),
+            () => applicationExitObserved = true);
+        return applicationExitObserved;
+    }
+
+    /// <summary>Stops the hosted service with a running context and a real application.</summary>
+    /// <param name="application">The application to stop.</param>
+    /// <returns>true when shutdown completes through the dispatcher.</returns>
+    private static bool StopHostedService(MauiApplication application)
+    {
+        var context = new NativeMauiContext(application);
+        var service = new MauiHostedService(
+            NullLogger<MauiHostedService>.Instance,
+            new MauiThreadStarter(static () => { }),
+            context);
+
+        var stopTask = service.StopAsync(CancellationToken.None);
+        if (!stopTask.IsCompletedSuccessfully)
+        {
+            throw (Exception?)stopTask.Exception ?? new InvalidOperationException("The hosted-service shutdown did not complete synchronously.");
+        }
+
+        return context.Dispatched;
     }
 
     /// <summary>Provides a MAUI shell for native registration tests.</summary>
@@ -152,6 +237,61 @@ public class MauiNativeRuntimeTests
     /// <summary>Provides a WinUI application that owns the native test loop.</summary>
     private sealed class RuntimeTestWinUIApplication : WinUIApplication;
 
+    /// <summary>Provides a running MAUI context backed by a synchronous dispatcher.</summary>
+    private sealed class NativeMauiContext : IMauiContext
+    {
+        /// <summary>Initializes a new instance of the <see cref="NativeMauiContext"/> class.</summary>
+        /// <param name="application">The application owned by the context.</param>
+        public NativeMauiContext(MauiApplication application)
+        {
+            MauiApplication = application;
+            Dispatcher = new NativeDispatcher(MarkDispatched);
+        }
+
+        /// <inheritdoc />
+        public bool IsLifetimeLinked { get; set; }
+
+        /// <inheritdoc />
+        public bool IsRunning { get; set; } = true;
+
+        /// <inheritdoc />
+        public MauiApplication? MauiApplication { get; set; }
+
+        /// <inheritdoc />
+        public IDispatcher? Dispatcher { get; }
+
+        /// <summary>Gets a value indicating whether shutdown was dispatched.</summary>
+        public bool Dispatched { get; private set; }
+
+        /// <summary>Marks the shutdown callback as dispatched.</summary>
+        private void MarkDispatched() =>
+            Dispatched = true;
+
+        /// <summary>Dispatches callbacks synchronously for native hosted-service tests.</summary>
+        /// <param name="markDispatched">The callback that records dispatch.</param>
+        private sealed class NativeDispatcher(Action markDispatched) : IDispatcher
+        {
+            /// <inheritdoc />
+            public bool IsDispatchRequired => false;
+
+            /// <inheritdoc />
+            public bool Dispatch(Action action)
+            {
+                markDispatched();
+                action();
+                return true;
+            }
+
+            /// <inheritdoc />
+            public bool DispatchDelayed(TimeSpan delay, Action action) =>
+                Dispatch(action);
+
+            /// <inheritdoc />
+            public IDispatcherTimer CreateTimer() =>
+                throw new NotSupportedException();
+        }
+    }
+
     /// <summary>Represents a public-interface MAUI builder implementation used to verify extension fallback behavior.</summary>
     private sealed class ExternalMauiBuilder : IMauiBuilder
     {
@@ -160,6 +300,9 @@ public class MauiNativeRuntimeTests
 
         /// <inheritdoc />
         public MauiApplication? Application { get; set; }
+
+        /// <inheritdoc />
+        public Func<IServiceProvider, MauiApplication>? ApplicationFactory { get; set; }
 
         /// <inheritdoc />
         public IList<Type> PageTypes { get; } = [];
@@ -183,6 +326,8 @@ public class MauiNativeRuntimeTests
     /// <param name="StarterCreatedFallback">Whether the application starter created its fallback application.</param>
     /// <param name="ShellMappingResolved">Whether the configured shell mapping resolved the registered shell page.</param>
     /// <param name="ApplicationExitObserved">Whether the registered application-exit callback observed a modal-pop event.</param>
+    /// <param name="ConcreteContextDispatcherAvailable">Whether the concrete context exposed the current application dispatcher.</param>
+    /// <param name="HostedServiceStoppedApplication">Whether hosted-service shutdown dispatched through a real application.</param>
     private sealed record NativeResults(
         bool InternalBuilderConfigured,
         bool ExternalTypeBuilderConfigured,
@@ -194,5 +339,7 @@ public class MauiNativeRuntimeTests
         bool StarterResolvedApplication,
         bool StarterCreatedFallback,
         bool ShellMappingResolved,
-        bool ApplicationExitObserved);
+        bool ApplicationExitObserved,
+        bool ConcreteContextDispatcherAvailable,
+        bool HostedServiceStoppedApplication);
 }

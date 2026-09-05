@@ -11,6 +11,18 @@ namespace Extensions.Hosting.Avalonia.Reactive.Tests;
 [NotInParallel]
 public sealed class ReactiveUiAvaloniaReactiveExtensionsTests
 {
+    /// <summary>Verifies optional locator inputs and required builder validation.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task Configuration_WithNullInputs_PreservesContracts()
+    {
+        IHost host = null!;
+        IHostApplicationBuilder builder = null!;
+
+        await Assert.That(host.MapSplatLocator(null!)).IsNull();
+        await Assert.That(() => builder.ConfigureSplatForMicrosoftDependencyResolver()).Throws<ArgumentNullException>();
+    }
+
     /// <summary>Verifies a built host maps its service provider to Splat and returns itself.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]

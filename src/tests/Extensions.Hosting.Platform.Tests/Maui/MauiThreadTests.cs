@@ -43,14 +43,70 @@ public class MauiThreadTests
     [Test]
     public async Task MauiContext_WithoutCurrentApplication_HasNoDispatcher()
     {
+        var previousApplication = Application.Current;
+        try
+        {
+            Application.Current = null;
+            var context = new MauiContext();
+
+            await Assert.That(context.Dispatcher).IsNull();
+        }
+        finally
+        {
+            Application.Current = previousApplication;
+        }
+    }
+
+    /// <summary>Verifies the concrete MAUI context exposes its default and retained application lifecycle state.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task MauiContext_DefaultsAndApplicationState_AreRetained()
+    {
+        var application = Application.Current;
         var context = new MauiContext();
 
-        await Assert.That(context.Dispatcher).IsNull();
+        await Assert.That(context.IsRunning).IsFalse();
+        await Assert.That(context.MauiApplication).IsNull();
+
+        context.IsRunning = true;
+        context.MauiApplication = application;
+
+        await Assert.That(context.IsRunning).IsTrue();
+        await Assert.That(context.MauiApplication).IsSameReferenceAs(application);
+    }
+
+    /// <summary>Verifies UI-thread startup tolerates a context without a dispatcher.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Start_WithNoDispatcher_DoesNotCreateApplication()
+    {
+        var context = new TestMauiContext(null);
+        var services = new ServiceCollection()
+            .AddSingleton<IMauiContext>(context);
+        await using var serviceProvider = services.BuildServiceProvider();
+        using var mauiThread = new MauiThread(serviceProvider, new TestMauiApplicationStarter(), useDedicatedUiThread: false);
+
+        mauiThread.Start();
+
+        await Assert.That(context.IsRunning).IsTrue();
+        await Assert.That(context.MauiApplication).IsNull();
+    }
+
+    /// <summary>Verifies that composed MAUI thread construction validates the application starter.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Constructor_WithNullApplicationStarter_ThrowsArgumentNullException()
+    {
+        var services = new ServiceCollection()
+            .AddSingleton<IMauiContext>(new TestMauiContext(new ImmediateDispatcher()));
+        await using var serviceProvider = services.BuildServiceProvider();
+
+        await Assert.That(() => new MauiThread(serviceProvider, null!, useDedicatedUiThread: false)).Throws<ArgumentNullException>();
     }
 
     /// <summary>Provides an MAUI context backed by a deterministic dispatcher.</summary>
     /// <param name="dispatcher">The dispatcher used by the context.</param>
-    private sealed class TestMauiContext(IDispatcher dispatcher) : IMauiContext
+    private sealed class TestMauiContext(IDispatcher? dispatcher) : IMauiContext
     {
         /// <inheritdoc />
         public bool IsLifetimeLinked { get; set; }

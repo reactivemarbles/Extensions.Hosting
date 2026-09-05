@@ -20,8 +20,8 @@ public sealed class AvaloniaBuilderExtensionsTests
         var contextConfigured = false;
         var appBuilderConfigured = false;
 
-        var windowResult = builder.UseWindow<TestShellWindow>();
-        var applicationResult = builder.UseApplication<TestApplication>();
+        var windowResult = builder.UseWindow(typeof(TestShellWindow));
+        var applicationResult = builder.UseApplication(typeof(TestApplication));
         var currentApplicationResult = builder.UseCurrentApplication(application);
         var contextResult = builder.ConfigureContext(_ => contextConfigured = true);
         var appBuilderResult = builder.ConfigureAppBuilder(_ => appBuilderConfigured = true);
@@ -51,8 +51,8 @@ public sealed class AvaloniaBuilderExtensionsTests
     {
         IAvaloniaBuilder? builder = null;
 
-        var useWindow = () => builder!.UseWindow<TestShellWindow>();
-        var useApplication = () => builder!.UseApplication<TestApplication>();
+        var useWindow = () => builder!.UseWindow(typeof(TestShellWindow));
+        var useApplication = () => builder!.UseApplication(typeof(TestApplication));
         var useCurrentApplication = () => builder!.UseCurrentApplication(new TestApplication());
         var configureContext = () => builder!.ConfigureContext(static _ => { });
         var configureAppBuilder = () => builder!.ConfigureAppBuilder(static _ => { });
@@ -62,6 +62,20 @@ public sealed class AvaloniaBuilderExtensionsTests
         await Assert.That(useCurrentApplication).Throws<ArgumentNullException>();
         await Assert.That(configureContext).Throws<ArgumentNullException>();
         await Assert.That(configureAppBuilder).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies invalid type-selection arguments are rejected.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task TypeSelectionExtensions_WithInvalidTypes_ThrowArgumentException()
+    {
+        var builder = new TestAvaloniaBuilder();
+
+        await Assert.That(() => builder.UseWindow(typeof(string))).Throws<ArgumentException>();
+        await Assert.That(() => builder.UseApplication(typeof(string))).Throws<ArgumentException>();
+        await Assert.That(() => builder.UseWindow(null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.UseApplication(null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.UseCurrentApplication(null!)).Throws<ArgumentNullException>();
     }
 
     /// <summary>A test implementation of the Avalonia builder contract.</summary>

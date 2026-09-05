@@ -25,9 +25,9 @@ public sealed class MultipleShellLifecycleCoverageTests
         var builder = Host.CreateApplicationBuilder();
         _ = builder.ConfigureWpf(static wpfBuilder =>
         {
-            _ = wpfBuilder.UseApplication<MultipleShellApplication>();
-            _ = wpfBuilder.UseWindow<FirstShellWindow>();
-            _ = wpfBuilder.UseWindow<SecondShellWindow>();
+            _ = wpfBuilder.UseApplication(typeof(MultipleShellApplication));
+            _ = wpfBuilder.UseWindow(typeof(FirstShellWindow));
+            _ = wpfBuilder.UseWindow(typeof(SecondShellWindow));
         });
         using var host = builder.Build();
 

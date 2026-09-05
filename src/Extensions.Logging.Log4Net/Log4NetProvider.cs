@@ -29,14 +29,14 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     /// <summary>The loggers collection.</summary>
     private readonly ConcurrentDictionary<string, Log4NetLogger> _loggers = new();
 
-    /// <summary>Prevents to dispose the object more than single time.</summary>
-    private bool _disposedValue;
-
     /// <summary>The log4net repository.</summary>
-    private ILoggerRepository? _loggerRepository;
+    private readonly ILoggerRepository _loggerRepository;
 
     /// <summary>The provider options.</summary>
-    private Log4NetProviderOptions? _options;
+    private readonly Log4NetProviderOptions _options;
+
+    /// <summary>Prevents to dispose the object more than single time.</summary>
+    private bool _disposedValue;
 
     /// <summary>Initializes a new instance of the <see cref="Log4NetProvider"/> class.</summary>
     public Log4NetProvider()
@@ -57,11 +57,11 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     /// <exception cref="NotSupportedException">Wach cannot be true when you are overwriting config file values with values from configuration section.</exception>
     public Log4NetProvider(Log4NetProviderOptions options)
     {
-        SetOptionsIfValid(options);
+        _options = ValidateOptions(options);
 
         var loggingAssembly = GetLoggingReferenceAssembly();
 
-        CreateLoggerRepository(loggingAssembly);
+        _loggerRepository = CreateLoggerRepository(loggingAssembly);
         ConfigureLog4NetLibrary();
     }
 
@@ -82,7 +82,7 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
     /// <summary>Creates the logger.</summary>
     /// <returns>An instance of the <see cref="ILogger"/>.</returns>
     public ILogger CreateLogger() =>
-        CreateLogger(_options?.Name ?? string.Empty);
+        CreateLogger(_options.Name ?? string.Empty);
 
     /// <summary>Creates the logger.</summary>
     /// <param name="categoryName">The category name.</param>
@@ -115,11 +115,33 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
 
         if (disposing)
         {
-            _loggerRepository?.Shutdown();
+            _loggerRepository.Shutdown();
             _loggers.Clear();
         }
 
         _disposedValue = true;
+    }
+
+    /// <summary>Ensures that the provided option combinations are valid.</summary>
+    /// <param name="options">The options to validate.</param>
+    /// <returns>The validated options.</returns>
+    /// <exception cref="NotSupportedException">
+    /// Throws when the Watch option is set and there are properties to override.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws when the options parameter is null.
+    /// </exception>
+    private static Log4NetProviderOptions ValidateOptions(Log4NetProviderOptions options)
+    {
+        _ = options ?? throw new ArgumentNullException(nameof(options));
+
+        if (options.Watch
+            && options.PropertyOverrides.Count > 0)
+        {
+            throw new NotSupportedException("Wach cannot be true when you are overwriting config file values with values from configuration section.");
+        }
+
+        return options;
     }
 
     /// <summary>Updates configuration nodes overriding values if required.</summary>
@@ -199,10 +221,10 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
         var loggerOptions = new Log4NetProviderOptions
         {
             Name = name,
-            LoggerRepository = _loggerRepository?.Name,
-            OverrideCriticalLevelWith = _options?.OverrideCriticalLevelWith ?? string.Empty,
-            LoggingEventFactory = _options?.LoggingEventFactory ?? new Log4NetLoggingEventFactory(),
-            LogLevelTranslator = _options?.LogLevelTranslator ?? new Log4NetLogLevelTranslator(),
+            LoggerRepository = _loggerRepository.Name,
+            OverrideCriticalLevelWith = _options.OverrideCriticalLevelWith ?? string.Empty,
+            LoggingEventFactory = _options.LoggingEventFactory ?? new Log4NetLoggingEventFactory(),
+            LogLevelTranslator = _options.LogLevelTranslator ?? new Log4NetLogLevelTranslator(),
         };
 
         return new(loggerOptions, ExternalScopeProvider);
@@ -210,39 +232,18 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
 
     /// <summary>Gets the current executing assembly considering the target framework.</summary>
     /// <returns>The assembly to be used as the reference logging assembly.</returns>
-    private Assembly GetLoggingReferenceAssembly() => _options?.ConfigurationAssembly ?? typeof(Log4NetProvider).Assembly;
-
-    /// <summary>Ensures that provided options combinations are valid, and sets the class field if everything is ok.</summary>
-    /// <param name="options">The options to validate.</param>
-    /// <exception cref="NotSupportedException">
-    /// Throws when the Watch option is set and there are properties to override.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// Throws when the options parameter is null.
-    /// </exception>
-    private void SetOptionsIfValid(Log4NetProviderOptions options)
-    {
-        _ = options ?? throw new ArgumentNullException(nameof(options));
-
-        if (options.Watch
-            && options.PropertyOverrides.Count > 0)
-        {
-            throw new NotSupportedException("Wach cannot be true when you are overwriting config file values with values from configuration section.");
-        }
-
-        _options = options;
-    }
+    private Assembly GetLoggingReferenceAssembly() => _options.ConfigurationAssembly ?? typeof(Log4NetProvider).Assembly;
 
     /// <summary>Configures the log4net library using the available configuration data.</summary>
     private void ConfigureLog4NetLibrary()
     {
-        if (_options?.UseWebOrAppConfig == true)
+        if (_options.UseWebOrAppConfig)
         {
-            _ = XmlConfigurator.Configure(_loggerRepository!);
+            _ = XmlConfigurator.Configure(_loggerRepository);
             return;
         }
 
-        if (_options?.ExternalConfigurationSetup != false)
+        if (_options.ExternalConfigurationSetup)
         {
             return;
         }
@@ -250,7 +251,7 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
         var fileNamePath = CreateLog4NetFilePath();
         if (_options.Watch)
         {
-            _ = XmlConfigurator.ConfigureAndWatch(_loggerRepository!, new(fileNamePath));
+            _ = XmlConfigurator.ConfigureAndWatch(_loggerRepository, new(fileNamePath));
             return;
         }
 
@@ -260,14 +261,14 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
             configXml = UpdateNodesWithOverridingValues(configXml, _options.PropertyOverrides);
         }
 
-        _ = XmlConfigurator.Configure(_loggerRepository!, configXml.DocumentElement!);
+        _ = XmlConfigurator.Configure(_loggerRepository, configXml.DocumentElement!);
     }
 
     /// <summary>Creates the log4net.config file path.</summary>
     /// <returns>The full path to the log4net.config file.</returns>
     private string CreateLog4NetFilePath()
     {
-        var fileNamePath = _options?.Log4NetConfigFileName ?? string.Empty;
+        var fileNamePath = _options.Log4NetConfigFileName ?? string.Empty;
         if (!Path.IsPathRooted(fileNamePath))
         {
             fileNamePath = Path.Combine(AppContext.BaseDirectory, fileNamePath);
@@ -278,39 +279,24 @@ public class Log4NetProvider : ILoggerProvider, ISupportExternalScope
 
     /// <summary>Gets or creates the logger repository using the given assembly.</summary>
     /// <param name="assembly">The assembly to be used to create the repository.</param>
-    private void CreateLoggerRepository(Assembly assembly)
+    /// <returns>The repository used by this provider.</returns>
+    private ILoggerRepository CreateLoggerRepository(Assembly assembly)
     {
         var repositoryType = typeof(Hierarchy);
-        var repositoryName = _options!.LoggerRepository;
+        var repositoryName = _options.LoggerRepository;
 
-        if (string.IsNullOrEmpty(repositoryName))
+        if (repositoryName is not { Length: > 0 })
         {
-            _loggerRepository = LogManager.CreateRepository(assembly, repositoryType);
-            return;
+            return LogManager.CreateRepository(assembly, repositoryType);
         }
 
-        if (TryUseExistingRepository(repositoryName!))
-        {
-            return;
-        }
-
-        _loggerRepository ??= LogManager.CreateRepository(repositoryName!, repositoryType);
-    }
-
-    /// <summary>Attempts to use an existing log4net repository for the configured repository name.</summary>
-    /// <param name="repositoryName">The repository name to resolve.</param>
-    /// <returns>true when the repository was found and external configuration means no further setup is required; otherwise, false.</returns>
-    private bool TryUseExistingRepository(string repositoryName)
-    {
         try
         {
-            _loggerRepository = LogManager.GetRepository(repositoryName);
-            return _options!.ExternalConfigurationSetup;
+            return LogManager.GetRepository(repositoryName);
         }
         catch (LogException)
         {
-            _loggerRepository = null;
-            return false;
+            return LogManager.CreateRepository(repositoryName, repositoryType);
         }
     }
 }

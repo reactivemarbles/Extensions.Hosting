@@ -285,13 +285,16 @@ public class AssemblyLoadingTests
         await Assert.That(assembly!.GetName().Name).IsEqualTo(assemblyName.Name);
         await Assert.That(Path.GetFullPath(assembly.Location)).IsEqualTo(Path.GetFullPath(pluginPath));
         var pluginCount = 0;
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
         foreach (var plugin in ReactiveMarbles.Extensions.Hosting.Plugins.PluginScanner.ScanForPluginInstances(assembly))
         {
-            _ = plugin;
+            await Assert.That(plugin).IsNotNull();
+            plugin!.ConfigureHost(new(), services);
             pluginCount++;
         }
 
         await Assert.That(pluginCount).IsEqualTo(1);
+        await Assert.That(services.Count).IsEqualTo(0);
     }
 
     /// <summary>Verifies that PluginLoadContext returns null when a plugin-local assembly cannot be resolved.</summary>

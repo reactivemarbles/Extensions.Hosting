@@ -7,12 +7,28 @@ using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ReactiveMarbles.Extensions.Hosting.Avalonia;
+using ReactiveMarbles.Extensions.Hosting.Avalonia.Internals;
 
 namespace Extensions.Hosting.Avalonia.Tests;
 
 /// <summary>Verifies host configuration for Avalonia.</summary>
 public sealed class AvaloniaHostingExtensionsTests
 {
+    /// <summary>Verifies application-builder customization is applied when the UI thread is resolved.</summary>
+    /// <returns>A task representing the test.</returns>
+    [Test]
+    public async Task ConfigureAvalonia_ResolvedThread_AppliesAppBuilderConfiguration()
+    {
+        var configured = false;
+        var builder = Host.CreateApplicationBuilder();
+        _ = builder.ConfigureAvalonia(avalonia => avalonia.ConfigureAppBuilder(_ => configured = true));
+        using var host = builder.Build();
+
+        _ = host.Services.GetRequiredService<AvaloniaThread>();
+
+        await Assert.That(configured).IsTrue();
+    }
+
     /// <summary>Verifies service registration and context configuration through an application host builder.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -22,9 +38,9 @@ public sealed class AvaloniaHostingExtensionsTests
         var contextConfigured = false;
         _ = builder.ConfigureAvalonia(avaloniaBuilder =>
         {
-            _ = avaloniaBuilder.UseApplication<TestApplication>();
-            _ = avaloniaBuilder.UseWindow<TestShellWindow>();
-            _ = avaloniaBuilder.UseWindow<Window>();
+            _ = avaloniaBuilder.UseApplication(typeof(TestApplication));
+            _ = avaloniaBuilder.UseWindow(typeof(TestShellWindow));
+            _ = avaloniaBuilder.UseWindow(typeof(Window));
             _ = avaloniaBuilder.ConfigureContext(context =>
             {
                 context.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -51,7 +67,7 @@ public sealed class AvaloniaHostingExtensionsTests
     {
         var builder = Host.CreateApplicationBuilder();
         _ = builder.ConfigureAvalonia();
-        _ = builder.ConfigureAvalonia(static avaloniaBuilder => avaloniaBuilder.UseApplication<Application>());
+        _ = builder.ConfigureAvalonia(static avaloniaBuilder => avaloniaBuilder.UseApplication(typeof(Application)));
 
         using var host = builder.Build();
         var hostedServices = host.Services.GetServices<IHostedService>();
@@ -128,7 +144,7 @@ public sealed class AvaloniaHostingExtensionsTests
     [Test]
     public async Task ConfigureAvalonia_WithHostBuilder_RegistersApplication()
     {
-        var hostBuilder = Host.CreateDefaultBuilder().ConfigureAvalonia(static avaloniaBuilder => avaloniaBuilder.UseApplication<TestApplication>());
+        var hostBuilder = Host.CreateDefaultBuilder().ConfigureAvalonia(static avaloniaBuilder => avaloniaBuilder.UseApplication(typeof(TestApplication)));
 
         using var host = hostBuilder.Build();
 

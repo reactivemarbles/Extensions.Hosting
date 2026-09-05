@@ -22,7 +22,7 @@ public static class MauiProgram
         _ = builder
             .ConfigureMaui(static maui =>
             {
-                _ = maui.UseMauiApp<App>(static mauiapp =>
+                _ = maui.UseMauiApp(static _ => new App(), static mauiapp =>
                 {
                     _ = mauiapp
                         .ConfigureFonts(static fonts =>
@@ -35,8 +35,8 @@ public static class MauiProgram
                     _ = mauiapp.Logging.AddDebug();
 #endif
                 });
-                _ = maui.AddSingletonPage<MainPage>();
-                _ = maui.AddSingletonPage<SecondPage>();
+                _ = maui.AddSingletonPage(typeof(MainPage));
+                _ = maui.AddSingletonPage(typeof(SecondPage));
                 _ = maui.ConfigureContext(static ctx =>
                 {
                     // Example: configure the MAUI context

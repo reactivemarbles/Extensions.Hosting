@@ -24,39 +24,52 @@ public static class MauiBuilderExtensions
         /// <remarks>Use this method to ensure that only a single instance of the specified page type is created
         /// and used throughout the application's lifetime. This is useful for pages that should maintain state or resources
         /// across the application.</remarks>
-        /// <typeparam name="TPage">The type of the page to register. Must inherit from Page.</typeparam>
+        /// <param name="pageType">The type of the page to register. Must inherit from Page.</param>
         /// <returns>The same IMauiBuilder instance for method chaining, or null if the input was null.</returns>
-        public IMauiBuilder? AddSingletonPage<TPage>()
-            where TPage : Page
+        /// <exception cref="ArgumentException">Thrown if <paramref name="pageType"/> does not inherit from <see cref="Page"/>.</exception>
+        public IMauiBuilder? AddSingletonPage(Type pageType)
         {
-            mauiBuilder?.PageTypes.Add(typeof(TPage));
+            if (mauiBuilder is null)
+            {
+                return null;
+            }
+
+            ValidatePageType(pageType);
+            mauiBuilder.PageTypes.Add(pageType);
             return mauiBuilder;
         }
 
-        /// <summary>Configures the Maui application to use the specified application type and applies optional additional configuration to the Maui app builder.</summary>
+        /// <summary>Configures the Maui application using the specified application factory.</summary>
         /// <typeparam name="TApplication">The type of the application to use. Must derive from <see cref="Application"/>.</typeparam>
+        /// <param name="applicationFactory">The factory that creates the MAUI application.</param>
         /// <returns>The same <see cref="IMauiBuilder"/> instance, configured to use the specified application type.</returns>
-        public IMauiBuilder UseMauiApp<TApplication>()
+        public IMauiBuilder UseMauiApp<TApplication>(Func<IServiceProvider, TApplication> applicationFactory)
             where TApplication : Application =>
-            mauiBuilder.UseMauiApp<TApplication>((Action<MauiAppBuilder>?)null);
+            mauiBuilder.UseMauiApp(applicationFactory, null);
 
-        /// <summary>Configures the MAUI application type and applies additional builder configuration.</summary>
+        /// <summary>Configures the MAUI application factory and applies additional builder configuration.</summary>
         /// <typeparam name="TApplication">The type of the application to use. Must derive from <see cref="Application"/>.</typeparam>
+        /// <param name="applicationFactory">The factory that creates the MAUI application.</param>
         /// <param name="configureMauiApp">A delegate to further configure the <see cref="MauiAppBuilder"/>.</param>
         /// <returns>The same <see cref="IMauiBuilder"/> instance, configured to use the specified application type.</returns>
-        public IMauiBuilder UseMauiApp<TApplication>(Action<MauiAppBuilder>? configureMauiApp)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="applicationFactory"/> is null.</exception>
+        public IMauiBuilder UseMauiApp<TApplication>(
+            Func<IServiceProvider, TApplication> applicationFactory,
+            Action<MauiAppBuilder>? configureMauiApp)
             where TApplication : Application
         {
             _ = mauiBuilder ?? throw new ArgumentNullException(nameof(mauiBuilder));
+            _ = applicationFactory ?? throw new ArgumentNullException(nameof(applicationFactory));
 
             mauiBuilder.ApplicationType = typeof(TApplication);
+            mauiBuilder.ApplicationFactory = serviceProvider => applicationFactory(serviceProvider);
             if (mauiBuilder is MauiBuilder builder)
             {
-                _ = builder.UseMauiApp<TApplication>();
+                _ = builder.ApplyMauiApplicationDefaults(applicationFactory);
             }
             else
             {
-                _ = mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+                _ = mauiBuilder.MauiAppBuilder.UseMauiApp(applicationFactory);
             }
 
             configureMauiApp?.Invoke(mauiBuilder.MauiAppBuilder);
@@ -82,16 +95,18 @@ public static class MauiBuilderExtensions
             where TApplication : Application
         {
             _ = mauiBuilder ?? throw new ArgumentNullException(nameof(mauiBuilder));
+            _ = currentApplication ?? throw new ArgumentNullException(nameof(currentApplication));
 
             mauiBuilder.ApplicationType = typeof(TApplication);
             mauiBuilder.Application = currentApplication;
+            mauiBuilder.ApplicationFactory = _ => currentApplication;
             if (mauiBuilder is MauiBuilder builder)
             {
-                _ = builder.UseMauiApp<TApplication>();
+                _ = builder.ApplyMauiApplicationDefaults(_ => currentApplication);
             }
             else
             {
-                _ = mauiBuilder.MauiAppBuilder.UseMauiApp<TApplication>();
+                _ = mauiBuilder.MauiAppBuilder.UseMauiApp(_ => currentApplication);
             }
 
             configureMauiApp?.Invoke(mauiBuilder.MauiAppBuilder);
@@ -112,5 +127,20 @@ public static class MauiBuilderExtensions
             mauiBuilder.ConfigureContextAction = configureAction;
             return mauiBuilder;
         }
+    }
+
+    /// <summary>Validates that the supplied type can be used as a MAUI page.</summary>
+    /// <param name="pageType">The page type to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="pageType"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="pageType"/> does not derive from <see cref="Page"/>.</exception>
+    private static void ValidatePageType(Type pageType)
+    {
+        _ = pageType ?? throw new ArgumentNullException(nameof(pageType));
+        if (typeof(Page).IsAssignableFrom(pageType))
+        {
+            return;
+        }
+
+        throw new ArgumentException("The registered page type must inherit Microsoft.Maui.Controls.Page.", nameof(pageType));
     }
 }

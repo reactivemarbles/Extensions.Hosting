@@ -4,6 +4,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ReactiveMarbles.Extensions.Hosting.Avalonia;
@@ -24,7 +25,7 @@ public sealed class NativeWindowLifecycleTests
     public async Task OneShellWindow_StartsAndShutsDownInDedicatedProcess()
     {
         var signals = new LifecycleSignals();
-        using var host = BuildHost(signals, static builder => builder.UseWindow<FirstShellWindow>());
+        using var host = BuildHost(signals, static builder => builder.UseWindow(typeof(FirstShellWindow)));
 
         await StartAndAwaitShutdown(host, signals);
     }
@@ -37,8 +38,8 @@ public sealed class NativeWindowLifecycleTests
         var signals = new LifecycleSignals();
         using var host = BuildHost(signals, static builder =>
         {
-            _ = builder.UseWindow<FirstShellWindow>();
-            _ = builder.UseWindow<SecondShellWindow>();
+            _ = builder.UseWindow(typeof(FirstShellWindow));
+            _ = builder.UseWindow(typeof(SecondShellWindow));
         });
 
         await StartAndAwaitShutdown(host, signals);
@@ -56,7 +57,7 @@ public sealed class NativeWindowLifecycleTests
         _ = builder.Services.AddSingleton<IAvaloniaService, RecordingAvaloniaService>();
         _ = builder.ConfigureAvalonia(avaloniaBuilder =>
         {
-            _ = avaloniaBuilder.UseApplication<ShutdownApplication>();
+            _ = avaloniaBuilder.UseApplication(typeof(ShutdownApplication));
             configureWindows(avaloniaBuilder);
         });
         _ = builder.UseAvaloniaLifetime();
@@ -75,6 +76,9 @@ public sealed class NativeWindowLifecycleTests
         thread.Start();
 
         await signals.Initialized.Task.WaitAsync(Timeout);
+        var context = host.Services.GetRequiredService<IAvaloniaContext>();
+        var mainWindowIsVisible = await context.Dispatcher.InvokeAsync(() => context.ApplicationLifetime?.MainWindow?.IsVisible);
+        await Assert.That(mainWindowIsVisible).IsTrue();
         await GetAvaloniaHostedService(host).StopAsync(CancellationToken.None).WaitAsync(Timeout);
         await completion.Task.WaitAsync(Timeout);
         await host.StopAsync().WaitAsync(Timeout);
@@ -166,7 +170,15 @@ public sealed class NativeWindowLifecycleTests
     public sealed class RecordingAvaloniaService(LifecycleSignals signals) : IAvaloniaService
     {
         /// <inheritdoc />
-        public void Initialize(Application application) => _ = signals.Initialized.TrySetResult(application);
+        public void Initialize(Application application) =>
+            Dispatcher.UIThread.Post(
+                static state =>
+                {
+                    var (startupSignals, initializedApplication) = ((LifecycleSignals, Application))state!;
+                    _ = startupSignals.Initialized.TrySetResult(initializedApplication);
+                },
+                (signals, application),
+                DispatcherPriority.ApplicationIdle);
     }
 
     /// <summary>Stores the application startup signal.</summary>

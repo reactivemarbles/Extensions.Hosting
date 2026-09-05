@@ -26,6 +26,16 @@ public class MauiHostingRegistrationTests
         await Assert.That(ReferenceEquals(result, builder)).IsTrue();
     }
 
+    /// <summary>Verifies that null application builders are rejected by lifetime configuration.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task UseMauiLifetime_WithNullApplicationBuilder_ThrowsArgumentNullException()
+    {
+        IHostApplicationBuilder? builder = null;
+
+        await Assert.That(() => builder!.UseMauiLifetime()).Throws<ArgumentNullException>();
+    }
+
     /// <summary>Verifies that MAUI configuration registers its lifetime and hosted service once.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -60,8 +70,8 @@ public class MauiHostingRegistrationTests
         var result = builder.ConfigureMaui(static maui =>
         {
             maui.ApplicationType = typeof(TestMauiApplication);
-            _ = maui.AddSingletonPage<TestMauiShell>();
-            _ = maui.AddSingletonPage<ContentPage>();
+            _ = maui.AddSingletonPage(typeof(TestMauiShell));
+            _ = maui.AddSingletonPage(typeof(ContentPage));
             _ = maui.ConfigureContext(static context => context.IsLifetimeLinked = true);
         });
         await using var serviceProvider = builder.Services.BuildServiceProvider();
@@ -73,6 +83,24 @@ public class MauiHostingRegistrationTests
         await Assert.That(CountRegistrations(builder.Services, typeof(ContentPage), null)).IsEqualTo(1);
     }
 
+    /// <summary>Verifies application-builder configuration preserves the configured application factory in host DI.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureMaui_WithApplicationFactory_RegistersFactoryInHostServices()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        _ = builder.ConfigureMaui(static maui =>
+        {
+            maui.ApplicationType = typeof(TestMauiApplication);
+            maui.ApplicationFactory = static _ => null!;
+        });
+        var descriptor = FindRegistration(builder.Services, typeof(TestMauiApplication));
+
+        await Assert.That(descriptor.ImplementationFactory).IsNotNull();
+        await Assert.That(descriptor.ImplementationFactory!(new ServiceCollection().BuildServiceProvider())).IsNull();
+    }
+
     /// <summary>Verifies the application-builder shell and base-application convenience paths register their services.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -80,7 +108,7 @@ public class MauiHostingRegistrationTests
     {
         var builder = Host.CreateApplicationBuilder();
 
-        var shellResult = builder.ConfigureMauiShell<TestMauiShell>();
+        var shellResult = builder.ConfigureMauiShell(typeof(TestMauiShell));
         var applicationResult = builder.ConfigureMaui(static maui => maui.ApplicationType = typeof(Application));
         await using var serviceProvider = builder.Services.BuildServiceProvider();
         using var mauiThread = serviceProvider.GetRequiredService<MauiThread>();
@@ -100,6 +128,22 @@ public class MauiHostingRegistrationTests
         await Assert.That(() => builder.ConfigureMaui(static maui => maui.ApplicationType = typeof(string))).Throws<ArgumentException>();
     }
 
+    /// <summary>Verifies invalid MAUI shell type-selection arguments are rejected.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureMauiShell_WithInvalidTypeSelectionArguments_Throws()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        var hostBuilder = Host.CreateDefaultBuilder();
+
+        await Assert.That(() => builder.ConfigureMauiShell(null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => builder.ConfigureMauiShell(typeof(string))).Throws<ArgumentException>();
+        await Assert.That(() => builder.ConfigureMauiShell(typeof(ContentPage))).Throws<ArgumentException>();
+        await Assert.That(() => hostBuilder.ConfigureMauiShell(null!)).Throws<ArgumentNullException>();
+        await Assert.That(() => hostBuilder.ConfigureMauiShell(typeof(string))).Throws<ArgumentException>();
+        await Assert.That(() => hostBuilder.ConfigureMauiShell(typeof(ContentPage))).Throws<ArgumentException>();
+    }
+
     /// <summary>Verifies legacy host-builder configuration is materialized during host construction.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -111,7 +155,7 @@ public class MauiHostingRegistrationTests
         var configurationResult = builder.ConfigureMaui(static maui =>
         {
             maui.ApplicationType = typeof(TestMauiApplication);
-            _ = maui.AddSingletonPage<TestMauiShell>();
+            _ = maui.AddSingletonPage(typeof(TestMauiShell));
             _ = maui.ConfigureContext(static context => context.IsLifetimeLinked = true);
         });
         using var host = builder.Build();
@@ -133,6 +177,16 @@ public class MauiHostingRegistrationTests
         await Assert.That(result).IsSameReferenceAs(builder);
     }
 
+    /// <summary>Verifies that null legacy host builders are rejected by configuration.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureMaui_WithNullLegacyHostBuilder_ThrowsArgumentNullException()
+    {
+        IHostBuilder? builder = null;
+
+        await Assert.That(() => builder!.ConfigureMaui()).Throws<ArgumentNullException>();
+    }
+
     /// <summary>Verifies legacy shell configuration and null legacy builders preserve their documented behavior.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -141,13 +195,13 @@ public class MauiHostingRegistrationTests
         var builder = Host.CreateDefaultBuilder();
         IHostBuilder? nullBuilder = null;
 
-        var result = builder.ConfigureMauiShell<TestMauiShell>();
+        var result = builder.ConfigureMauiShell(typeof(TestMauiShell));
         using var host = builder.Build();
 
         await Assert.That(result).IsSameReferenceAs(builder);
         await Assert.That(host.Services.GetRequiredService<IMauiContext>()).IsNotNull();
         await Assert.That(nullBuilder!.UseMauiLifetime()).IsNull();
-        await Assert.That(nullBuilder!.ConfigureMauiShell<TestMauiShell>()).IsNull();
+        await Assert.That(nullBuilder!.ConfigureMauiShell(typeof(TestMauiShell))).IsNull();
     }
 
     /// <summary>Counts registrations with matching types.</summary>
@@ -167,6 +221,24 @@ public class MauiHostingRegistrationTests
         }
 
         return count;
+    }
+
+    /// <summary>Finds the first service registration with the specified service type.</summary>
+    /// <param name="services">The service registrations to inspect.</param>
+    /// <param name="serviceType">The expected service type.</param>
+    /// <returns>The first matching service registration.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when no matching registration exists.</exception>
+    private static ServiceDescriptor FindRegistration(IEnumerable<ServiceDescriptor> services, Type serviceType)
+    {
+        foreach (var descriptor in services)
+        {
+            if (descriptor.ServiceType == serviceType)
+            {
+                return descriptor;
+            }
+        }
+
+        throw new InvalidOperationException("The expected service registration was not found.");
     }
 
     /// <summary>Represents an application type used exclusively for hosting registration tests.</summary>

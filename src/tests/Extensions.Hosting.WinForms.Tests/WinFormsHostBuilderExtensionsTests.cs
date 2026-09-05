@@ -23,7 +23,7 @@ public sealed class WinFormsHostBuilderExtensionsTests
 
         await Assert.That(() => hostBuilder!.UseWinFormsLifetime()).Throws<ArgumentNullException>();
         await Assert.That(() => hostBuilder!.ConfigureWinForms()).Throws<ArgumentNullException>();
-        await Assert.That(() => hostBuilder!.ConfigureWinForms<TestForm>()).Throws<ArgumentNullException>();
+        await Assert.That(() => hostBuilder!.ConfigureWinForms(typeof(TestForm))).Throws<ArgumentNullException>();
     }
 
     /// <summary>Verifies that application builders configure the shared context once and apply each requested configuration.</summary>
@@ -67,7 +67,7 @@ public sealed class WinFormsHostBuilderExtensionsTests
     public async Task ConfigureWinFormsShell_ApplicationBuilder_RegistersConcreteShellAndShellInterface()
     {
         var hostBuilder = Host.CreateApplicationBuilder();
-        _ = hostBuilder.ConfigureWinFormsShell<TestShell>();
+        _ = hostBuilder.ConfigureWinFormsShell(typeof(TestShell));
 
         using var host = hostBuilder.Build();
         var shell = host.Services.GetRequiredService<TestShell>();
@@ -81,7 +81,7 @@ public sealed class WinFormsHostBuilderExtensionsTests
     public async Task ConfigureWinForms_ApplicationBuilder_RegistersNonShellFormWithoutShellInterface()
     {
         var hostBuilder = Host.CreateApplicationBuilder();
-        _ = hostBuilder.ConfigureWinForms<TestForm>();
+        _ = hostBuilder.ConfigureWinForms(typeof(TestForm));
 
         using var host = hostBuilder.Build();
 
@@ -98,8 +98,8 @@ public sealed class WinFormsHostBuilderExtensionsTests
 
         await Assert.That(hostBuilder!.UseWinFormsLifetime()).IsNull();
         await Assert.That(hostBuilder!.ConfigureWinForms()).IsNull();
-        await Assert.That(hostBuilder!.ConfigureWinForms<TestForm>()).IsNull();
-        await Assert.That(hostBuilder!.ConfigureWinFormsShell<TestShell>()).IsNull();
+        await Assert.That(hostBuilder!.ConfigureWinForms(typeof(TestForm))).IsNull();
+        await Assert.That(hostBuilder!.ConfigureWinFormsShell(typeof(TestShell))).IsNull();
     }
 
     /// <summary>Verifies that legacy builders configure a shared context and shell registrations.</summary>
@@ -109,7 +109,7 @@ public sealed class WinFormsHostBuilderExtensionsTests
     {
         var hostBuilder = Host.CreateDefaultBuilder();
         _ = hostBuilder.ConfigureWinForms(static context => context.EnableVisualStyles = false);
-        _ = hostBuilder.ConfigureWinFormsShell<TestShell>();
+        _ = hostBuilder.ConfigureWinFormsShell(typeof(TestShell));
         _ = hostBuilder.UseWinFormsLifetime();
 
         using var host = hostBuilder.Build();
@@ -135,7 +135,7 @@ public sealed class WinFormsHostBuilderExtensionsTests
     public async Task ConfigureWinForms_HostBuilder_RegistersNonShellFormWithoutShellInterface()
     {
         var hostBuilder = Host.CreateDefaultBuilder();
-        _ = hostBuilder.ConfigureWinForms<TestForm>();
+        _ = hostBuilder.ConfigureWinForms(typeof(TestForm));
 
         using var host = hostBuilder.Build();
 
