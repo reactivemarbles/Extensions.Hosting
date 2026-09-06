@@ -71,7 +71,11 @@ internal sealed class MutexLifetimeService(
     /// <summary>Attempts to stop the operation asynchronously, honoring cancellation requests.</summary>
     /// <param name="cancellationToken">A token that can be used to request cancellation of the stop operation.</param>
     /// <returns>A task that represents the asynchronous stop operation.</returns>
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        OnStopping();
+        return Task.CompletedTask;
+    }
 
     /// <summary>Performs cleanup operations when the service is stopping, including releasing resources held by the mutex.</summary>
     /// <remarks>This method should be called during the service shutdown sequence to ensure that any held

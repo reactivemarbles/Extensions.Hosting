@@ -20,6 +20,29 @@ public class WinUIThreadTests
     /// <summary>Defines the maximum time to await native WinUI-loop completion.</summary>
     private static readonly TimeSpan NativeLoopTimeout = TimeSpan.FromSeconds(15);
 
+    /// <summary>Verifies that the testable constructor validates its supplied runtime.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Constructor_WithNullRuntime_ThrowsArgumentNullException()
+    {
+        var services = new ServiceCollection().AddSingleton<IWinUIContext>(new TestWinUIContext());
+        await using var serviceProvider = services.BuildServiceProvider();
+
+        await Assert.That(() => new WinUIThread(serviceProvider, null!, useDedicatedUiThread: false)).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies that the public constructor supplies the production runtime without starting its native loop.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task PublicConstructor_CreatesWinUIThread()
+    {
+        var services = new ServiceCollection().AddSingleton<IWinUIContext>(new TestWinUIContext());
+        await using var serviceProvider = services.BuildServiceProvider();
+        using var winUIThread = new WinUIThread(serviceProvider);
+
+        await Assert.That(winUIThread).IsNotNull();
+    }
+
     /// <summary>Verifies that the UI-thread startup flow initializes WinUI services and activates the configured window.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -75,7 +98,7 @@ public class WinUIThreadTests
                     var resolvedApplication = runtime.GetApplication(serviceProvider);
                     var window = runtime.CreateWindow(serviceProvider, typeof(RuntimeTestWindow));
                     var hostBuilder = Host.CreateApplicationBuilder();
-                    _ = hostBuilder.ConfigureWinUI<RuntimeTestApplication, RuntimeTestWindow>();
+                    _ = hostBuilder.ConfigureWinUI(typeof(RuntimeTestApplication), typeof(RuntimeTestWindow));
                     _ = hostBuilder.Services.AddSingleton(application);
                     using var hostServices = hostBuilder.Services.BuildServiceProvider();
                     configuredApplicationPreserved = ReferenceEquals(
@@ -109,6 +132,19 @@ public class WinUIThreadTests
         await Assert.That(configuredApplicationPreserved).IsTrue();
         await Assert.That(stopTask).IsNotNull();
         await Assert.That(stopTask!.IsCompletedSuccessfully).IsTrue();
+    }
+
+    /// <summary>Verifies the concrete WinUI context exposes default lifecycle and UI component state.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task WinUIContext_DefaultState_IsEmpty()
+    {
+        var context = new WinUIContext();
+
+        await Assert.That(context.AppWindow).IsNull();
+        await Assert.That(context.Dispatcher).IsNull();
+        await Assert.That(context.IsRunning).IsFalse();
+        await Assert.That(context.WinUIApplication).IsNull();
     }
 
     /// <summary>Provides a WinUI window for the production runtime lifecycle test.</summary>

@@ -73,7 +73,7 @@ public sealed class WinFormsLifetimeTests
     public async Task HostedService_StopAsync_WithOpenShell_ClosesShellAndStopsMessageLoop()
     {
         var hostBuilder = Host.CreateApplicationBuilder();
-        _ = hostBuilder.ConfigureWinFormsShell<TestShell>();
+        _ = hostBuilder.ConfigureWinFormsShell(typeof(TestShell));
         using var host = hostBuilder.Build();
         var context = host.Services.GetRequiredService<IWinFormsContext>();
 
@@ -94,7 +94,7 @@ public sealed class WinFormsLifetimeTests
         var hostBuilder = Host.CreateApplicationBuilder();
         _ = hostBuilder.Logging.ClearProviders();
         _ = hostBuilder.Logging.AddProvider(loggerProvider);
-        _ = hostBuilder.ConfigureWinFormsShell<ThrowingDisposeTestShell>();
+        _ = hostBuilder.ConfigureWinFormsShell(typeof(ThrowingDisposeTestShell));
         using var host = hostBuilder.Build();
         var context = host.Services.GetRequiredService<IWinFormsContext>();
 

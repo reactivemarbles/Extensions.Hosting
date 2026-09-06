@@ -114,7 +114,7 @@ internal static class InternalBuilderAvaloniaUtility
 
         _ = serviceCollection.AddSingleton(serviceProvider =>
         {
-            var appBuilder = AppBuilder.Configure(() => serviceProvider.GetService<Application>() ?? new Application())
+            var appBuilder = AppBuilder.Configure(() => AvaloniaApplicationResolver.GetOrCreate(serviceProvider))
                 .UsePlatformDetect()
                 .LogToTrace();
 

@@ -127,13 +127,25 @@ public class ResourceMutexTests
     /// <summary>Verifies that ResourceMutex reports an unlocked state when mutex creation fails.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
-    public async Task Create_WithInvalidMutexName_ReturnsUnlockedMutex()
+    public async Task Create_WhenMutexFactoryThrows_ReturnsUnlockedMutex()
     {
-        var logger = NullLogger.Instance;
-        var id = $"test-mutex-invalid-{Guid.NewGuid():N}\\child";
+        static (Mutex Mutex, bool CreatedNew) ThrowInvalidOperation(string mutexId)
+        {
+            _ = mutexId;
+            throw new InvalidOperationException("Synthetic mutex creation failure.");
+        }
 
-        using var mutex = ResourceMutex.Create(logger, id);
+        using var mutex = new ResourceMutex(
+            NullLogger.Instance,
+            $"test-mutex-invalid-{Guid.NewGuid():N}",
+            resourceName: null,
+            ThrowInvalidOperation,
+            static mutex => mutex.ReleaseMutex(),
+            TimeSpan.FromSeconds(MutexOperationTimeoutSeconds));
 
+        var locked = mutex.Lock();
+
+        await Assert.That(locked).IsFalse();
         await Assert.That(mutex.IsLocked).IsFalse();
     }
 

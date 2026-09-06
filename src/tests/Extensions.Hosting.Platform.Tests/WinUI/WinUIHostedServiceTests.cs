@@ -142,6 +142,12 @@ public class WinUIHostedServiceTests
     public async Task WinUIThreadStarter_WithNullAction_ThrowsArgumentNullException() =>
         await Assert.That(static () => new WinUIThreadStarter((Action)null!)).Throws<ArgumentNullException>();
 
+    /// <summary>Verifies that the thread-starter adapter validates its supplied WinUI thread.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task WinUIThreadStarter_WithNullThread_ThrowsArgumentNullException() =>
+        await Assert.That(static () => new WinUIThreadStarter((WinUIThread)null!)).Throws<ArgumentNullException>();
+
     /// <summary>Verifies that the composed constructor rejects each required dependency.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]

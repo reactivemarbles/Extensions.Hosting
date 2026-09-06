@@ -149,6 +149,25 @@ public class MauiHostedServiceTests
     public async Task MauiThreadStarter_WithNullAction_ThrowsArgumentNullException() =>
         await Assert.That(static () => new MauiThreadStarter((Action)null!)).Throws<ArgumentNullException>();
 
+    /// <summary>Verifies that the thread-starter adapter validates its supplied MAUI thread.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task MauiThreadStarter_WithNullMauiThread_ThrowsArgumentNullException() =>
+        await Assert.That(static () => new MauiThreadStarter((MauiThread)null!)).Throws<ArgumentNullException>();
+
+    /// <summary>Verifies that the composed hosted-service constructor validates required dependencies.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task Constructor_WithNullDependencies_ThrowsArgumentNullException()
+    {
+        var context = new TestMauiContext();
+        var starter = new MauiThreadStarter(static () => { });
+
+        await Assert.That(() => new MauiHostedService(null!, starter, context)).Throws<ArgumentNullException>();
+        await Assert.That(() => new MauiHostedService(NullLogger<MauiHostedService>.Instance, (IUiThreadStarter)null!, context)).Throws<ArgumentNullException>();
+        await Assert.That(() => new MauiHostedService(NullLogger<MauiHostedService>.Instance, starter, null!)).Throws<ArgumentNullException>();
+    }
+
     /// <summary>Verifies that the public constructor continues to compose the MAUI thread implementation.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]

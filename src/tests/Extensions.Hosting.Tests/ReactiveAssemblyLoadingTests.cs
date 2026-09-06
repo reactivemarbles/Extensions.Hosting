@@ -304,13 +304,16 @@ public class ReactiveAssemblyLoadingTests
         await Assert.That(assembly!.GetName().Name).IsEqualTo(assemblyName.Name);
         await Assert.That(Path.GetFullPath(assembly.Location)).IsEqualTo(Path.GetFullPath(pluginPath));
         var pluginCount = 0;
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
         foreach (var plugin in ReactiveMarbles.Extensions.Hosting.Reactive.Plugins.PluginScanner.ScanForPluginInstances(assembly))
         {
-            _ = plugin;
+            await Assert.That(plugin).IsNotNull();
+            plugin!.ConfigureHost(new(), services);
             pluginCount++;
         }
 
         await Assert.That(pluginCount).IsEqualTo(1);
+        await Assert.That(services.Count).IsEqualTo(0);
     }
 
     /// <summary>Verifies that PluginLoadContext returns null when a plugin-local assembly cannot be resolved.</summary>
@@ -340,7 +343,7 @@ public class ReactiveAssemblyLoadingTests
     /// <summary>Verifies that PluginLoadContext attempts to load an existing unmanaged dependency from its resolved path.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
-    public async Task PluginLoadContext_LoadUnmanagedDll_WithInvalidExistingLibrary_ThrowsBadImageFormatException()
+    public async Task PluginLoadContext_LoadUnmanagedDll_WithInvalidExistingLibrary_ThrowsPlatformLoaderException()
     {
         var tempDirectory = CreateTemporaryDirectory();
         try
@@ -352,8 +355,25 @@ public class ReactiveAssemblyLoadingTests
             var context = new PluginLoadContext(pluginPath, nameof(Plugin));
 
             var act = () => context.LoadUnmanagedLibrary(NativeLibraryName);
+            Exception? exception = null;
 
-            await Assert.That(act).Throws<BadImageFormatException>();
+            try
+            {
+                _ = act();
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            await Assert.That(exception).IsNotNull();
+            if (OperatingSystem.IsWindows())
+            {
+                await Assert.That(exception).IsTypeOf<BadImageFormatException>();
+                return;
+            }
+
+            await Assert.That(exception).IsTypeOf<DllNotFoundException>();
         }
         finally
         {

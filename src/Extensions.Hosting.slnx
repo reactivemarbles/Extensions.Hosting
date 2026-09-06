@@ -36,6 +36,8 @@
   <Folder Name="/Tests/">
     <Project Path="tests/Extensions.Hosting.PluginLoading.Fixture/Extensions.Hosting.PluginLoading.Fixture.csproj" />
     <Project Path="tests/Extensions.Hosting.PluginLoading.Reactive.Fixture/Extensions.Hosting.PluginLoading.Reactive.Fixture.csproj" />
+    <Project Path="tests/Extensions.Hosting.LegacyNetFramework.Tests/Extensions.Hosting.LegacyNetFramework.Tests.csproj" />
+    <Project Path="tests/Extensions.Hosting.LegacyNetFramework.Worker/Extensions.Hosting.LegacyNetFramework.Worker.csproj" />
     <Project Path="tests/Extensions.Hosting.Avalonia.Lifecycle.Tests/Extensions.Hosting.Avalonia.Lifecycle.Tests.csproj" />
     <Project Path="tests/Extensions.Hosting.Avalonia.MultipleWindow.Tests/Extensions.Hosting.Avalonia.MultipleWindow.Tests.csproj" />
     <Project Path="tests/Extensions.Hosting.Avalonia.OneWindow.Tests/Extensions.Hosting.Avalonia.OneWindow.Tests.csproj" />

@@ -30,10 +30,10 @@ public static class Program
             .ConfigureAvalonia(static avaloniaBuilder =>
             {
                 // Use the custom application
-                _ = avaloniaBuilder.UseApplication<App>();
+                _ = avaloniaBuilder.UseApplication(typeof(App));
 
                 // Use the main window
-                _ = avaloniaBuilder.UseWindow<MainWindow>();
+                _ = avaloniaBuilder.UseWindow(typeof(MainWindow));
             })
             .UseAvaloniaLifetime()
             .UseConsoleLifetime()

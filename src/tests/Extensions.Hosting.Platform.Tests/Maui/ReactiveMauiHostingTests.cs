@@ -12,6 +12,7 @@ using ReactiveMarbles.Extensions.Hosting.ReactiveUI;
 namespace Extensions.Hosting.Maui.Platform.Tests;
 
 /// <summary>Tests ReactiveUI MAUI hosting configuration without starting a MAUI application.</summary>
+[NotInParallel]
 public class ReactiveMauiHostingTests
 {
     /// <summary>Verifies that application-builder configuration preserves the original builder.</summary>
@@ -51,6 +52,32 @@ public class ReactiveMauiHostingTests
 
         await Assert.That(result).IsNull();
         await Assert.That(factoryProvider).IsNull();
+    }
+
+    /// <summary>Verifies that mapping a null host tolerates a null factory.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task MapSplatLocator_WithNullHostAndNullFactory_ReturnsNull()
+    {
+        var result = ((IHost)null!).MapSplatLocator(null!);
+
+        await Assert.That(result).IsNull();
+    }
+
+    /// <summary>Verifies that mapping a configured host invokes the supplied factory with the service provider.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task MapSplatLocator_WithConfiguredHost_InvokesFactoryWithServices()
+    {
+        var hostBuilder = Host.CreateApplicationBuilder();
+        _ = hostBuilder.ConfigureSplatForMicrosoftDependencyResolver();
+        using var host = hostBuilder.Build();
+        IServiceProvider? factoryProvider = null;
+
+        var result = host.MapSplatLocator(provider => factoryProvider = provider);
+
+        await Assert.That(result).IsSameReferenceAs(host);
+        await Assert.That(factoryProvider).IsSameReferenceAs(host.Services);
     }
 
     /// <summary>Verifies that null application builders are rejected before any ReactiveUI registration occurs.</summary>
