@@ -278,6 +278,7 @@ Namespace: `ReactiveMarbles.Extensions.Hosting.Wpf`
 | API | Description |
 | --- | --- |
 | `ConfigureWpf()` / `ConfigureWpf(Action<IWpfBuilder>? configureDelegate)` | Registers WPF context, UI thread, hosted service, and optional application/window types. Both overloads are available on `IHostBuilder` and `IHostApplicationBuilder`. |
+| `ConfigureWpfApplication<TApplication>(Func<IServiceProvider, TApplication> applicationFactory)` | Registers WPF hosting and a deferred application factory on either host builder. The concrete type and `Application` resolve to the same singleton. |
 | `UseWpfLifetime()` / `UseWpfLifetime(ShutdownMode shutdownMode)` | Links host shutdown to WPF. The no-argument overload uses `OnLastWindowClose`. Call after `ConfigureWpf`; otherwise it throws `NotSupportedException`. |
 | `IWpfBuilder.UseApplication(typeof(TApplication))` | Registers a WPF `Application` type. |
 | `IWpfBuilder.UseCurrentApplication(Application currentApplication)` | Registers an existing WPF `Application` instance. |
@@ -343,6 +344,26 @@ Register zero, one, or multiple shell windows. One shell is passed to
 `Application.Run`; multiple shells are shown at startup. When using an existing
 application whose dispatcher belongs to another thread, remove `StartupUri` and
 provide a shell window or an existing `MainWindow`.
+
+### WPF Application Factory
+
+Supply a factory when your application needs constructor dependencies or explicit
+initialization. This avoids DI constructor discovery for the application:
+
+```csharp
+var builder = Host.CreateApplicationBuilder(args);
+builder.ConfigureWpfApplication<App>(services =>
+    new App(services.GetRequiredService<IConfiguration>()));
+builder.ConfigureWpf(wpf => wpf.UseWindow(typeof(MainWindow)));
+builder.UseWpfLifetime();
+using var host = builder.Build();
+await host.RunAsync();
+```
+
+The factory runs on first service resolution, normally during hosted WPF startup on
+the UI thread. Do not resolve the application early on a background thread. Use one
+application registration strategy per host; the factory must return a non-null WPF
+application. Existing `IWpfBuilder` implementations need no new members.
 
 ## WinForms Hosting
 
@@ -827,6 +848,7 @@ Reactive namespace: `ReactiveMarbles.Extensions.Hosting.Reactive.Plugins`
 | API | Description |
 | --- | --- |
 | `ConfigurePlugins(Action<IPluginBuilder?> configurePlugin)` | Configures plug-in scanning and loading. Available on both builder styles; the callback itself may be null at runtime and receives the persisted builder instance. |
+| `ConfigurePlugin(IPlugin plugin)` | Configures an explicit caller-owned plug-in instance without scanning or attribute lookup. Available on both builder styles and both package families. |
 | `IPlugin.ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection)` | Called for each discovered plug-in so it can register services. |
 | `IPluginBuilder.PluginDirectories` | Root directories scanned for plug-in assemblies. |
 | `IPluginBuilder.FrameworkDirectories` | Root directories scanned for framework assemblies. |
@@ -885,6 +907,26 @@ custom loader:
 | `AssemblyLoadContext.Load(AssemblyName)` / `LoadUnmanagedDll(string)` | Protected virtual resolution hooks for derived contexts. |
 | `AssemblyLoadContext.LoadUnmanagedDllFromPath(string)` | Protected static native-load hook. |
 | `TryGetAssembly(AssemblyName, out Assembly?)` | Searches loaded assemblies by simple name. |
+
+### Explicit Plug-in Registration
+
+For built-in modules, construct plug-ins directly instead of discovering assemblies:
+
+```csharp
+var builder = Host.CreateApplicationBuilder(args);
+builder.ConfigurePlugin(new StoragePlugin());
+builder.ConfigurePlugin(new WorkerPlugin());
+using var host = builder.Build();
+await host.RunAsync();
+```
+
+Calls execute in registration order. `IHostApplicationBuilder` invokes the plug-in
+immediately with the builder as its context; `IHostBuilder` invokes it during `Build`
+with a `HostBuilderContext`. Repeated registrations invoke the plug-in again.
+`PluginOrderAttribute` and discovery's `RequirePlugins` setting apply only to scanned
+plug-ins. The caller owns explicit instances; registration does not automatically
+register or dispose the plug-in itself. This registration path performs no reflection
+or assembly loading; the plug-in's own implementation determines its trimming needs.
 
 ### Host Scanning Example
 
@@ -1269,6 +1311,19 @@ If log4net is configured before the Generic Host starts, set
 `ExternalConfigurationSetup = true` so the provider preserves that repository.
 `PropertyOverrides` and `NodeInfo.Attributes` are get-only mutable collections: use
 `Add` or index assignment instead of replacing the collection.
+
+### Structured Message Properties
+
+The default event factory preserves structured message fields, including
+`{OriginalFormat}`, as Log4Net event properties. Numeric values, objects, and nulls
+retain their types. A message such as `Order {OrderId}` exposes `OrderId` to a
+Log4Net layout through `%property{OrderId}` as well as rendering the normal message.
+This works with `LoggerMessage` delegates and generated logging methods.
+
+Message fields take precedence over scope properties of the same name; duplicate
+message keys use the last value. The reserved `eventId` property always contains the
+actual Microsoft `EventId`. Existing scope formatting and message formatting are
+unchanged.
 
 ## Recommended Composition
 
