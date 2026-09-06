@@ -51,6 +51,37 @@ public static class HostBuilderWpfExtensions
             .AddSingleton(static serviceProvider => new WpfThread(serviceProvider))
             .AddHostedService<WpfHostedService>();
 
+    /// <summary>Registers a WPF application factory and aliases it to the base application type.</summary>
+    /// <typeparam name="TApplication">The WPF application type created by the factory.</typeparam>
+    /// <param name="services">The service collection to register services into.</param>
+    /// <param name="applicationFactory">The factory that creates the WPF application.</param>
+    private static void RegisterWpfApplicationFactory<TApplication>(
+        IServiceCollection services,
+        Func<IServiceProvider, TApplication> applicationFactory)
+        where TApplication : Application
+    {
+        _ = services.AddSingleton(serviceProvider => CreateWpfApplication(serviceProvider, applicationFactory));
+
+        if (typeof(TApplication) == typeof(Application))
+        {
+            return;
+        }
+
+        _ = services.AddSingleton<Application>(static serviceProvider => serviceProvider.GetRequiredService<TApplication>());
+    }
+
+    /// <summary>Creates a WPF application through a caller-provided factory.</summary>
+    /// <typeparam name="TApplication">The WPF application type created by the factory.</typeparam>
+    /// <param name="serviceProvider">The service provider passed to the factory.</param>
+    /// <param name="applicationFactory">The factory that creates the WPF application.</param>
+    /// <returns>The created WPF application.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the factory returns null.</exception>
+    private static TApplication CreateWpfApplication<TApplication>(
+        IServiceProvider serviceProvider,
+        Func<IServiceProvider, TApplication> applicationFactory)
+        where TApplication : Application =>
+        applicationFactory(serviceProvider) ?? throw new InvalidOperationException("The WPF application factory returned null.");
+
     /// <summary>Registers a configured WPF application type or instance.</summary>
     /// <param name="services">The service collection to register services into.</param>
     /// <param name="wpfBuilder">The builder that contains the application configuration.</param>
@@ -161,6 +192,26 @@ public static class HostBuilderWpfExtensions
 
             return hostBuilder;
         }
+
+        /// <summary>Configures WPF support and registers a deferred application factory.</summary>
+        /// <remarks>The factory is deferred until the application is first resolved from dependency injection,
+        /// normally during WPF startup on the WPF UI thread. Callers should not resolve the WPF application from a
+        /// non-UI thread.</remarks>
+        /// <typeparam name="TApplication">The WPF application type created by the factory.</typeparam>
+        /// <param name="applicationFactory">The factory that creates the WPF application.</param>
+        /// <returns>The same host application builder.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the host builder or application factory is null.</exception>
+        public IHostApplicationBuilder ConfigureWpfApplication<TApplication>(
+            Func<IServiceProvider, TApplication> applicationFactory)
+            where TApplication : Application
+        {
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
+            _ = applicationFactory ?? throw new ArgumentNullException(nameof(applicationFactory));
+
+            _ = hostBuilder.ConfigureWpf();
+            RegisterWpfApplicationFactory(hostBuilder.Services, applicationFactory);
+            return hostBuilder;
+        }
     }
 
     /// <summary>Provides extension members for this receiver.</summary>
@@ -231,6 +282,27 @@ public static class HostBuilderWpfExtensions
                 _ = hostBuilder.ConfigureServices((context, serviceCollection) => RegisterWpfWindows(serviceCollection, wpfBuilder));
             }
 
+            return hostBuilder;
+        }
+
+        /// <summary>Configures WPF support and registers a deferred application factory.</summary>
+        /// <remarks>The factory is deferred until the application is first resolved from dependency injection,
+        /// normally during WPF startup on the WPF UI thread. Callers should not resolve the WPF application from a
+        /// non-UI thread.</remarks>
+        /// <typeparam name="TApplication">The WPF application type created by the factory.</typeparam>
+        /// <param name="applicationFactory">The factory that creates the WPF application.</param>
+        /// <returns>The same host builder.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the host builder or application factory is null.</exception>
+        public IHostBuilder ConfigureWpfApplication<TApplication>(
+            Func<IServiceProvider, TApplication> applicationFactory)
+            where TApplication : Application
+        {
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
+            _ = applicationFactory ?? throw new ArgumentNullException(nameof(applicationFactory));
+
+            _ = hostBuilder.ConfigureWpf();
+            _ = hostBuilder.ConfigureServices((context, serviceCollection) =>
+                RegisterWpfApplicationFactory(serviceCollection, applicationFactory));
             return hostBuilder;
         }
     }

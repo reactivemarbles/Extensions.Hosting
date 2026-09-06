@@ -28,6 +28,18 @@ public sealed class WpfBuilderExtensionsCoverageTests
         await Assert.That(static () => ((IWpfBuilder)null!).UseApplication(typeof(Application))).Throws<ArgumentNullException>();
         await Assert.That(static () => ((IWpfBuilder)null!).UseCurrentApplication(null!)).Throws<ArgumentNullException>();
         await Assert.That(static () => ((IWpfBuilder)null!).ConfigureContext(static _ => { })).Throws<ArgumentNullException>();
+        await Assert
+            .That(static () => ((IHostApplicationBuilder)null!).ConfigureWpfApplication(static _ => new Application()))
+            .Throws<ArgumentNullException>();
+        await Assert
+            .That(static () => ((IHostBuilder)null!).ConfigureWpfApplication(static _ => new Application()))
+            .Throws<ArgumentNullException>();
+        await Assert
+            .That(static () => Host.CreateApplicationBuilder().ConfigureWpfApplication((Func<IServiceProvider, Application>)null!))
+            .Throws<ArgumentNullException>();
+        await Assert
+            .That(static () => new HostBuilder().ConfigureWpfApplication((Func<IServiceProvider, Application>)null!))
+            .Throws<ArgumentNullException>();
         await Assert.That(() => builder.UseWindow(null!)).Throws<ArgumentNullException>();
         await Assert.That(() => builder.UseWindow(typeof(string))).Throws<ArgumentException>();
         await Assert.That(() => builder.UseApplication(null!)).Throws<ArgumentNullException>();

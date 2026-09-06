@@ -144,6 +144,23 @@ public static class HostBuilderPluginExtensions
     /// <param name="hostBuilder">The receiver instance.</param>
     extension(IHostApplicationBuilder hostBuilder)
     {
+        /// <summary>Configures the application with an explicit plugin instance.</summary>
+        /// <remarks>This method invokes the plugin immediately with the same context and service collection used by
+        /// plugins discovered through ConfigurePlugins. Explicit plugin instances follow the caller's method call order,
+        /// do not use <see cref="PluginOrderAttribute"/>, and repeated calls configure the supplied instance each time.
+        /// The caller owns the plugin instance lifetime.</remarks>
+        /// <param name="plugin">The plugin instance to configure.</param>
+        /// <returns>The same <see cref="IHostApplicationBuilder"/> instance for chaining further configuration.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> or <paramref name="plugin"/> is null.</exception>
+        public IHostApplicationBuilder ConfigurePlugin(IPlugin plugin)
+        {
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
+            _ = plugin ?? throw new ArgumentNullException(nameof(plugin));
+
+            plugin.ConfigureHost(hostBuilder, hostBuilder.Services);
+            return hostBuilder;
+        }
+
         /// <summary>Configures plugins for the application by invoking the specified configuration action on the plugin builder.</summary>
         /// <remarks>This method ensures that plugin scanning and loading are configured only once per host
         /// builder instance. Subsequent calls will reuse the existing plugin builder. The method is intended to be used as
@@ -172,6 +189,22 @@ public static class HostBuilderPluginExtensions
     /// <param name="hostBuilder">The receiver instance.</param>
     extension(IHostBuilder hostBuilder)
     {
+        /// <summary>Configures the host with an explicit plugin instance.</summary>
+        /// <remarks>This method registers the plugin in the host builder service configuration pipeline with the same
+        /// context and service collection used by plugins discovered through ConfigurePlugins. Explicit plugin instances
+        /// follow the caller's method call order, do not use <see cref="PluginOrderAttribute"/>, and repeated calls
+        /// configure the supplied instance each time. The caller owns the plugin instance lifetime.</remarks>
+        /// <param name="plugin">The plugin instance to configure.</param>
+        /// <returns>The same instance of <see cref="IHostBuilder"/> with the plugin configuration added.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="hostBuilder"/> or <paramref name="plugin"/> is null.</exception>
+        public IHostBuilder ConfigurePlugin(IPlugin plugin)
+        {
+            _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
+            _ = plugin ?? throw new ArgumentNullException(nameof(plugin));
+
+            return hostBuilder.ConfigureServices(plugin.ConfigureHost);
+        }
+
         /// <summary>Configures plugin support for the specified host builder by invoking the provided configuration action.</summary>
         /// <remarks>This method ensures that plugin support is configured only once for the host builder.
         /// Subsequent calls will reuse the existing plugin builder instance. Use this method to register or customize

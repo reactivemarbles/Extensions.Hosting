@@ -15,6 +15,18 @@ public class ReactivePluginShimTests
     /// <summary>The expected number of configured plugins.</summary>
     private const int ExpectedPluginCount = 2;
 
+    /// <summary>The expected number of ordered explicit reactive plugin entries.</summary>
+    private const int ExpectedOrderedPluginCount = 3;
+
+    /// <summary>The explicit reactive plugin name configured before scanning.</summary>
+    private const string BeforePluginName = "BeforeReactive";
+
+    /// <summary>The explicit reactive plugin name configured after scanning.</summary>
+    private const string AfterPluginName = "AfterReactive";
+
+    /// <summary>The discovered reactive plugin name configured during scanning.</summary>
+    private const string ScannedPluginName = "ScannedReactive";
+
     /// <summary>Verifies that the reactive shim PluginBase registers hosted services.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -84,6 +96,140 @@ public class ReactivePluginShimTests
         IHostApplicationBuilder? hostBuilder = null;
         var act = () => hostBuilder!.ConfigurePlugins(static _ => { });
         await Assert.That(act).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies that ConfigurePlugin with a null IHostBuilder throws.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
+    {
+        IHostBuilder? hostBuilder = null;
+        var plugin = new ReactiveContextRecordingPlugin();
+        var act = () => hostBuilder!.ConfigurePlugin(plugin);
+        await Assert.That(act).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies that ConfigurePlugin with a null IHostBuilder plugin throws.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostBuilder_WithNullPlugin_ThrowsArgumentNullException()
+    {
+        var hostBuilder = Host.CreateDefaultBuilder();
+        IPlugin? plugin = null;
+        var act = () => hostBuilder.ConfigurePlugin(plugin!);
+        await Assert.That(act).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies that ConfigurePlugin with a null IHostApplicationBuilder throws.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostApplicationBuilder_WithNullHostBuilder_ThrowsArgumentNullException()
+    {
+        IHostApplicationBuilder? hostBuilder = null;
+        var plugin = new ReactiveContextRecordingPlugin();
+        var act = () => hostBuilder!.ConfigurePlugin(plugin);
+        await Assert.That(act).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies that ConfigurePlugin with a null IHostApplicationBuilder plugin throws.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostApplicationBuilder_WithNullPlugin_ThrowsArgumentNullException()
+    {
+        var hostBuilder = Host.CreateApplicationBuilder();
+        IPlugin? plugin = null;
+        var act = () => hostBuilder.ConfigurePlugin(plugin!);
+        await Assert.That(act).Throws<ArgumentNullException>();
+    }
+
+    /// <summary>Verifies that IHostBuilder ConfigurePlugin configures the caller-owned reactive plugin during host build.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostBuilder_ConfiguresCallerOwnedPlugin()
+    {
+        var plugin = new ReactiveContextRecordingPlugin();
+        var hostBuilder = Host.CreateDefaultBuilder();
+
+        const int expectedConfigurationCount = 2;
+        var result = hostBuilder.ConfigurePlugin(plugin);
+        _ = hostBuilder.ConfigurePlugin(plugin);
+
+        await Assert.That(result).IsEqualTo(hostBuilder);
+        await Assert.That(plugin.ConfigureCount).IsEqualTo(0);
+
+        using var host = hostBuilder.Build();
+
+        await Assert.That(plugin.ConfigureCount).IsEqualTo(expectedConfigurationCount);
+        await Assert.That(plugin.Context).IsAssignableTo<HostBuilderContext>();
+        await Assert.That(host.Services.GetService<ReactiveExplicitPluginMarker>()).IsNotNull();
+    }
+
+    /// <summary>Verifies that IHostApplicationBuilder ConfigurePlugin configures the caller-owned reactive plugin immediately.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostApplicationBuilder_ConfiguresCallerOwnedPlugin()
+    {
+        var plugin = new ReactiveContextRecordingPlugin();
+        var hostBuilder = Host.CreateApplicationBuilder();
+
+        const int expectedConfigurationCount = 2;
+        var result = hostBuilder.ConfigurePlugin(plugin);
+        _ = hostBuilder.ConfigurePlugin(plugin);
+
+        using var host = hostBuilder.Build();
+
+        await Assert.That(result).IsEqualTo(hostBuilder);
+        await Assert.That(plugin.ConfigureCount).IsEqualTo(expectedConfigurationCount);
+        await Assert.That(plugin.Context).IsEqualTo(hostBuilder);
+        await Assert.That(host.Services.GetService<ReactiveExplicitPluginMarker>()).IsNotNull();
+    }
+
+    /// <summary>Verifies that explicit IHostBuilder reactive plugins follow host builder configuration call order.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostBuilder_PreservesCallOrderWithScannedPlugins()
+    {
+        var configuredPlugins = new List<string>();
+        var hostBuilder = Host.CreateDefaultBuilder();
+
+        _ = hostBuilder.ConfigurePlugin(new ReactiveOrderedExplicitPlugin(BeforePluginName, configuredPlugins));
+        _ = hostBuilder.ConfigurePlugins(builder =>
+        {
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
+            AddCurrentAssemblyAsFramework(builder);
+            builder.AssemblyScanFunc = _ => [new ReactiveOrderedExplicitPlugin(ScannedPluginName, configuredPlugins)];
+        });
+        _ = hostBuilder.ConfigurePlugin(new ReactiveOrderedExplicitPlugin(AfterPluginName, configuredPlugins));
+
+        using var host = hostBuilder.Build();
+
+        await Assert.That(configuredPlugins.Count).IsEqualTo(ExpectedOrderedPluginCount);
+        await Assert.That(configuredPlugins[0]).IsEqualTo(BeforePluginName);
+        await Assert.That(configuredPlugins[1]).IsEqualTo(ScannedPluginName);
+        await Assert.That(configuredPlugins[2]).IsEqualTo(AfterPluginName);
+    }
+
+    /// <summary>Verifies that explicit IHostApplicationBuilder reactive plugins follow configuration call order.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigurePlugin_IHostApplicationBuilder_PreservesCallOrderWithScannedPlugins()
+    {
+        var configuredPlugins = new List<string>();
+        var hostBuilder = Host.CreateApplicationBuilder();
+
+        _ = hostBuilder.ConfigurePlugin(new ReactiveOrderedExplicitPlugin(BeforePluginName, configuredPlugins));
+        _ = hostBuilder.ConfigurePlugins(builder =>
+        {
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
+            AddCurrentAssemblyAsFramework(builder);
+            builder.AssemblyScanFunc = _ => [new ReactiveOrderedExplicitPlugin(ScannedPluginName, configuredPlugins)];
+        });
+        _ = hostBuilder.ConfigurePlugin(new ReactiveOrderedExplicitPlugin(AfterPluginName, configuredPlugins));
+
+        await Assert.That(configuredPlugins.Count).IsEqualTo(ExpectedOrderedPluginCount);
+        await Assert.That(configuredPlugins[0]).IsEqualTo(BeforePluginName);
+        await Assert.That(configuredPlugins[1]).IsEqualTo(ScannedPluginName);
+        await Assert.That(configuredPlugins[2]).IsEqualTo(AfterPluginName);
     }
 
     /// <summary>Verifies that IHostApplicationBuilder applies caller configuration before scanning for plugins.</summary>
@@ -342,6 +488,42 @@ public class ReactivePluginShimTests
         public void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection)
         {
         }
+    }
+
+    /// <summary>Marker service registered by explicit reactive plugin tests.</summary>
+    /// <param name="name">The marker name.</param>
+    private sealed class ReactiveExplicitPluginMarker(string name)
+    {
+        /// <summary>Gets the marker name.</summary>
+        public string Name { get; } = name;
+    }
+
+    /// <summary>Records explicit reactive plugin configuration context.</summary>
+    private sealed class ReactiveContextRecordingPlugin : IPlugin
+    {
+        /// <summary>Gets the number of times the plugin was configured.</summary>
+        public int ConfigureCount { get; private set; }
+
+        /// <summary>Gets the context passed to the plugin.</summary>
+        public object? Context { get; private set; }
+
+        /// <inheritdoc />
+        public void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection)
+        {
+            ConfigureCount++;
+            Context = hostBuilderContext;
+            _ = serviceCollection.AddSingleton(new ReactiveExplicitPluginMarker(nameof(ReactiveExplicitPluginMarker)));
+        }
+    }
+
+    /// <summary>Records explicit reactive plugin call order.</summary>
+    /// <param name="name">The configured plugin name.</param>
+    /// <param name="configuredPlugins">The configured plugin log.</param>
+    private sealed class ReactiveOrderedExplicitPlugin(string name, List<string> configuredPlugins) : IPlugin
+    {
+        /// <inheritdoc />
+        public void ConfigureHost(object hostBuilderContext, IServiceCollection serviceCollection) =>
+            configuredPlugins.Add(name);
     }
 
     /// <summary>Records configuration with an earlier reactive plugin order.</summary>

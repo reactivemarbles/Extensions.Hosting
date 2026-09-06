@@ -14,6 +14,9 @@ using LoggingEvent = log4net.Core.LoggingEvent;
 namespace ReactiveMarbles.Extensions.Logging;
 
 /// <inheritdoc cref="ILog4NetLoggingEventFactory"/>
+/// <remarks>Structured message state is copied to event properties without converting values to strings.
+/// Message fields override scope properties with the same name; the event identifier always takes precedence.
+/// The original message template is preserved when supplied as a structured field.</remarks>
 public class Log4NetLoggingEventFactory : ILog4NetLoggingEventFactory
 {
     /// <summary>The default property name for scopes that do not provide their own property name.</summary>
@@ -69,6 +72,16 @@ public class Log4NetLoggingEventFactory : ILog4NetLoggingEventFactory
             exception: messageCandidate.Exception);
 
         EnrichWithScopes(loggingEvent, scopeProvider);
+
+        // Message fields are more specific than ambient scopes. Preserve their types,
+        // including the original template supplied by Microsoft.Extensions.Logging.
+        if (messageCandidate.State is IEnumerable<KeyValuePair<string, object?>> properties)
+        {
+            foreach (var property in properties)
+            {
+                loggingEvent.Properties[property.Key] = property.Value;
+            }
+        }
 
         loggingEvent.Properties[EventIdProperty] = messageCandidate.EventId;
 
