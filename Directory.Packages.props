@@ -29,13 +29,13 @@
     <PackageVersion Include="NuGet.Protocol" Version="7.9.0" />
     <PackageVersion Include="Nuke.Common" Version="10.1.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
-    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="7.3.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="7.4.0" />
     <!--Reactive UI with ReactiveUI.Primitives support-->
-    <PackageVersion Include="ReactiveUI.Primitives" Version="7.3.0" />
+    <PackageVersion Include="ReactiveUI.Primitives" Version="7.4.0" />
     <PackageVersion Include="ReactiveUI" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.1" />
     <PackageVersion Include="ReactiveUI.Core" Version="$(ReactiveUIPackageVersion)" />
-    <PackageVersion Include="ReactiveUI.Disposables" Version="7.3.0" />
+    <PackageVersion Include="ReactiveUI.Disposables" Version="7.4.0" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Maui" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.WinForms" Version="$(ReactiveUIPackageVersion)" />
@@ -43,7 +43,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <!--Reactive UI with System.Reactive support-->
-    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="7.3.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="7.4.0" />
     <PackageVersion Include="ReactiveUI.Avalonia.Reactive" Version="12.1.1" />
     <PackageVersion Include="ReactiveUI.Drawing.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Maui.Reactive" Version="$(ReactiveUIPackageVersion)" />
@@ -57,7 +57,7 @@
     <PackageVersion Include="StyleSharp.Analyzers" Version="3.46.0" />
     <PackageVersion Include="PerformanceSharp.Analyzers" Version="3.46.0" />
     <PackageVersion Include="SecuritySharp.Analyzers" Version="3.46.0" />
-    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.95.2" />
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.95.1" />
     <PackageVersion Include="TUnit" Version="1.66.0" />
     <PackageVersion Include="Verify.TUnit" Version="32.0.0" />
   </ItemGroup>
