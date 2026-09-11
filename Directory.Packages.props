@@ -2,13 +2,13 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <Net8PackageVersion>8.0.30</Net8PackageVersion>
-    <Net9PackageVersion>9.0.19</Net9PackageVersion>
-    <Net10PackageVersion>10.0.11</Net10PackageVersion>
-    <Net11PreviewPackageVersion>11.0.0-preview.7.26381.103</Net11PreviewPackageVersion>
+    <Net8PackageVersion>8.0.31</Net8PackageVersion>
+    <Net9PackageVersion>9.0.20</Net9PackageVersion>
+    <Net10PackageVersion>10.0.12</Net10PackageVersion>
+    <Net11PreviewPackageVersion>11.0.0-rc.1.26425.128</Net11PreviewPackageVersion>
     <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
-    <MauiNet10PackageVersion>10.0.100</MauiNet10PackageVersion>
-    <MauiNet11PackageVersion>11.0.0-preview.7.26406.9</MauiNet11PackageVersion>
+    <MauiNet10PackageVersion>10.0.101</MauiNet10PackageVersion>
+    <MauiNet11PackageVersion>11.0.0-rc.1.26451.6</MauiNet11PackageVersion>
     <ReactiveUIPackageVersion>24.2.0</ReactiveUIPackageVersion>
   </PropertyGroup>
 
@@ -19,10 +19,10 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CP.Nuke.BuildTools" Version="3.0.2" />
     <PackageVersion Include="log4net" Version="3.4.0" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.9.6" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.10.1" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.10.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.400" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
