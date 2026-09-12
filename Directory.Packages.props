@@ -23,7 +23,7 @@
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.10.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
     <PackageVersion Include="NuGet.Protocol" Version="7.9.0" />
