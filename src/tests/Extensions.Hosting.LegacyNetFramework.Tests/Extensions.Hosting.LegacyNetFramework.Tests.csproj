@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Extensions.Hosting.LegacyNetFramework.Worker\Extensions.Hosting.LegacyNetFramework.Worker.csproj" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=net462" />
+    <ProjectReference Include="..\Extensions.Hosting.LegacyNetFramework.Worker\Extensions.Hosting.LegacyNetFramework.Worker.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\Extensions.Hosting.PluginLoading.Fixture\Extensions.Hosting.PluginLoading.Fixture.csproj" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=net462" />
     <ProjectReference Include="..\Extensions.Hosting.PluginLoading.Reactive.Fixture\Extensions.Hosting.PluginLoading.Reactive.Fixture.csproj" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=net462" />
   </ItemGroup>

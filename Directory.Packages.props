@@ -10,6 +10,8 @@
     <MauiNet10PackageVersion>10.0.101</MauiNet10PackageVersion>
     <MauiNet11PackageVersion>11.0.0-rc.1.26451.6</MauiNet11PackageVersion>
     <ReactiveUIPackageVersion>24.2.0</ReactiveUIPackageVersion>
+    <RoslynAnalysersVersion>5.1.2</RoslynAnalysersVersion>
+    <PrimitivesVersion>8.0.0</PrimitivesVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,23 +21,23 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CP.Nuke.BuildTools" Version="3.0.2" />
     <PackageVersion Include="log4net" Version="3.4.0" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.10.1" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.9.6" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.10.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.0" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
     <PackageVersion Include="NuGet.Protocol" Version="7.9.0" />
     <PackageVersion Include="Nuke.Common" Version="10.1.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
-    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="7.4.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Core" Version="$(PrimitivesVersion)" />
     <!--Reactive UI with ReactiveUI.Primitives support-->
-    <PackageVersion Include="ReactiveUI.Primitives" Version="7.4.0" />
+    <PackageVersion Include="ReactiveUI.Primitives" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.2" />
     <PackageVersion Include="ReactiveUI.Core" Version="$(ReactiveUIPackageVersion)" />
-    <PackageVersion Include="ReactiveUI.Disposables" Version="7.4.0" />
+    <PackageVersion Include="ReactiveUI.Disposables" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Maui" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.WinForms" Version="$(ReactiveUIPackageVersion)" />
@@ -43,7 +45,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <!--Reactive UI with System.Reactive support-->
-    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="7.4.0" />
+    <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia.Reactive" Version="12.1.2" />
     <PackageVersion Include="ReactiveUI.Drawing.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Maui.Reactive" Version="$(ReactiveUIPackageVersion)" />
@@ -54,11 +56,11 @@
     <PackageVersion Include="Splat" Version="21.0.0" />
     <PackageVersion Include="Splat.Microsoft.Extensions.DependencyInjection" Version="21.0.0" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
-    <PackageVersion Include="StyleSharp.Analyzers" Version="3.46.2" />
-    <PackageVersion Include="PerformanceSharp.Analyzers" Version="3.46.2" />
-    <PackageVersion Include="SecuritySharp.Analyzers" Version="3.46.2" />
+    <PackageVersion Include="StyleSharp.Analyzers" Version="$(RoslynAnalysersVersion)" />
+    <PackageVersion Include="PerformanceSharp.Analyzers" Version="$(RoslynAnalysersVersion)" />
+    <PackageVersion Include="SecuritySharp.Analyzers" Version="$(RoslynAnalysersVersion)" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.95.1" />
-    <PackageVersion Include="TUnit" Version="1.66.27" />
+    <PackageVersion Include="TUnit" Version="1.68.17" />
     <PackageVersion Include="Verify.TUnit" Version="32.0.0" />
   </ItemGroup>
 
