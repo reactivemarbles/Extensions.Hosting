@@ -53,7 +53,7 @@ public sealed class ReactiveWpfSchedulerTests
                     completion.SetResult(Environment.CurrentManagedThreadId);
                     return System.Reactive.Disposables.Disposable.Empty;
                 };
-            using var scheduledWork = ((IScheduler)scheduler).Schedule(
+            using var scheduledWork = scheduler.Schedule(
                 scheduledThread,
                 scheduleAction);
 #else
