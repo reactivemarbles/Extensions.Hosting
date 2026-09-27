@@ -61,7 +61,7 @@
     <PackageVersion Include="SecuritySharp.Analyzers" Version="$(RoslynAnalysersVersion)" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.95.1" />
     <PackageVersion Include="TUnit" Version="1.68.17" />
-    <PackageVersion Include="Verify.TUnit" Version="32.0.0" />
+    <PackageVersion Include="Verify.TUnit" Version="32.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0')) != 'true'">
