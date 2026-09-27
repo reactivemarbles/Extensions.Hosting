@@ -11,7 +11,7 @@
     <MauiNet11PackageVersion>11.0.0-rc.1.26451.6</MauiNet11PackageVersion>
     <ReactiveUIPackageVersion>24.2.0</ReactiveUIPackageVersion>
     <RoslynAnalysersVersion>5.1.2</RoslynAnalysersVersion>
-    <PrimitivesVersion>8.0.0</PrimitivesVersion>
+    <PrimitivesVersion>8.2.0</PrimitivesVersion>
   </PropertyGroup>
 
   <ItemGroup>
