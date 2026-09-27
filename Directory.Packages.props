@@ -14,7 +14,7 @@
     <PrimitivesVersion>8.2.0</PrimitivesVersion>
     <ReactiveUIPackageVersion Condition="$(MSBuildProjectName.Contains('Avalonia'))">24.2.0</ReactiveUIPackageVersion>
     <PrimitivesVersion Condition="$(MSBuildProjectName.Contains('Avalonia'))">7.4.0</PrimitivesVersion>
-    <Net10BuildToolsVersion>17.14.28</Net10BuildToolsVersion>
+    <Net10BuildToolsVersion>18.10.1</Net10BuildToolsVersion>
     <Net11BuildToolsVersion>18.10.1</Net11BuildToolsVersion>
   </PropertyGroup>
 
