@@ -206,6 +206,7 @@ jobs:
       - name: Build
         uses: reactiveui/actions-common/.github/actions/dotnet-build@main
         env:
+          CONFIGURATION: ${{ env.configuration }}
           MinVerVersionOverride: ${{ steps.minver.outputs.SemVer2 }}
         with:
           configuration: ${{ env.configuration }}
