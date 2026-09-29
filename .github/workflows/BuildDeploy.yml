@@ -35,7 +35,7 @@ permissions:
   packages: read
 
 env:
-  configuration: Release
+  CONFIGURATION: Release
 
 jobs:
   release:
@@ -206,10 +206,9 @@ jobs:
       - name: Build
         uses: reactiveui/actions-common/.github/actions/dotnet-build@main
         env:
-          CONFIGURATION: ${{ env.configuration }}
           MinVerVersionOverride: ${{ steps.minver.outputs.SemVer2 }}
         with:
-          configuration: ${{ env.configuration }}
+          configuration: ${{ env.CONFIGURATION }}
           src-folder: src
           solution-file: Extensions.Hosting.slnx
           create-packages: 'false'
@@ -219,7 +218,7 @@ jobs:
         working-directory: src
         env:
           MinVerVersionOverride: ${{ steps.minver.outputs.SemVer2 }}
-        run: dotnet pack --no-restore --configuration "${{ env.configuration }}" Extensions.Hosting.slnx -o "${GITHUB_WORKSPACE}/packages" -p:MinVerVersionOverride="${{ steps.minver.outputs.SemVer2 }}"
+        run: dotnet pack --no-restore --configuration "${{ env.CONFIGURATION }}" Extensions.Hosting.slnx -o "${GITHUB_WORKSPACE}/packages" -p:MinVerVersionOverride="${{ steps.minver.outputs.SemVer2 }}"
 
       - name: Upload unsigned packages
         uses: actions/upload-artifact@v7
