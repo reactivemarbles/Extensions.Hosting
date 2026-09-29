@@ -38,7 +38,7 @@
     <!--Reactive UI with ReactiveUI.Primitives support-->
     <PackageVersion Include="ReactiveUI.Primitives" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI" Version="$(ReactiveUIPackageVersion)" />
-    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.2" />
+    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.5" />
     <PackageVersion Include="ReactiveUI.Core" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Disposables" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="$(ReactiveUIPackageVersion)" />
@@ -49,7 +49,7 @@
     <PackageVersion Include="ReactiveUI.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <!--Reactive UI with System.Reactive support-->
     <PackageVersion Include="ReactiveUI.Primitives.Reactive" Version="$(PrimitivesVersion)" />
-    <PackageVersion Include="ReactiveUI.Avalonia.Reactive" Version="12.1.2" />
+    <PackageVersion Include="ReactiveUI.Avalonia.Reactive" Version="12.1.5" />
     <PackageVersion Include="ReactiveUI.Drawing.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Maui.Reactive" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.WinForms.Reactive" Version="$(ReactiveUIPackageVersion)" />
