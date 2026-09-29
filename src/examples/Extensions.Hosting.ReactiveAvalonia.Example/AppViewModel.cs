@@ -98,7 +98,7 @@ public class AppViewModel : ReactiveObject
             .Where(static term => !string.IsNullOrWhiteSpace(term))
             .SelectMany(term => Signal.FromAsync(token => SearchNuGetPackages(term, token)))
             .ObserveOn(RxSchedulers.MainThreadScheduler)
-            .ToProperty(this, x => x.SearchResults);
+            .ToProperty(this, static x => x.SearchResults);
         _ = _searchResults.ThrownExceptions.Subscribe(static error => { });
         return _searchResults;
     }
@@ -116,7 +116,7 @@ public class AppViewModel : ReactiveObject
         _isAvailable = this
             .WhenAnyValue(x => x.SearchResults)
             .Select(static searchResults => searchResults is not null)
-            .ToProperty(this, x => x.IsAvailable);
+            .ToProperty(this, static x => x.IsAvailable);
         return _isAvailable;
     }
 }

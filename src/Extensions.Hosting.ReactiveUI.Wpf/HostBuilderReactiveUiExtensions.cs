@@ -39,7 +39,12 @@ public static class HostBuilderReactiveUiExtensions
             ServiceDescriptor.Singleton<IWpfService>(new ReactiveUiWpfSchedulerService()));
         var reactiveUiBuilder = AppLocator.CurrentMutable.CreateReactiveUIBuilder()
             .WithRegistration(static r => r.InitializeSplat())
-            .WithWpf();
+#if REACTIVE_SHIM
+            .WithPlatformModule<global::ReactiveUI.Reactive.Wpf.Registrations>()
+#else
+            .WithPlatformModule<global::ReactiveUI.Wpf.Registrations>()
+#endif
+            .WithWpfConverters();
         _ = reactiveUiBuilder.BuildApp();
     }
 
