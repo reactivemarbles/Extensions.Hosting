@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using ReactiveMarbles.Extensions.Hosting.AppServices;
 using ReactiveMarbles.Extensions.Hosting.ReactiveUI;
 using ReactiveMarbles.Extensions.Hosting.Wpf;
-using ReactiveUI;
 
 namespace Extensions.Hosting.Reactive.Example;
 

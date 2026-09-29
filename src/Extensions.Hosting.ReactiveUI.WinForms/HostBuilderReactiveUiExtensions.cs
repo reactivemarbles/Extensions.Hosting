@@ -2,7 +2,10 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using ReactiveMarbles.Extensions.Hosting.WinForms;
 #if REACTIVE_SHIM
 using ReactiveUI.Reactive.Builder;
 #else
@@ -61,9 +64,15 @@ public static class HostBuilderReactiveUiExtensions
             _ = hostBuilder ?? throw new ArgumentNullException(nameof(hostBuilder));
 
             hostBuilder.Services.UseMicrosoftDependencyResolver();
+            hostBuilder.Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IWinFormsService>(new ReactiveUiWinFormsService()));
             var reactiveUiBuilder = AppLocator.CurrentMutable.CreateReactiveUIBuilder()
                 .WithRegistration(static r => r.InitializeSplat())
-                .WithWinForms();
+#if REACTIVE_SHIM
+                .WithPlatformModule<global::ReactiveUI.Reactive.Winforms.Registrations>();
+#else
+                .WithPlatformModule<global::ReactiveUI.Winforms.Registrations>();
+#endif
             _ = reactiveUiBuilder.BuildApp();
             return hostBuilder;
         }
@@ -82,9 +91,15 @@ public static class HostBuilderReactiveUiExtensions
             hostBuilder.ConfigureServices(static (serviceCollection) =>
             {
                 serviceCollection.UseMicrosoftDependencyResolver();
+                serviceCollection.TryAddEnumerable(
+                    ServiceDescriptor.Singleton<IWinFormsService>(new ReactiveUiWinFormsService()));
                 var reactiveUiBuilder = AppLocator.CurrentMutable.CreateReactiveUIBuilder()
                     .WithRegistration(static r => r.InitializeSplat())
-                    .WithWinForms();
+#if REACTIVE_SHIM
+                    .WithPlatformModule<global::ReactiveUI.Reactive.Winforms.Registrations>();
+#else
+                    .WithPlatformModule<global::ReactiveUI.Winforms.Registrations>();
+#endif
                 _ = reactiveUiBuilder.BuildApp();
             });
     }

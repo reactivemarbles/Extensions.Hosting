@@ -2,11 +2,17 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ReactiveMarbles.Extensions.Hosting.WinForms;
 #if REACTIVE_SHIM
 using ReactiveMarbles.Extensions.Hosting.Reactive.ReactiveUI;
+using ControlSequencer = ReactiveUI.Primitives.Reactive.Concurrency.ControlSequencer;
+using RxSchedulers = ReactiveUI.Reactive.RxSchedulers;
 #else
 using ReactiveMarbles.Extensions.Hosting.ReactiveUI;
+using ControlSequencer = ReactiveUI.Primitives.Concurrency.ControlSequencer;
+using RxSchedulers = ReactiveUI.RxSchedulers;
 #endif
 
 namespace Extensions.Hosting.WinForms.Tests;
@@ -15,6 +21,36 @@ namespace Extensions.Hosting.WinForms.Tests;
 [NotInParallel]
 public sealed class ReactiveUiWinFormsExtensionsTests
 {
+    /// <summary>Gets the maximum duration allowed for hosted UI startup and shutdown.</summary>
+    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+
+    /// <summary>Verifies scheduler binding on the hosted UI thread before its message loop starts.</summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [Test]
+    public async Task ConfigureSplatForMicrosoftDependencyResolver_HostedUiBindsWinFormsScheduler()
+    {
+        var originalScheduler = RxSchedulers.MainThreadScheduler;
+        var captureService = new SchedulerCaptureService();
+        var hostBuilder = Host.CreateApplicationBuilder();
+        _ = hostBuilder.ConfigureSplatForMicrosoftDependencyResolver();
+        _ = hostBuilder.ConfigureWinForms(static context => context.EnableVisualStyles = false);
+        _ = hostBuilder.Services.AddSingleton<IWinFormsService>(captureService);
+        using var host = hostBuilder.Build();
+
+        try
+        {
+            await host.StartAsync().WaitAsync(Timeout);
+            var schedulerIsBound = await captureService.SchedulerIsBound.Task.WaitAsync(Timeout);
+
+            await Assert.That(schedulerIsBound).IsTrue();
+        }
+        finally
+        {
+            await host.StopAsync().WaitAsync(Timeout);
+            RxSchedulers.MainThreadScheduler = originalScheduler;
+        }
+    }
+
     /// <summary>Verifies that application builders reject a null receiver.</summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [Test]
@@ -81,5 +117,15 @@ public sealed class ReactiveUiWinFormsExtensionsTests
 
         await Assert.That(mappedHost).IsNull();
         await Assert.That(mappedProvider).IsNull();
+    }
+
+    /// <summary>Captures the scheduler after the ReactiveUI service initializes on the UI thread.</summary>
+    private sealed class SchedulerCaptureService : IWinFormsService
+    {
+        /// <summary>Gets the scheduler binding result.</summary>
+        public TaskCompletionSource<bool> SchedulerIsBound { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <inheritdoc />
+        public void Initialize() => SchedulerIsBound.SetResult(RxSchedulers.MainThreadScheduler is ControlSequencer);
     }
 }

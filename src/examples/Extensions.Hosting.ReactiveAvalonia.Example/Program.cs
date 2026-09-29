@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using ReactiveMarbles.Extensions.Hosting.AppServices;
 using ReactiveMarbles.Extensions.Hosting.Avalonia;
 using ReactiveMarbles.Extensions.Hosting.ReactiveUI;
-using ReactiveUI;
 
 namespace Extensions.Hosting.ReactiveAvalonia.Example;
 
