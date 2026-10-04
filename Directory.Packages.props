@@ -9,7 +9,7 @@
     <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
     <MauiNet10PackageVersion>10.0.110</MauiNet10PackageVersion>
     <MauiNet11PackageVersion>11.0.0-rc.1.26451.6</MauiNet11PackageVersion>
-    <ReactiveUIPackageVersion>25.1.1</ReactiveUIPackageVersion>
+    <ReactiveUIPackageVersion>26.0.1</ReactiveUIPackageVersion>
     <RoslynAnalysersVersion>5.1.2</RoslynAnalysersVersion>
     <PrimitivesVersion>8.4.0</PrimitivesVersion>
     <Net10BuildToolsVersion>18.9.6</Net10BuildToolsVersion>
