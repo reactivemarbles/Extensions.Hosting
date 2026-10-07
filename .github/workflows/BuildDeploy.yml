@@ -239,6 +239,7 @@ jobs:
     container:
       image: ghcr.io/reactiveui/certum-signer:latest
     env:
+      DISPLAY: ':99'
       CERTUM_USER_ID: ${{ secrets.CERTUM_USER_ID }}
       CERTUM_OTP_URI: ${{ secrets.CERTUM_OTP_URI }}
       CERTUM_CERT_FINGERPRINT: ${{ secrets.CERTUM_CERT_FINGERPRINT }}
@@ -256,6 +257,7 @@ jobs:
           : "${SS_DIST:?prebuilt image must set SS_DIST}"
           {
             echo "SS_DIST=$SS_DIST"
+            echo "LD_LIBRARY_PATH=$SS_DIST:${LD_LIBRARY_PATH:-}"
             echo "SS_START=$(find "$SS_DIST/" -name 'SimplySignDesktop_start' -type f | head -1)"
             echo "SS_EXE=$(find "$SS_DIST/" -name 'SimplySignDesktop' -type f | head -1)"
             echo "SS_PKCS11=$(find "$SS_DIST/" -name 'SimplySignPKCS*.so' | head -1)"
@@ -275,8 +277,6 @@ jobs:
 
       - name: Connect SimplySign
         shell: bash
-        env:
-          DISPLAY: ':99'
         run: |
           set -euo pipefail
           : "${CERTUM_USER_ID:?map the CERTUM_USER_ID secret into the job env}"
@@ -304,16 +304,14 @@ jobs:
             apt-get update && apt-get install -y --no-install-recommends python3
           fi
 
-          OTP="$(python3 -c 'import os,hmac,hashlib,base64,struct,time;from urllib.parse import urlparse,parse_qs;q=parse_qs(urlparse(os.environ["CERTUM_OTP_URI"]).query);s=q["secret"][0];digits=int(q.get("digits",["6"])[0]);period=int(q.get("period",["30"])[0]);algo={"SHA1":hashlib.sha1,"SHA256":hashlib.sha256,"SHA512":hashlib.sha512}[q.get("algorithm",["SHA1"])[0].upper()];key=base64.b32decode(s+"="*((8-len(s)%8)%8));h=hmac.new(key,struct.pack(">Q",int(time.time()//period)),algo).digest();o=h[-1]&0xF;print(str((int.from_bytes(h[o:o+4],"big")&0x7fffffff)%(10**digits)).zfill(digits))')"
-          echo "::add-mask::$OTP"
-
           WID=""; BX=0; BY=0; BW=0; BH=0
           for attempt in $(seq 1 30); do
             best=0; WID=""
-            for w in $(xdotool search --name '' 2>/dev/null); do
+            for w in $(xdotool search --onlyvisible --name '' 2>/dev/null || true); do
               nm="$(xdotool getwindowname "$w" 2>/dev/null || true)"
               case "$nm" in *implySign*) ;; *) continue ;; esac
-              eval "$(xdotool getwindowgeometry --shell "$w" 2>/dev/null)"
+              geometry="$(xdotool getwindowgeometry --shell "$w" 2>/dev/null)" || continue
+              eval "$geometry"
               area=$(( ${WIDTH:-0} * ${HEIGHT:-0} ))
               if [ "$area" -gt "$best" ]; then best=$area; WID=$w; BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}; fi
             done
@@ -327,25 +325,61 @@ jobs:
           sleep 1
 
           xdotool mousemove $((BX + BW/2)) $((BY + BH*39/100)) click 1; sleep 1
+          xdotool key --clearmodifiers ctrl+a
           xdotool type --clearmodifiers --delay 50 "$CERTUM_USER_ID"
           xdotool key Tab; sleep 1
+          # Generate only after locating the form and entering the user id, leaving time to submit.
+          OTP="$(python3 -c 'import os,hmac,hashlib,base64,struct,time;from urllib.parse import urlparse,parse_qs;q=parse_qs(urlparse(os.environ["CERTUM_OTP_URI"]).query);s=q["secret"][0];digits=int(q.get("digits",["6"])[0]);period=int(q.get("period",["30"])[0]);remaining=period-time.time()%period;time.sleep(remaining+0.1 if remaining<10 else 0);algo={"SHA1":hashlib.sha1,"SHA256":hashlib.sha256,"SHA512":hashlib.sha512}[q.get("algorithm",["SHA1"])[0].upper()];key=base64.b32decode(s+"="*((8-len(s)%8)%8));h=hmac.new(key,struct.pack(">Q",int(time.time()//period)),algo).digest();o=h[-1]&0xF;print(str((int.from_bytes(h[o:o+4],"big")&0x7fffffff)%(10**digits)).zfill(digits))')"
+          echo "::add-mask::$OTP"
+          xdotool key --clearmodifiers ctrl+a
           xdotool type --clearmodifiers --delay 50 "$OTP"
+          LOGIN_WID=$WID
           xdotool mousemove $((BX + BW/2)) $((BY + BH*76/100)) click 1
-          sleep 8
 
-          best=0
-          for w in $(xdotool search --name '' 2>/dev/null); do
-            nm="$(xdotool getwindowname "$w" 2>/dev/null || true)"
-            case "$nm" in *implySign*) ;; *) continue ;; esac
-            eval "$(xdotool getwindowgeometry --shell "$w" 2>/dev/null)"
-            area=$(( ${WIDTH:-0} * ${HEIGHT:-0} ))
-            if [ "$area" -gt "$best" ]; then best=$area; WID=$w; BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}; fi
+          # The modal Close must be acknowledged before the PKCS#11 token activates.
+          # Prefer a newly mapped modal over a stale or hidden login window.
+          WID=""
+          for attempt in $(seq 1 30); do
+            best=0
+            for w in $(xdotool search --onlyvisible --name '' 2>/dev/null || true); do
+              nm="$(xdotool getwindowname "$w" 2>/dev/null || true)"
+              case "$nm" in *implySign*) ;; *) continue ;; esac
+              geometry="$(xdotool getwindowgeometry --shell "$w" 2>/dev/null)" || continue
+              eval "$geometry"
+              if [ "$w" = "$LOGIN_WID" ]; then
+                continue
+              fi
+              area=$(( ${WIDTH:-0} * ${HEIGHT:-0} ))
+              if [ "$area" -gt "$best" ]; then best=$area; WID=$w; BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}; fi
+            done
+            [ -n "$WID" ] && break
+            sleep 2
           done
-          xdotool windowactivate --sync "$WID" || true
+          # A response can reuse the original window; geometry alone cannot prove login failure.
+          if [ -z "$WID" ]; then
+            WID=$LOGIN_WID
+            visible_windows="$(xdotool search --onlyvisible --name '' 2>/dev/null || true)"
+            if ! printf '%s\n' "$visible_windows" | grep -Fxq "$WID"; then
+              echo "::error::SimplySign response window is not visible."
+              exit 1
+            fi
+            geometry="$(xdotool getwindowgeometry --shell "$WID" 2>/dev/null)" || { echo "::error::SimplySign response window is unavailable."; exit 1; }
+            eval "$geometry"
+            BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}
+            echo "No separate SimplySign response dialog appeared; acknowledging the original window."
+          fi
+          echo "SimplySign response dialog $WID ${BW}x${BH} (attempt $attempt)"
+          xdotool windowactivate --sync "$WID"
           xdotool mousemove $((BX + BW/2)) $((BY + BH*94/100)) click 1
           sleep 3
 
-          timeout 60 pkcs11-tool --module "$SS_PKCS11" -L
+          if timeout 60 pkcs11-tool --module "$SS_PKCS11" -L; then
+            echo "SimplySign PKCS#11 session is available."
+          else
+            result=$?
+            echo "::error::SimplySign PKCS#11 session did not become available after acknowledging the response dialog (exit $result)."
+            exit "$result"
+          fi
 
       - name: Sign packages with jsign
         shell: bash
