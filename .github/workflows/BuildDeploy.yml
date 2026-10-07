@@ -306,7 +306,7 @@ jobs:
 
           WID=""; BX=0; BY=0; BW=0; BH=0
           for attempt in $(seq 1 30); do
-            best=0; WID=""
+            best=0; WID=""; BX=0; BY=0; BW=0; BH=0
             for w in $(xdotool search --onlyvisible --name '' 2>/dev/null || true); do
               nm="$(xdotool getwindowname "$w" 2>/dev/null || true)"
               case "$nm" in *implySign*) ;; *) continue ;; esac
@@ -334,13 +334,15 @@ jobs:
           xdotool key --clearmodifiers ctrl+a
           xdotool type --clearmodifiers --delay 50 "$OTP"
           LOGIN_WID=$WID
+          LOGIN_NAME="$(xdotool getwindowname "$LOGIN_WID")"
+          LOGIN_WIDTH=$BW; LOGIN_HEIGHT=$BH
           xdotool mousemove $((BX + BW/2)) $((BY + BH*76/100)) click 1
 
           # The modal Close must be acknowledged before the PKCS#11 token activates.
-          # Prefer a newly mapped modal over a stale or hidden login window.
+          # Ignore tiny helper/tray windows while waiting for a newly mapped dialog.
           WID=""
           for attempt in $(seq 1 30); do
-            best=0
+            best=0; WID=""; BX=0; BY=0; BW=0; BH=0
             for w in $(xdotool search --onlyvisible --name '' 2>/dev/null || true); do
               nm="$(xdotool getwindowname "$w" 2>/dev/null || true)"
               case "$nm" in *implySign*) ;; *) continue ;; esac
@@ -349,13 +351,17 @@ jobs:
               if [ "$w" = "$LOGIN_WID" ]; then
                 continue
               fi
+              if [ "${WIDTH:-0}" -lt 200 ] || [ "${HEIGHT:-0}" -lt 100 ]; then
+                [ "$attempt" -ne 1 ] || echo "Ignoring SimplySign helper window $w ${WIDTH:-0}x${HEIGHT:-0}."
+                continue
+              fi
               area=$(( ${WIDTH:-0} * ${HEIGHT:-0} ))
               if [ "$area" -gt "$best" ]; then best=$area; WID=$w; BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}; fi
             done
             [ -n "$WID" ] && break
             sleep 2
           done
-          # A response can reuse the original window; geometry alone cannot prove login failure.
+          # Only reuse the login window if its title or dimensions changed after submission.
           if [ -z "$WID" ]; then
             WID=$LOGIN_WID
             visible_windows="$(xdotool search --onlyvisible --name '' 2>/dev/null || true)"
@@ -366,10 +372,24 @@ jobs:
             geometry="$(xdotool getwindowgeometry --shell "$WID" 2>/dev/null)" || { echo "::error::SimplySign response window is unavailable."; exit 1; }
             eval "$geometry"
             BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}
+            if [ "$BW" -lt 200 ] || [ "$BH" -lt 100 ]; then
+              echo "::error::SimplySign response window is too small to be a dialog (${BW}x${BH})."
+              exit 1
+            fi
+            response_name="$(xdotool getwindowname "$WID")"
+            if [ "$response_name" = "$LOGIN_NAME" ] && [ "$BW" -eq "$LOGIN_WIDTH" ] && [ "$BH" -eq "$LOGIN_HEIGHT" ]; then
+              echo "::error::No separate SimplySign response dialog appeared and the login window is unchanged."
+              exit 1
+            fi
             echo "No separate SimplySign response dialog appeared; acknowledging the original window."
           fi
+          # Refresh screen coordinates in case the window manager moved or resized the dialog.
+          geometry="$(xdotool getwindowgeometry --shell "$WID" 2>/dev/null)" || { echo "::error::SimplySign response dialog disappeared."; exit 1; }
+          eval "$geometry"
+          BX=${X:-0}; BY=${Y:-0}; BW=${WIDTH:-0}; BH=${HEIGHT:-0}
+          [ "$BW" -ge 200 ] && [ "$BH" -ge 100 ] || { echo "::error::SimplySign response dialog became too small (${BW}x${BH})."; exit 1; }
           echo "SimplySign response dialog $WID ${BW}x${BH} (attempt $attempt)"
-          xdotool windowactivate --sync "$WID"
+          timeout 10 xdotool windowactivate --sync "$WID" || { echo "::error::SimplySign response dialog could not be activated."; exit 1; }
           xdotool mousemove $((BX + BW/2)) $((BY + BH*94/100)) click 1
           sleep 3
 
