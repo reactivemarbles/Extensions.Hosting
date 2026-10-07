@@ -12,7 +12,7 @@
     <ReactiveUIPackageVersion>26.0.1</ReactiveUIPackageVersion>
     <RoslynAnalysersVersion>5.1.2</RoslynAnalysersVersion>
     <PrimitivesVersion>9.0.0</PrimitivesVersion>
-    <Net10BuildToolsVersion>18.9.6</Net10BuildToolsVersion>
+    <Net10BuildToolsVersion>18.10.1</Net10BuildToolsVersion>
     <Net11BuildToolsVersion>18.10.1</Net11BuildToolsVersion>
   </PropertyGroup>
 
