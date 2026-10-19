@@ -2,18 +2,18 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <Net8PackageVersion>8.0.31</Net8PackageVersion>
-    <Net9PackageVersion>9.0.20</Net9PackageVersion>
-    <Net10PackageVersion>10.0.12</Net10PackageVersion>
-    <Net11PreviewPackageVersion>11.0.0-rc.1.26425.128</Net11PreviewPackageVersion>
+    <Net8PackageVersion>8.0.32</Net8PackageVersion>
+    <Net9PackageVersion>9.0.21</Net9PackageVersion>
+    <Net10PackageVersion>10.0.13</Net10PackageVersion>
+    <Net11PreviewPackageVersion>11.0.0-rc.2.26504.105</Net11PreviewPackageVersion>
     <MauiNet9PackageVersion>9.0.120</MauiNet9PackageVersion>
     <MauiNet10PackageVersion>10.0.110</MauiNet10PackageVersion>
-    <MauiNet11PackageVersion>11.0.0-rc.1.26451.6</MauiNet11PackageVersion>
+    <MauiNet11PackageVersion>11.0.0-rc.2.26505.5</MauiNet11PackageVersion>
     <ReactiveUIPackageVersion>26.0.1</ReactiveUIPackageVersion>
     <RoslynAnalysersVersion>5.1.3</RoslynAnalysersVersion>
     <PrimitivesVersion>9.0.0</PrimitivesVersion>
-    <Net10BuildToolsVersion>18.10.1</Net10BuildToolsVersion>
-    <Net11BuildToolsVersion>18.10.1</Net11BuildToolsVersion>
+    <Net10BuildToolsVersion>18.11.0</Net10BuildToolsVersion>
+    <Net11BuildToolsVersion>18.11.0</Net11BuildToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@
     <PackageVersion Include="CP.Nuke.BuildTools" Version="3.0.2" />
     <PackageVersion Include="log4net" Version="3.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.402" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
