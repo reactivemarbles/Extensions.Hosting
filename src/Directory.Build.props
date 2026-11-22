@@ -12,7 +12,7 @@
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Compatability with Net 8 / 9 / 10 / 11 and net462 / net472 / net481</PackageReleaseNotes>
+    <PackageReleaseNotes>Compatibility with Net 10 / 11 and net47 / net471 / net472 / net48 / net481</PackageReleaseNotes>
     <PackageTags>Microsoft;Extensions;Hosting;Rx;ReactiveUI;net;netframework</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
