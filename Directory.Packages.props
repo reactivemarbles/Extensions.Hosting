@@ -2,9 +2,9 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <Net10PackageVersion>10.0.15</Net10PackageVersion>
+    <Net10PackageVersion>11.0.0</Net10PackageVersion>
     <Net11PackageVersion>11.0.0</Net11PackageVersion>
-    <MauiNet10PackageVersion>10.0.130</MauiNet10PackageVersion>
+    <MauiNet10PackageVersion>11.0.10</MauiNet10PackageVersion>
     <MauiNet11PackageVersion>11.0.10</MauiNet11PackageVersion>
     <ReactiveUIPackageVersion>27.0.1</ReactiveUIPackageVersion>
     <RoslynAnalysersVersion>5.2.0</RoslynAnalysersVersion>
