@@ -71,6 +71,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(Net10PackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.TraceSource" Version="$(Net10PackageVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="$(Net10PackageVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(Net10PackageVersion)" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(Net10PackageVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(Net10PackageVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="$(Net10PackageVersion)" />
@@ -97,6 +98,7 @@
     <PackageVersion Update="Microsoft.Extensions.Logging.Debug" Version="$(Net11PackageVersion)" />
     <PackageVersion Update="Microsoft.Extensions.Logging.TraceSource" Version="$(Net11PackageVersion)" />
     <PackageVersion Update="System.Security.Cryptography.Xml" Version="$(Net11PackageVersion)" />
+    <PackageVersion Update="System.Security.Cryptography.Pkcs" Version="$(Net11PackageVersion)" />
     <PackageVersion Update="System.ServiceProcess.ServiceController" Version="$(Net11PackageVersion)" />
     <PackageVersion Update="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(Net11PackageVersion)" />
     <PackageVersion Update="Microsoft.AspNetCore.Identity.UI" Version="$(Net11PackageVersion)" />
