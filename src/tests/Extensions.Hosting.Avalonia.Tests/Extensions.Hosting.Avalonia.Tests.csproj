@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions.Hosting.Avalonia\Extensions.Hosting.Avalonia.csproj" />
     <ProjectReference Include="..\..\Extensions.Hosting.ReactiveUI.Avalonia\Extensions.Hosting.ReactiveUI.Avalonia.csproj" />
+    <ProjectReference Include="..\..\examples\Extensions.Hosting.ReactiveAvalonia.Example\Extensions.Hosting.ReactiveAvalonia.Example.csproj" />
   </ItemGroup>
 
   <ItemGroup>

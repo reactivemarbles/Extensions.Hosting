@@ -49,11 +49,21 @@ jobs:
         shell: bash
         working-directory: 'src'
         run: |
-          dotnet test --solution Extensions.Hosting.slnx \
-            --configuration Release \
-            --coverage \
-            --coverage-output-format cobertura \
-            --results-directory ./TestResults
+          set -euo pipefail
+          # Test projects explicitly so MAUI examples do not require a device during discovery.
+          mapfile -d '' test_projects < <(find tests -name '*.Tests.csproj' -print0 | sort -z)
+          if [ "${#test_projects[@]}" -eq 0 ]; then
+            echo '::error::No test projects were found.'
+            exit 1
+          fi
+          for project in "${test_projects[@]}"; do
+            project_name="$(basename "$project" .csproj)"
+            dotnet test --project "$project" \
+              --configuration Release \
+              --coverage \
+              --coverage-output-format cobertura \
+              --results-directory "$GITHUB_WORKSPACE/src/TestResults/$project_name"
+          done
 
       - name: Upload coverage
         uses: actions/upload-artifact@v7

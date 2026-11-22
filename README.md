@@ -57,7 +57,7 @@ The normal packages use the standard `ReactiveMarbles.Extensions.Hosting.*` name
 
 Use the normal packages when the application uses the standard ReactiveUI/ReactiveUI.Primitives package set. Use the `.Reactive` packages when the application uses `ReactiveUI.Primitives.*.Reactive` or `ReactiveUI.*.Reactive` packages. The hosting APIs are intentionally the same; migration usually means changing the package reference and namespace.
 
-Do not add direct Rx.NET package references to application projects for this repository's hosting APIs. Use the ReactiveUI.Primitives package family, and use the `.Reactive` package variants only when a reactive bridge package is required.
+Do not add direct Rx.NET package references to application projects for this repository's hosting APIs. Use the ReactiveUI.Primitives package family, and use the `.Reactive` package variants only when a reactive bridge package is required. The Reactive Avalonia and WPF example applications use the normal packages and do not require System.Reactive.
 
 ```xml
 <ItemGroup>
@@ -95,25 +95,24 @@ For ReactiveUI.Primitives application code, project-file using aliases keep view
 
 ## Target Frameworks
 
-The libraries target .NET Framework where the platform supports it, current .NET TFMs, and `net11.0` preview TFMs. Windows desktop packages use Windows-specific TFMs.
+The libraries target .NET Framework 4.7 and later where the platform supports it, .NET 10 and .NET 11, and Windows-specific TFMs for desktop packages.
 
 | Area | Target frameworks |
 | --- | --- |
-| Shared, plug-ins, single instance | `net462`, `net472`, `net48`, `net481`, `net8.0`, `net9.0`, `net10.0`, `net11.0` |
-| WPF, WinForms, PluginService | .NET Framework TFMs plus `net8.0-windows`, `net9.0-windows`, `net10.0-windows`, `net11.0-windows` |
-| ReactiveUI WPF/WinForms | .NET Framework TFMs plus `net8.0-windows10.0.19041`, `net9.0-windows10.0.19041`, `net10.0-windows10.0.19041`, `net11.0-windows10.0.19041` |
-| WinUI and ReactiveUI WinUI | `net8.0-windows10.0.19041`, `net9.0-windows10.0.19041`, `net10.0-windows10.0.19041`, `net11.0-windows10.0.19041` |
-| Avalonia and ReactiveUI Avalonia | `net8.0`, `net9.0`, `net10.0`, `net11.0` |
-| MAUI host | `net9.0`, `net10.0`, `net11.0`; platform workloads start at `net10.0-*` and include Android, iOS, Mac Catalyst, macOS, and tvOS where supported |
+| Shared, plug-ins, single instance | `net47`, `net471`, `net472`, `net48`, `net481`, `net10.0`, `net11.0` |
+| WPF, WinForms, PluginService | .NET Framework TFMs plus `net10.0-windows`, `net11.0-windows` |
+| ReactiveUI WPF/WinForms | .NET Framework TFMs plus `net10.0-windows10.0.19041`, `net11.0-windows10.0.19041` |
+| WinUI and ReactiveUI WinUI | `net10.0-windows10.0.19041`, `net11.0-windows10.0.19041` |
+| Avalonia and ReactiveUI Avalonia | `net10.0`, `net11.0` |
+| MAUI host | `net10.0`, `net11.0`; platform workloads include Android, iOS, Mac Catalyst, macOS, and tvOS where supported |
 | ReactiveUI MAUI | `net10.0`, `net11.0`; matching platform workload TFMs start at `net10.0-*` |
-| Identity EF Core helpers | `net8.0`, `net9.0`, `net10.0`, `net11.0` |
-| Log4Net | `net462`, `net472`, `net48`, `net481`, `net8.0`, `net9.0`, `net10.0`, `net11.0` |
+| Identity EF Core helpers | `net10.0`, `net11.0` |
+| Log4Net | .NET Framework TFMs plus `net10.0`, `net11.0` |
 
 The repository uses Central Package Management in `Directory.Packages.props`. Notable
-centrally managed versions include `StyleSharp.Analyzers` `3.46.0`,
-`ReactiveUI.Primitives` `7.3.0`, `ReactiveUI` `24.2.0`,
-`ReactiveUI.Avalonia` `12.1.1`, and `Splat` `21.0.0`. `net11.0` support uses preview
-SDK and workload packages until those dependencies become stable.
+centrally managed versions include `StyleSharp.Analyzers` `5.2.0`,
+`ReactiveUI.Primitives` `10.2.3`, `ReactiveUI` `27.0.1`,
+`ReactiveUI.Avalonia` `12.1.7`, and `Splat` `22.0.1`. .NET 11 targets use the stable .NET 11 SDK and corresponding workload packages.
 
 ## Host Builder Styles
 

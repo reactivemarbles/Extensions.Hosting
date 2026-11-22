@@ -21,7 +21,7 @@ using ReactivePlugins = ReactiveMarbles.Extensions.Hosting.Reactive.Plugins;
 
 namespace Extensions.Hosting.LegacyNetFramework.Worker;
 
-/// <summary>Runs observable net462 package compatibility probes for coverage collection.</summary>
+/// <summary>Runs observable net47 package compatibility probes for coverage collection.</summary>
 public static class Program
 {
     /// <summary>Stores the expected command-line argument count.</summary>
@@ -94,7 +94,7 @@ public static class Program
         return 0;
     }
 
-    /// <summary>Creates and releases a net462 resource mutex through the public package API.</summary>
+    /// <summary>Creates and releases a net47 resource mutex through the public package API.</summary>
     /// <returns>true when the mutex is acquired.</returns>
     private static bool RunResourceMutexProbe()
     {
@@ -103,7 +103,7 @@ public static class Program
         return mutex.IsLocked;
     }
 
-    /// <summary>Starts a dedicated UI thread through the net462 operating-system branch.</summary>
+    /// <summary>Starts a dedicated UI thread through the net47 operating-system branch.</summary>
     /// <returns>true when the worker UI thread reaches its start callback.</returns>
     private static bool RunBaseUiThreadProbe()
     {
@@ -123,7 +123,7 @@ public static class Program
             && uiContext.IsRunning;
     }
 
-    /// <summary>Loads the normal plugin fixture through the net462 plugin package.</summary>
+    /// <summary>Loads the normal plugin fixture through the net47 plugin package.</summary>
     /// <param name="pluginDirectory">The directory that contains the normal plugin fixture.</param>
     /// <returns>true when the normal plugin fixture assembly is loaded and scanned.</returns>
     private static bool RunNormalPluginLoadProbe(string pluginDirectory)
@@ -158,7 +158,7 @@ public static class Program
             && configuredPlugins.SequenceEqual(["normal-earlier", "normal-later"]);
     }
 
-    /// <summary>Loads the reactive plugin fixture through the net462 reactive plugin package.</summary>
+    /// <summary>Loads the reactive plugin fixture through the net47 reactive plugin package.</summary>
     /// <param name="pluginDirectory">The directory that contains the reactive plugin fixture.</param>
     /// <returns>true when the reactive plugin fixture assembly is loaded and scanned.</returns>
     private static bool RunReactivePluginLoadProbe(string pluginDirectory)

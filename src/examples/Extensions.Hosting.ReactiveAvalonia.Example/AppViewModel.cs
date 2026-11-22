@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Configuration;
 using NuGet.Protocol.Core.Types;
 using ReactiveUI;
+using ReactiveUI.Binding;
 
 namespace Extensions.Hosting.ReactiveAvalonia.Example;
 
@@ -99,7 +101,7 @@ public class AppViewModel : ReactiveObject
             .SelectMany(term => Signal.FromAsync(token => SearchNuGetPackages(term, token)))
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .ToProperty(this, static x => x.SearchResults);
-        _ = _searchResults.ThrownExceptions.Subscribe(static error => { });
+        _ = _searchResults.ThrownExceptions.Subscribe(static error => Trace.TraceError("NuGet package search failed: {0}", error));
         return _searchResults;
     }
 
