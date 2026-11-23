@@ -32,7 +32,7 @@
     <!--Reactive UI with ReactiveUI.Primitives support-->
     <PackageVersion Include="ReactiveUI.Primitives" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI" Version="$(ReactiveUIPackageVersion)" />
-    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.7" />
+    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.9" />
     <PackageVersion Include="ReactiveUI.Core" Version="$(ReactiveUIPackageVersion)" />
     <PackageVersion Include="ReactiveUI.Disposables" Version="$(PrimitivesVersion)" />
     <PackageVersion Include="ReactiveUI.Drawing" Version="$(ReactiveUIPackageVersion)" />
