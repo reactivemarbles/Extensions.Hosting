@@ -50,7 +50,7 @@ public class AppViewModel : ReactiveObject
     /// <param name="term">The search term.</param>
     /// <param name="token">The cancellation token.</param>
     /// <returns>The package detail view models that match the search term.</returns>
-    private static async Task<IEnumerable<NugetDetailsViewModel>> SearchNuGetPackages(string? term, CancellationToken token)
+    private static async Task<IEnumerable<NugetDetailsViewModel>> SearchNuGetPackages(string term, CancellationToken token)
     {
         var providers = new List<Lazy<INuGetResourceProvider>>(Repository.Provider.GetCoreV3());
         var package = new PackageSource("https://api.nuget.org/v3/index.json");
@@ -93,12 +93,13 @@ public class AppViewModel : ReactiveObject
         }
 
         _searchResults = this
-            .WhenAnyValue(x => x.SearchTerm)
+            .WhenAnyValue(static x => x.SearchTerm)
             .Throttle(TimeSpan.FromMilliseconds(SearchDelayMilliseconds))
             .Select(static term => term?.Trim())
             .DistinctUntilChanged()
-            .Where(static term => !string.IsNullOrWhiteSpace(term))
-            .SelectMany(term => Signal.FromAsync(token => SearchNuGetPackages(term, token)))
+            .OfType<string>()
+            .Where(static term => term.Length > 0)
+            .SelectMany(static term => Signal.FromAsync(token => SearchNuGetPackages(term, token)))
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .ToProperty(this, static x => x.SearchResults);
         _ = _searchResults.ThrownExceptions.Subscribe(static error => Trace.TraceError("NuGet package search failed: {0}", error));
@@ -116,7 +117,7 @@ public class AppViewModel : ReactiveObject
 
         _ = EnsureSearchResultsInitialized();
         _isAvailable = this
-            .WhenAnyValue(x => x.SearchResults)
+            .WhenAnyValue(static x => x.SearchResults)
             .Select(static searchResults => searchResults is not null)
             .ToProperty(this, static x => x.IsAvailable);
         return _isAvailable;

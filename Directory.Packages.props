@@ -6,7 +6,7 @@
     <Net11PackageVersion>11.0.0</Net11PackageVersion>
     <MauiNet10PackageVersion>10.0.130</MauiNet10PackageVersion>
     <MauiNet11PackageVersion>11.0.10</MauiNet11PackageVersion>
-    <ReactiveUIPackageVersion>27.0.1</ReactiveUIPackageVersion>
+    <ReactiveUIPackageVersion>28.0.0</ReactiveUIPackageVersion>
     <RoslynAnalysersVersion>5.2.0</RoslynAnalysersVersion>
     <PrimitivesVersion>10.2.3</PrimitivesVersion>
     <Net10BuildToolsVersion>18.0.2</Net10BuildToolsVersion>
@@ -56,7 +56,7 @@
     <PackageVersion Include="PerformanceSharp.Analyzers" Version="$(RoslynAnalysersVersion)" />
     <PackageVersion Include="SecuritySharp.Analyzers" Version="$(RoslynAnalysersVersion)" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.95.2" />
-    <PackageVersion Include="TUnit" Version="1.84.0" />
+    <PackageVersion Include="TUnit" Version="1.87.12" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
   </ItemGroup>
 
