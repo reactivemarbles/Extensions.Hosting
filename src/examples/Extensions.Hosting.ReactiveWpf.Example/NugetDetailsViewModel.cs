@@ -35,17 +35,17 @@ public class NugetDetailsViewModel : ReactiveObject
     /// </value>
     public Uri IconUrl => _metadata.IconUrl ?? _defaultUrl;
 
-    /// <summary>Gets the description.</summary>
+    /// <summary>Gets the description, or <see langword="null"/> if none is provided.</summary>
     /// <value>
-    /// The description.
+    /// The description, or <see langword="null"/> if none is provided.
     /// </value>
-    public string Description => _metadata.Description;
+    public string? Description => _metadata.Description;
 
-    /// <summary>Gets the project URL.</summary>
+    /// <summary>Gets the project URL, or <see langword="null"/> if none is provided.</summary>
     /// <value>
-    /// The project URL.
+    /// The project URL, or <see langword="null"/> if none is provided.
     /// </value>
-    public Uri ProjectUrl => _metadata.ProjectUrl;
+    public Uri? ProjectUrl => _metadata.ProjectUrl;
 
     /// <summary>Gets the title.</summary>
     /// <value>

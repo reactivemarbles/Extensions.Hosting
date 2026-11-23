@@ -31,20 +31,20 @@ public partial class MainWindow : ReactiveWindow<AppViewModel>, IWpfShell
         {
             _ = this.OneWayBind(
                     ViewModel,
-                    viewModel => viewModel.IsAvailable,
-                    view => view.SearchResultsListBox.Visibility)
+                    static viewModel => viewModel.IsAvailable,
+                    static view => view.SearchResultsListBox.Visibility)
                 .DisposeWith(disposableRegistration);
 
             _ = this.OneWayBind(
                     ViewModel,
-                    viewModel => viewModel.SearchResults,
-                    view => view.SearchResultsListBox.ItemsSource)
+                    static viewModel => viewModel.SearchResults,
+                    static view => view.SearchResultsListBox.ItemsSource)
                 .DisposeWith(disposableRegistration);
 
             _ = this.Bind(
                     ViewModel,
-                    viewModel => viewModel.SearchTerm,
-                    view => view.SearchTextBox.Text)
+                    static viewModel => viewModel.SearchTerm,
+                    static view => view.SearchTextBox.Text)
                 .DisposeWith(disposableRegistration);
         });
     }

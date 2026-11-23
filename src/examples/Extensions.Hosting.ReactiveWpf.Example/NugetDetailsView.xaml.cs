@@ -32,27 +32,27 @@ public partial class NugetDetailsView : ReactiveUserControl<NugetDetailsViewMode
             // This is an easy way of doing value conversion using ReactiveUI binding.
             _ = this.OneWayBind(
                     ViewModel,
-                    viewModel => viewModel.IconUrl,
-                    view => view.IconImage.Source,
+                    static viewModel => viewModel.IconUrl,
+                    static view => view.IconImage.Source,
                     static url => url is null ? null : new BitmapImage(url))
                 .DisposeWith(disposableRegistration);
 
             _ = this.OneWayBind(
                     ViewModel,
-                    viewModel => viewModel.Title,
-                    view => view.TitleRun.Text)
+                    static viewModel => viewModel.Title,
+                    static view => view.TitleRun.Text)
                 .DisposeWith(disposableRegistration);
 
             _ = this.OneWayBind(
                     ViewModel,
-                    viewModel => viewModel.Description,
-                    view => view.DescriptionRun.Text)
+                    static viewModel => viewModel.Description,
+                    static view => view.DescriptionRun.Text)
                 .DisposeWith(disposableRegistration);
 
             _ = this.BindCommand(
                     ViewModel,
-                    viewModel => viewModel.OpenPage,
-                    view => view.OpenButton)
+                    static viewModel => viewModel.OpenPage,
+                    static view => view.OpenButton)
                 .DisposeWith(disposableRegistration);
         });
     }
